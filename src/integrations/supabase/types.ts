@@ -14,16 +14,290 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          request_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          request_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          request_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attachments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          academy: string | null
+          corps: Database["public"]["Enums"]["corps_type"] | null
+          created_at: string
+          directorate: string | null
+          email: string | null
+          employee_number: string | null
+          full_name: string | null
+          id: string
+          institution: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          zone: string | null
+        }
+        Insert: {
+          academy?: string | null
+          corps?: Database["public"]["Enums"]["corps_type"] | null
+          created_at?: string
+          directorate?: string | null
+          email?: string | null
+          employee_number?: string | null
+          full_name?: string | null
+          id?: string
+          institution?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          zone?: string | null
+        }
+        Update: {
+          academy?: string | null
+          corps?: Database["public"]["Enums"]["corps_type"] | null
+          created_at?: string
+          directorate?: string | null
+          email?: string | null
+          employee_number?: string | null
+          full_name?: string | null
+          id?: string
+          institution?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          zone?: string | null
+        }
+        Relationships: []
+      }
+      request_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: Database["public"]["Enums"]["request_status"]
+          note: string | null
+          old_status: Database["public"]["Enums"]["request_status"] | null
+          request_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: Database["public"]["Enums"]["request_status"]
+          note?: string | null
+          old_status?: Database["public"]["Enums"]["request_status"] | null
+          request_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["request_status"]
+          note?: string | null
+          old_status?: Database["public"]["Enums"]["request_status"] | null
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_status_history_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requests: {
+        Row: {
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["request_category"]
+          created_at: string
+          description: string | null
+          id: string
+          status: Database["public"]["Enums"]["request_status"]
+          subject: string
+          tracking_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: Database["public"]["Enums"]["request_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          subject: string
+          tracking_number?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["request_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          subject?: string
+          tracking_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_assigned_officer: {
+        Args: { _request_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_request_owner: {
+        Args: { _request_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "teacher" | "union_officer" | "admin"
+      corps_type: "primary" | "middle_school" | "high_school" | "administrative"
+      request_category:
+        | "medical_file"
+        | "mohammed_vi_foundation"
+        | "promotions"
+        | "transfer"
+        | "assets"
+        | "subscriptions"
+        | "scholarships"
+      request_status:
+        | "submitted"
+        | "received"
+        | "processing"
+        | "resolved"
+        | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +424,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["teacher", "union_officer", "admin"],
+      corps_type: ["primary", "middle_school", "high_school", "administrative"],
+      request_category: [
+        "medical_file",
+        "mohammed_vi_foundation",
+        "promotions",
+        "transfer",
+        "assets",
+        "subscriptions",
+        "scholarships",
+      ],
+      request_status: [
+        "submitted",
+        "received",
+        "processing",
+        "resolved",
+        "rejected",
+      ],
+    },
   },
 } as const

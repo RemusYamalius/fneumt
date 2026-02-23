@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, LogOut, Bell, Globe } from 'lucide-react';
+import { FilePlus, Search, User, LogOut, Bell, Globe, Shield } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ const Dashboard = () => {
     { icon: FilePlus, title: t.newRequest, desc: t.newRequestDesc, to: '/new-request', gradient: 'from-primary to-accent' },
     { icon: Search, title: t.trackFiles, desc: t.trackFilesDesc, to: '/track', gradient: 'from-accent to-primary' },
     { icon: User, title: t.profile, desc: '', to: '/profile', gradient: 'from-secondary to-primary' },
+    ...(role === 'admin' ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', gradient: 'from-primary to-secondary' }] : []),
   ];
 
   const handleSignOut = async () => {

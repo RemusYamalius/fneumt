@@ -57,6 +57,18 @@ const translations: Record<Lang, Record<string, string>> = {
     roleTeacher: 'أستاذ(ة)',
     roleOfficer: 'مسؤول نقابي',
     roleAdmin: 'مدير',
+    // Admin
+    userManagement: 'إدارة المستخدمين',
+    userManagementDesc: 'عرض وتعديل أدوار المستخدمين',
+    backToDashboard: 'العودة للوحة التحكم',
+    roleUpdated: 'تم تحديث الدور بنجاح',
+    roleLabel: 'الدور',
+    corpsLabel: 'السلك',
+    institutionLabel: 'المؤسسة',
+    corpsPrimary: 'ابتدائي',
+    corpsMiddle: 'إعدادي',
+    corpsHigh: 'ثانوي',
+    corpsAdmin: 'إداري',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT Sidi Bennour',
@@ -112,6 +124,18 @@ const translations: Record<Lang, Record<string, string>> = {
     roleTeacher: 'Enseignant(e)',
     roleOfficer: 'Responsable syndical',
     roleAdmin: 'Administrateur',
+    // Admin
+    userManagement: 'Gestion des utilisateurs',
+    userManagementDesc: 'Afficher et modifier les rôles des utilisateurs',
+    backToDashboard: 'Retour au tableau de bord',
+    roleUpdated: 'Rôle mis à jour avec succès',
+    roleLabel: 'Rôle',
+    corpsLabel: 'Corps',
+    institutionLabel: 'Établissement',
+    corpsPrimary: 'Primaire',
+    corpsMiddle: 'Collège',
+    corpsHigh: 'Lycée',
+    corpsAdmin: 'Administratif',
   },
 };
 

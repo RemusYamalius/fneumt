@@ -5,7 +5,7 @@ type Lang = 'ar' | 'fr';
 const translations: Record<Lang, Record<string, string>> = {
   ar: {
     platformName: 'منصة FNE-UMT سيدي بنور',
-    platformSubtitle: 'الفيدرالية الوطنية للتعليم - الاتحاد المغربي للشغل',
+    platformSubtitle: 'الجامعة الوطنية للتعليم - الاتحاد المغربي للشغل',
     heroTitle: 'منصتك الرقمية لتتبع ملفاتك النقابية',
     heroDescription: 'نسهّل عليك تقديم طلباتك وتتبع ملفاتك بكل شفافية وسرعة',
     newRequest: 'طلب جديد',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
@@ -10,9 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import logoFne from '@/assets/logo-fne.png';
+import { ACADEMIES } from '@/lib/academies-data';
 
 const Profile = () => {
-  const { t, dir, lang } = useI18n();
+  const { t, dir } = useI18n();
   const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -31,9 +32,7 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/login');
-    }
+    if (!authLoading && !user) navigate('/login');
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
@@ -55,6 +54,16 @@ const Profile = () => {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const directorates = useMemo(() => {
+    if (!form.academy) return [];
+    const found = ACADEMIES.find(a => a.label === form.academy);
+    return found?.directorates || [];
+  }, [form.academy]);
+
+  const handleAcademyChange = (value: string) => {
+    setForm(prev => ({ ...prev, academy: value, directorate: '' }));
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -67,8 +76,8 @@ const Profile = () => {
         corps: (form.corps || null) as any,
         institution: form.institution.trim() || null,
         zone: form.zone.trim() || null,
-        directorate: form.directorate.trim() || null,
-        academy: form.academy.trim() || null,
+        directorate: form.directorate || null,
+        academy: form.academy || null,
       })
       .eq('user_id', user.id);
 
@@ -99,7 +108,6 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background" dir={dir}>
-      {/* Header */}
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-3">
           <img src={logoFne} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
@@ -116,31 +124,61 @@ const Profile = () => {
         <h1 className="text-2xl font-bold text-foreground mb-8">{t.profile}</h1>
 
         <div className="bg-card rounded-2xl border border-border p-6 md:p-8 space-y-6">
-          {/* Email (read-only) */}
+          {/* 1. Email (read-only) */}
           <div className="space-y-2">
             <Label>{t.emailLabel}</Label>
             <Input value={user.email || ''} disabled className="bg-muted" />
           </div>
 
-          {/* Full Name */}
+          {/* 2. Full Name */}
           <div className="space-y-2">
             <Label>{t.fullNameLabel}</Label>
             <Input value={form.full_name} onChange={e => handleChange('full_name', e.target.value)} />
           </div>
 
-          {/* Phone */}
+          {/* 3. Phone */}
           <div className="space-y-2">
             <Label>{t.phoneLabel}</Label>
             <Input value={form.phone} onChange={e => handleChange('phone', e.target.value)} dir="ltr" />
           </div>
 
-          {/* Employee Number */}
+          {/* 4. Employee Number */}
           <div className="space-y-2">
             <Label>{t.employeeNumberLabel}</Label>
             <Input value={form.employee_number} onChange={e => handleChange('employee_number', e.target.value)} dir="ltr" />
           </div>
 
-          {/* Corps */}
+          {/* 5. Academy */}
+          <div className="space-y-2">
+            <Label>{t.academyLabel}</Label>
+            <Select value={form.academy} onValueChange={handleAcademyChange}>
+              <SelectTrigger>
+                <SelectValue placeholder={t.academyLabel} />
+              </SelectTrigger>
+              <SelectContent>
+                {ACADEMIES.map(a => (
+                  <SelectItem key={a.label} value={a.label}>{a.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 6. Directorate */}
+          <div className="space-y-2">
+            <Label>{t.directorateLabel}</Label>
+            <Select value={form.directorate} onValueChange={v => handleChange('directorate', v)} disabled={!form.academy}>
+              <SelectTrigger>
+                <SelectValue placeholder={t.directorateLabel} />
+              </SelectTrigger>
+              <SelectContent>
+                {directorates.map(d => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 7. Corps */}
           <div className="space-y-2">
             <Label>{t.corpsLabel}</Label>
             <Select value={form.corps} onValueChange={v => handleChange('corps', v)}>
@@ -155,28 +193,10 @@ const Profile = () => {
             </Select>
           </div>
 
-          {/* Institution */}
+          {/* 8. Institution */}
           <div className="space-y-2">
             <Label>{t.institutionLabel}</Label>
             <Input value={form.institution} onChange={e => handleChange('institution', e.target.value)} />
-          </div>
-
-          {/* Zone */}
-          <div className="space-y-2">
-            <Label>{t.zoneLabel}</Label>
-            <Input value={form.zone} onChange={e => handleChange('zone', e.target.value)} />
-          </div>
-
-          {/* Directorate */}
-          <div className="space-y-2">
-            <Label>{t.directorateLabel}</Label>
-            <Input value={form.directorate} onChange={e => handleChange('directorate', e.target.value)} />
-          </div>
-
-          {/* Academy */}
-          <div className="space-y-2">
-            <Label>{t.academyLabel}</Label>
-            <Input value={form.academy} onChange={e => handleChange('academy', e.target.value)} />
           </div>
 
           <Button onClick={handleSave} disabled={saving} className="w-full">

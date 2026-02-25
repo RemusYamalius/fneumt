@@ -86,7 +86,7 @@ const Index = () => {
       {/* Action Cards */}
       <main className="flex-1 -mt-4 relative z-10">
         <div className="max-w-5xl mx-auto px-6 pb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ direction: 'ltr' }}>
             {actions.map((action) => (
               <Link
                 key={action.to}

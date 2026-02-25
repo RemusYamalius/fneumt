@@ -184,7 +184,7 @@ const NewRequest = () => {
         {step === 1 && (
           <div>
             <h2 className="text-xl font-bold text-foreground mb-6">{t.selectCategory}</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4" style={{ direction: 'ltr' }}>
               {CATEGORIES.map(({ key, icon: Icon }) => (
                 <button
                   key={key}

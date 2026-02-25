@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import NewRequest from "./pages/NewRequest";
 import TrackRequest from "./pages/TrackRequest";
 import UserManagement from "./pages/admin/UserManagement";
+import Profile from "./pages/Profile";
 import RoleGuard from "./components/RoleGuard";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/new-request" element={<NewRequest />} />
               <Route path="/track" element={<TrackRequest />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin']}><UserManagement /></RoleGuard>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

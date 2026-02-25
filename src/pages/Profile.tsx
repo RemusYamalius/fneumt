@@ -29,6 +29,7 @@ const Profile = () => {
     zone: '',
     directorate: '',
     academy: '',
+    mission: '',
   });
 
   useEffect(() => {
@@ -46,6 +47,7 @@ const Profile = () => {
         zone: profile.zone || '',
         directorate: profile.directorate || '',
         academy: profile.academy || '',
+        mission: (profile as any).mission || '',
       });
     }
   }, [profile]);
@@ -78,7 +80,8 @@ const Profile = () => {
         zone: form.zone.trim() || null,
         directorate: form.directorate || null,
         academy: form.academy || null,
-      })
+        mission: form.mission || null,
+      } as any)
       .eq('user_id', user.id);
 
     setSaving(false);
@@ -103,7 +106,11 @@ const Profile = () => {
     { value: 'primary', label: t.corpsPrimary },
     { value: 'middle_school', label: t.corpsMiddle },
     { value: 'high_school', label: t.corpsHigh },
-    { value: 'administrative', label: t.corpsAdmin },
+  ];
+
+  const missionOptions = [
+    { value: 'teaching', label: t.missionTeaching },
+    { value: 'administration', label: t.missionAdministration },
   ];
 
   return (
@@ -178,12 +185,27 @@ const Profile = () => {
             </Select>
           </div>
 
-          {/* 7. Corps */}
+          {/* 7. Mission */}
+          <div className="space-y-2">
+            <Label>{t.missionLabel}</Label>
+            <Select value={form.mission} onValueChange={v => handleChange('mission', v)}>
+              <SelectTrigger>
+                <SelectValue placeholder={t.missionLabel} />
+              </SelectTrigger>
+              <SelectContent>
+                {missionOptions.map(o => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 8. Corps */}
           <div className="space-y-2">
             <Label>{t.corpsLabel}</Label>
             <Select value={form.corps} onValueChange={v => handleChange('corps', v)}>
               <SelectTrigger>
-                <SelectValue placeholder={t.selectCorps} />
+                <SelectValue placeholder={t.corpsLabel} />
               </SelectTrigger>
               <SelectContent>
                 {corpsOptions.map(o => (

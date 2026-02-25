@@ -128,6 +128,7 @@ export type Database = {
           full_name: string | null
           id: string
           institution: string | null
+          mission: string | null
           phone: string | null
           updated_at: string
           user_id: string
@@ -143,6 +144,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           institution?: string | null
+          mission?: string | null
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -158,6 +160,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           institution?: string | null
+          mission?: string | null
           phone?: string | null
           updated_at?: string
           user_id?: string

@@ -285,7 +285,22 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "teacher" | "union_officer" | "admin"
+      app_role:
+        | "teacher"
+        | "union_officer"
+        | "admin"
+        | "regional_supervisor"
+        | "deputy_regional_primary"
+        | "deputy_regional_middle"
+        | "deputy_regional_high"
+        | "provincial_manager"
+        | "deputy_provincial_primary"
+        | "deputy_provincial_middle"
+        | "deputy_provincial_high"
+        | "local_coordinator"
+        | "deputy_local_primary"
+        | "deputy_local_middle"
+        | "deputy_local_high"
       corps_type: "primary" | "middle_school" | "high_school" | "administrative"
       request_category:
         | "medical_file"
@@ -428,7 +443,23 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["teacher", "union_officer", "admin"],
+      app_role: [
+        "teacher",
+        "union_officer",
+        "admin",
+        "regional_supervisor",
+        "deputy_regional_primary",
+        "deputy_regional_middle",
+        "deputy_regional_high",
+        "provincial_manager",
+        "deputy_provincial_primary",
+        "deputy_provincial_middle",
+        "deputy_provincial_high",
+        "local_coordinator",
+        "deputy_local_primary",
+        "deputy_local_middle",
+        "deputy_local_high",
+      ],
       corps_type: ["primary", "middle_school", "high_school", "administrative"],
       request_category: [
         "medical_file",

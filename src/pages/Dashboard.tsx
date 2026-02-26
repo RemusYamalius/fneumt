@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FilePlus, Search, User, LogOut, Bell, Globe, Shield } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -81,11 +82,16 @@ const Dashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" style={{ direction: 'ltr' }}>
-          {actions.map((action) => (
-            <Link
+          {actions.map((action, index) => (
+            <motion.div
               key={action.to}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}
+            >
+            <Link
               to={action.to}
-              className="card-premium group relative p-8 text-center transition-all duration-300"
+              className="card-premium group relative p-8 text-center transition-all duration-300 block"
             >
               <div className="relative z-10">
                 <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-accent/20 transition-colors duration-300">
@@ -95,6 +101,7 @@ const Dashboard = () => {
                 {action.desc && <p className="text-sm text-muted-foreground">{action.desc}</p>}
               </div>
             </Link>
+            </motion.div>
           ))}
         </div>
 

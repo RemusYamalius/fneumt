@@ -91,11 +91,8 @@ const Index = () => {
               <Link
                 key={action.to}
                 to={action.to}
-                className="group relative overflow-hidden rounded-2xl bg-card border border-border p-8 text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-primary/30"
+                className="card-premium group relative p-8 text-center transition-all duration-300"
               >
-                {/* Hover gradient overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-
                 <div className="relative z-10">
                   <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-accent/20 transition-colors duration-300">
                     <action.icon className="w-7 h-7 text-primary" />
@@ -105,7 +102,7 @@ const Index = () => {
                 </div>
 
                 {/* Arrow indicator */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
                   <div className="w-8 h-1 bg-primary rounded-full" />
                 </div>
               </Link>

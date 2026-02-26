@@ -57,7 +57,7 @@ const ForgotPassword = () => {
           </div>
 
           {sent ? (
-            <div className="glass rounded-2xl p-8 text-center space-y-4 shadow-2xl">
+            <div className="card-premium p-8 text-center space-y-4 shadow-2xl">
               <CheckCircle className="w-16 h-16 text-accent mx-auto" />
               <p className="text-foreground">{t.resetEmailSent}</p>
               <Link to="/login">
@@ -65,7 +65,7 @@ const ForgotPassword = () => {
               </Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="glass rounded-2xl p-8 space-y-5 shadow-2xl">
+            <form onSubmit={handleSubmit} className="card-premium p-8 space-y-5 shadow-2xl">
               {error && (
                 <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-3 text-sm">
                   {error}

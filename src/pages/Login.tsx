@@ -58,7 +58,7 @@ const Login = () => {
             <h1 className="text-2xl font-bold text-white">{t.loginTitle}</h1>
           </div>
 
-          <form onSubmit={handleSubmit} className="glass rounded-2xl p-8 space-y-5 shadow-2xl">
+          <form onSubmit={handleSubmit} className="card-premium p-8 space-y-5 shadow-2xl">
             {error && (
               <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-3 text-sm">
                 {error}

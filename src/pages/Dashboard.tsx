@@ -85,9 +85,8 @@ const Dashboard = () => {
             <Link
               key={action.to}
               to={action.to}
-              className="group relative overflow-hidden rounded-2xl bg-card border border-border p-8 text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-primary/30"
+              className="card-premium group relative p-8 text-center transition-all duration-300"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
               <div className="relative z-10">
                 <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-accent/20 transition-colors duration-300">
                   <action.icon className="w-7 h-7 text-primary" />
@@ -102,7 +101,7 @@ const Dashboard = () => {
         {/* My Requests */}
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4">{t.myRequests}</h2>
-          <div className="bg-card rounded-2xl border border-border p-8 text-center">
+          <div className="card-premium p-8 text-center">
             <p className="text-muted-foreground">{t.noRequests}</p>
           </div>
         </section>

@@ -38,7 +38,7 @@ const App = () => (
               <Route path="/new-request" element={<NewRequest />} />
               <Route path="/track" element={<TrackRequest />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin']}><UserManagement /></RoleGuard>} />
+              <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high', 'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator']}><UserManagement /></RoleGuard>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

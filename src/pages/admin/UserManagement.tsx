@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, Users } from 'lucide-react';
+import { ArrowRight, Shield, Users, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,9 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import logoFne from '@/assets/logo-fne.png';
-import type { Database } from '@/integrations/supabase/types';
-
-type AppRole = Database['public']['Enums']['app_role'];
+import { getAllowedPromotions, getGeoConstraint } from '@/lib/role-hierarchy';
+import type { AppRole } from '@/lib/role-hierarchy';
+import { ACADEMIES } from '@/lib/academies-data';
 
 interface UserWithRole {
   user_id: string;
@@ -19,27 +19,31 @@ interface UserWithRole {
   email: string | null;
   corps: string | null;
   institution: string | null;
+  academy: string | null;
+  directorate: string | null;
   role: AppRole;
 }
 
 const UserManagement = () => {
   const { t, dir } = useI18n();
-  const { user } = useAuth();
+  const { user, role: myRole, profile: myProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [filterAcademy, setFilterAcademy] = useState<string>('all');
+  const [filterDirectorate, setFilterDirectorate] = useState<string>('all');
 
   const fetchUsers = async () => {
     setLoading(true);
     const [profilesRes, rolesRes] = await Promise.all([
-      supabase.from('profiles').select('user_id, full_name, email, corps, institution'),
+      supabase.from('profiles').select('user_id, full_name, email, corps, institution, academy, directorate'),
       supabase.from('user_roles').select('user_id, role'),
     ]);
 
     if (profilesRes.data && rolesRes.data) {
-      const roleMap = new Map(rolesRes.data.map(r => [r.user_id, r.role]));
+      const roleMap = new Map(rolesRes.data.map(r => [r.user_id, r.role as AppRole]));
       const merged: UserWithRole[] = profilesRes.data.map(p => ({
         ...p,
         role: roleMap.get(p.user_id) || 'teacher',
@@ -49,15 +53,60 @@ const UserManagement = () => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  useEffect(() => { fetchUsers(); }, []);
+
+  // Get allowed promotions for the current user's role
+  const allowedPromotions = useMemo(() => {
+    if (!myRole) return [];
+    return getAllowedPromotions(myRole);
+  }, [myRole]);
+
+  // Filter users based on geographic constraints and profile completeness
+  const filteredUsers = useMemo(() => {
+    if (!myRole || !myProfile) return [];
+    const geoConstraint = getGeoConstraint(myRole);
+
+    return users.filter(u => {
+      // Don't show self
+      if (u.user_id === user?.id) return false;
+
+      // Admin sees all
+      if (myRole === 'admin') {
+        // Apply UI filters
+        if (filterAcademy !== 'all' && u.academy !== filterAcademy) return false;
+        if (filterDirectorate !== 'all' && u.directorate !== filterDirectorate) return false;
+        return true;
+      }
+
+      // Must have profile filled (academy at least)
+      if (!u.academy) return false;
+
+      // Geographic constraints
+      if (geoConstraint === 'academy' && u.academy !== myProfile.academy) return false;
+      if (geoConstraint === 'directorate') {
+        if (u.academy !== myProfile.academy || u.directorate !== myProfile.directorate) return false;
+      }
+
+      // Apply UI filters
+      if (filterAcademy !== 'all' && u.academy !== filterAcademy) return false;
+      if (filterDirectorate !== 'all' && u.directorate !== filterDirectorate) return false;
+
+      return true;
+    });
+  }, [users, myRole, myProfile, user, filterAcademy, filterDirectorate]);
+
+  const directoratesForFilter = useMemo(() => {
+    const academy = filterAcademy !== 'all' ? filterAcademy : myProfile?.academy;
+    if (!academy) return [];
+    const found = ACADEMIES.find(a => a.label === academy);
+    return found?.directorates || [];
+  }, [filterAcademy, myProfile]);
 
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
     setSaving(userId);
     const { error } = await supabase
       .from('user_roles')
-      .update({ role: newRole })
+      .update({ role: newRole } as any)
       .eq('user_id', userId);
 
     if (error) {
@@ -69,17 +118,8 @@ const UserManagement = () => {
     setSaving(null);
   };
 
-  const roleLabels: Record<AppRole, string> = {
-    teacher: t.roleTeacher,
-    union_officer: t.roleOfficer,
-    admin: t.roleAdmin,
-  };
-
-  const corpsLabels: Record<string, string> = {
-    primary: t.corpsPrimary || 'ابتدائي',
-    middle_school: t.corpsMiddle || 'إعدادي',
-    high_school: t.corpsHigh || 'ثانوي',
-    administrative: t.corpsAdmin || 'إداري',
+  const getRoleLabel = (role: AppRole): string => {
+    return t[`role_${role}`] || role;
   };
 
   return (
@@ -101,7 +141,7 @@ const UserManagement = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
             <Users className="w-6 h-6 text-primary" />
           </div>
@@ -110,6 +150,38 @@ const UserManagement = () => {
             <p className="text-sm text-muted-foreground">{t.userManagementDesc}</p>
           </div>
         </div>
+
+        {/* Filters */}
+        {myRole === 'admin' && (
+          <div className="flex flex-wrap gap-4 mb-6 p-4 bg-card rounded-xl border border-border">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">{t.filterLabel || 'فلتر'}:</span>
+            </div>
+            <Select value={filterAcademy} onValueChange={(v) => { setFilterAcademy(v); setFilterDirectorate('all'); }}>
+              <SelectTrigger className="w-[240px]">
+                <SelectValue placeholder={t.academyLabel} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t.allAcademies || 'جميع الأكاديميات'}</SelectItem>
+                {ACADEMIES.map(a => (
+                  <SelectItem key={a.label} value={a.label}>{a.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterDirectorate} onValueChange={setFilterDirectorate} disabled={filterAcademy === 'all'}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder={t.directorateLabel} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t.allDirectorates || 'جميع المديريات'}</SelectItem>
+                {directoratesForFilter.map(d => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-16">
@@ -122,46 +194,50 @@ const UserManagement = () => {
                 <TableRow>
                   <TableHead>{t.fullNameLabel}</TableHead>
                   <TableHead>{t.emailLabel}</TableHead>
-                  <TableHead>{t.corpsLabel || 'السلك'}</TableHead>
-                  <TableHead>{t.institutionLabel || 'المؤسسة'}</TableHead>
+                  <TableHead>{t.academyLabel}</TableHead>
+                  <TableHead>{t.directorateLabel}</TableHead>
                   <TableHead>{t.roleLabel || 'الدور'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((u) => (
+                {filteredUsers.map((u) => (
                   <TableRow key={u.user_id}>
                     <TableCell className="font-medium">{u.full_name || '—'}</TableCell>
                     <TableCell>{u.email || '—'}</TableCell>
-                    <TableCell>{u.corps ? corpsLabels[u.corps] || u.corps : '—'}</TableCell>
-                    <TableCell>{u.institution || '—'}</TableCell>
+                    <TableCell className="text-xs">{u.academy || '—'}</TableCell>
+                    <TableCell className="text-xs">{u.directorate || '—'}</TableCell>
                     <TableCell>
                       <Select
                         value={u.role}
                         onValueChange={(val) => handleRoleChange(u.user_id, val as AppRole)}
-                        disabled={saving === u.user_id || u.user_id === user?.id}
+                        disabled={saving === u.user_id}
                       >
-                        <SelectTrigger className="w-[160px]">
+                        <SelectTrigger className="w-[200px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="teacher">
-                            {roleLabels.teacher}
+                          {/* Current role always shown */}
+                          <SelectItem value={u.role}>
+                            {getRoleLabel(u.role)}
                           </SelectItem>
-                          <SelectItem value="union_officer">
-                            {roleLabels.union_officer}
-                          </SelectItem>
-                          <SelectItem value="admin">
-                            <span className="flex items-center gap-1">
-                              <Shield className="w-3 h-3" />
-                              {roleLabels.admin}
-                            </span>
-                          </SelectItem>
+                          {/* Allowed promotions */}
+                          {allowedPromotions
+                            .filter(r => r !== u.role)
+                            .map(r => (
+                              <SelectItem key={r} value={r}>
+                                {getRoleLabel(r)}
+                              </SelectItem>
+                            ))}
+                          {/* Teacher option for demotion */}
+                          {u.role !== 'teacher' && !allowedPromotions.includes('teacher') && myRole === 'admin' && (
+                            <SelectItem value="teacher">{getRoleLabel('teacher')}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </TableCell>
                   </TableRow>
                 ))}
-                {users.length === 0 && (
+                {filteredUsers.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       {t.noUsers || 'لا يوجد مستخدمون'}

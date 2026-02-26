@@ -1,6 +1,7 @@
 import { FilePlus, Search, LogIn, Globe, Phone, Mail, MapPin } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import logoFne from '@/assets/logo-fne.png';
 
 const Index = () => {
@@ -87,11 +88,16 @@ const Index = () => {
       <main className="flex-1 -mt-4 relative z-10">
         <div className="max-w-5xl mx-auto px-6 pb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ direction: 'ltr' }}>
-            {actions.map((action) => (
-              <Link
+          {actions.map((action, index) => (
+              <motion.div
                 key={action.to}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}
+              >
+              <Link
                 to={action.to}
-                className="card-premium group relative p-8 text-center transition-all duration-300"
+                className="card-premium group relative p-8 text-center transition-all duration-300 block"
               >
                 <div className="relative z-10">
                   <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-accent/20 transition-colors duration-300">
@@ -106,6 +112,7 @@ const Index = () => {
                   <div className="w-8 h-1 bg-primary rounded-full" />
                 </div>
               </Link>
+              </motion.div>
             ))}
           </div>
         </div>

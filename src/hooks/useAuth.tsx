@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
+import type { AppRole } from '@/lib/role-hierarchy';
 
 interface Profile {
   id: string;
@@ -14,9 +15,10 @@ interface Profile {
   zone: string | null;
   academy: string | null;
   directorate: string | null;
+  mission: string | null;
 }
 
-type AppRole = 'teacher' | 'union_officer' | 'admin';
+export type { AppRole };
 
 interface AuthContextType {
   user: User | null;
@@ -78,12 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: window.location.origin,
-      },
+      email, password,
+      options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
     });
     return { error };
   };
@@ -95,10 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    setRole(null);
+    setUser(null); setSession(null); setProfile(null); setRole(null);
   };
 
   const resetPassword = async (email: string) => {

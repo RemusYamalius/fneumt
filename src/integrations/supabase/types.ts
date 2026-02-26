@@ -279,6 +279,7 @@ export type Database = {
         Args: { _request_id: string; _user_id: string }
         Returns: boolean
       }
+      is_promoter: { Args: { _user_id: string }; Returns: boolean }
       is_request_owner: {
         Args: { _request_id: string; _user_id: string }
         Returns: boolean

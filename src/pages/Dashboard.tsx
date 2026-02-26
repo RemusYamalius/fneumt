@@ -27,13 +27,19 @@ const Dashboard = () => {
 
   if (!user) return null;
 
-  const roleLabel = role === 'admin' ? t.roleAdmin : role === 'union_officer' ? t.roleOfficer : t.roleTeacher;
+  const roleLabel = role ? (t[`role_${role}`] || t.roleTeacher) : t.roleTeacher;
+
+  const showUserManagement = role && [
+    'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
+    'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
+    'local_coordinator',
+  ].includes(role);
 
   const actions = [
     { icon: FilePlus, title: t.newRequest, desc: t.newRequestDesc, to: '/new-request', gradient: 'from-primary to-accent' },
     { icon: Search, title: t.trackFiles, desc: t.trackFilesDesc, to: '/track', gradient: 'from-accent to-primary' },
     { icon: User, title: t.profile, desc: '', to: '/profile', gradient: 'from-secondary to-primary' },
-    ...(role === 'admin' ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', gradient: 'from-primary to-secondary' }] : []),
+    ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', gradient: 'from-primary to-secondary' }] : []),
   ];
 
   const handleSignOut = async () => {

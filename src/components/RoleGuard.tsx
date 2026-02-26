@@ -1,9 +1,10 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import type { AppRole } from '@/lib/role-hierarchy';
 
 interface RoleGuardProps {
-  allowedRoles: ('admin' | 'union_officer' | 'teacher')[];
+  allowedRoles: AppRole[];
   children: React.ReactNode;
 }
 

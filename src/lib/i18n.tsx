@@ -139,6 +139,12 @@ const translations: Record<Lang, Record<string, string>> = {
     status_processing: 'قيد المعالجة',
     status_resolved: 'تمت المعالجة',
     status_rejected: 'مرفوض',
+    // Incoming requests
+    incomingRequests: 'الطلبات الواردة',
+    incomingRequestsDesc: 'إدارة الطلبات الموكلة إليك',
+    profileIncomplete: 'يرجى إكمال ملفك الشخصي أولاً',
+    profileIncompleteDesc: 'لتقديم طلب، يجب تعبئة الأكاديمية الجهوية والمديرية الإقليمية والسلك في ملفك الشخصي.',
+    completeProfile: 'إكمال الملف الشخصي',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT Sidi Bennour',
@@ -276,6 +282,12 @@ const translations: Record<Lang, Record<string, string>> = {
     status_processing: 'En cours',
     status_resolved: 'Traitée',
     status_rejected: 'Rejetée',
+    // Incoming requests
+    incomingRequests: 'Demandes reçues',
+    incomingRequestsDesc: 'Gérer les demandes qui vous sont assignées',
+    profileIncomplete: 'Veuillez compléter votre profil',
+    profileIncompleteDesc: 'Pour soumettre une demande, vous devez remplir l\'académie, la direction provinciale et le corps dans votre profil.',
+    completeProfile: 'Compléter le profil',
   },
 };
 

@@ -12,6 +12,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import NewRequest from "./pages/NewRequest";
+import IncomingRequests from "./pages/IncomingRequests";
 import TrackRequest from "./pages/TrackRequest";
 import UserManagement from "./pages/admin/UserManagement";
 import Profile from "./pages/Profile";
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/new-request" element={<NewRequest />} />
               <Route path="/track" element={<TrackRequest />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/incoming-requests" element={<RoleGuard allowedRoles={['admin', 'local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high']}><IncomingRequests /></RoleGuard>} />
               <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high', 'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator']}><UserManagement /></RoleGuard>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

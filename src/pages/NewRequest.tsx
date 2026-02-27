@@ -40,10 +40,23 @@ const NewRequest = () => {
   const [submitting, setSubmitting] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('academy, directorate, corps')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => {
+        setProfileComplete(!!(data?.academy && data?.directorate && data?.corps));
+      });
+  }, [user]);
 
   if (loading || !user) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -184,7 +197,14 @@ const NewRequest = () => {
         {step === 1 && (
           <div>
             <h2 className="text-xl font-bold text-foreground mb-6">{t.selectCategory}</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4" style={{ direction: 'ltr' }}>
+            {profileComplete === false && (
+              <div className="mb-6 p-6 rounded-2xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-center">
+                <p className="text-lg font-semibold text-foreground mb-2">{t.profileIncomplete}</p>
+                <p className="text-sm text-muted-foreground mb-4">{t.profileIncompleteDesc}</p>
+                <Button onClick={() => navigate('/profile')}>{t.completeProfile}</Button>
+              </div>
+            )}
+            <div className={`grid grid-cols-2 sm:grid-cols-3 gap-4 ${profileComplete === false ? 'opacity-50 pointer-events-none' : ''}`} style={{ direction: 'ltr' }}>
               {CATEGORIES.map(({ key, icon: Icon }) => (
                 <button
                   key={key}

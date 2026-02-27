@@ -1,64 +1,18 @@
 
 
-# خطة: نظام توجيه الطلبات والإشعارات للمنسقين المحليين
+# خطة: تصحيح توجيه الطلبات + إضافة صيغة التأنيث "(ة)"
 
-## ملخص التغييرات
+## 1. تصحيح trigger التوجيه التلقائي
 
-### 1. فحص اكتمال الملف الشخصي قبل تقديم طلب
-- في `NewRequest.tsx`: جلب بيانات الملف الشخصي عند التحميل
-- إذا لم تكن الحقول (academy, directorate, corps) مكتملة → عرض رسالة تنبيه مع رابط لصفحة الملف الشخصي بدل عرض الفئات
-- المستخدم يدخل لصفحة "طلب جديد" لكن لا يمكنه اختيار فئة إلا بعد إكمال ملفه
+المشكلة الحالية: الـ trigger يبحث عن `local_coordinator` أو النائب المطابق للسلك. المطلوب: البحث فقط عن **النائب المكلف بالسلك** (`deputy_local_*`) بدون `local_coordinator`، لأن المنسق المحلي مُشرف فقط ولا يستقبل الطلبات مباشرة.
 
-### 2. توجيه الطلبات تلقائياً للمنسق المحلي المعني
-- **Database trigger** جديد: عند إدراج طلب جديد في جدول `requests`:
-  1. يجلب بيانات المرسل (academy, directorate, corps) من `profiles`
-  2. يبحث عن منسق محلي أو نائبه المطابق للسلك في `user_roles` + `profiles` (نفس الأكاديمية + المديرية)
-  3. يعيّنه في حقل `assigned_to`
-  4. ينشئ إشعاراً في جدول `notifications` للمنسق
-
-- **تحديث RLS** على `notifications`: السماح بـ INSERT من trigger (عبر SECURITY DEFINER function)
-
-### 3. بطاقة "طلبات" في لوحة تحكم المنسقين المحليين
-- في `Dashboard.tsx`: إضافة بطاقة "الطلبات الواردة" تظهر فقط للمنسقين المحليين ونوابهم
-- **شارة الإشعار**: عدد الطلبات غير المقروءة يظهر كدائرة حمراء أعلى البطاقة
-  - يمين في العربية، يسار في الفرنسية
-- جلب العدد من `requests` حيث `assigned_to = user.id` و `status = 'submitted'`
-
-### 4. صفحة الطلبات الواردة (جديدة: `IncomingRequests.tsx`)
-- قائمة احترافية بالطلبات المعيّنة للمنسق
-- كل طلب يعرض: رقم التتبع، الفئة، الموضوع، اسم المرسل، التاريخ، الحالة
-- عند فتح طلب:
-  - تحديث حالته إلى `received`
-  - إضافة سجل في `request_status_history`
-  - إرسال إشعار لصاحب الطلب: "تم التوصل بملفك رقم XXX وهو قيد المراجعة"
-  - تنقيص عداد الإشعارات
-
-### 5. الإشعارات بالصوت والاهتزاز
-- إضافة ملف صوت رنة قصيرة في `public/notification.mp3`
-- عند استلام إشعار جديد (عبر Supabase Realtime على جدول `notifications`):
-  - تشغيل صوت الرنة
-  - تفعيل الاهتزاز `navigator.vibrate(200)`
-
-### 6. Realtime للإشعارات
-- تفعيل Realtime على جدول `notifications`
-- في `Dashboard.tsx` أو hook مخصص: الاشتراك في التغييرات لتحديث العداد مباشرة
-
-## التفاصيل التقنية
+كذلك يجب أن حقل `mission` (أستاذ/إداري) **لا يؤثر** في التوجيه — التوجيه يعتمد فقط على: `academy` + `directorate` + `corps`.
 
 ### Migration SQL
 ```sql
--- Enable realtime for notifications
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
-
--- Allow system inserts into notifications (for triggers)
-CREATE POLICY "System can insert notifications"
-ON public.notifications FOR INSERT
-TO authenticated
-WITH CHECK (true);
-
--- Function to auto-assign request to local coordinator
 CREATE OR REPLACE FUNCTION public.auto_assign_request()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public' AS $$
 DECLARE
   _profile RECORD;
   _coordinator_id uuid;
@@ -67,25 +21,28 @@ BEGIN
   SELECT academy, directorate, corps INTO _profile
   FROM public.profiles WHERE user_id = NEW.user_id;
 
-  -- Map corps to deputy role
+  IF _profile.academy IS NULL OR _profile.directorate IS NULL OR _profile.corps IS NULL THEN
+    RETURN NEW;
+  END IF;
+
   _deputy_role := CASE _profile.corps
-    WHEN 'primary' THEN 'deputy_local_primary'
-    WHEN 'middle_school' THEN 'deputy_local_middle'
-    WHEN 'high_school' THEN 'deputy_local_high'
+    WHEN 'primary' THEN 'deputy_local_primary'::app_role
+    WHEN 'middle_school' THEN 'deputy_local_middle'::app_role
+    WHEN 'high_school' THEN 'deputy_local_high'::app_role
+    ELSE 'deputy_local_primary'::app_role
   END;
 
-  -- Find matching local_coordinator or deputy
+  -- البحث فقط عن نائب المنسق المحلي المكلف بالسلك
   SELECT ur.user_id INTO _coordinator_id
   FROM public.user_roles ur
   JOIN public.profiles p ON p.user_id = ur.user_id
-  WHERE ur.role IN ('local_coordinator', _deputy_role)
+  WHERE ur.role = _deputy_role
     AND p.academy = _profile.academy
     AND p.directorate = _profile.directorate
   LIMIT 1;
 
   IF _coordinator_id IS NOT NULL THEN
     NEW.assigned_to := _coordinator_id;
-    -- Create notification
     INSERT INTO public.notifications (user_id, title, message, link)
     VALUES (_coordinator_id, 'طلب جديد', 'تم استلام طلب جديد رقم ' || NEW.tracking_number, '/incoming-requests');
   END IF;
@@ -93,19 +50,48 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-CREATE TRIGGER trg_auto_assign_request
-BEFORE INSERT ON public.requests
-FOR EACH ROW EXECUTE FUNCTION public.auto_assign_request();
 ```
 
-### الملفات المتأثرة
-- **Migration SQL** — trigger + RLS + realtime
-- `src/pages/NewRequest.tsx` — فحص اكتمال الملف الشخصي
-- `src/pages/Dashboard.tsx` — بطاقة "طلبات" مع شارة + realtime
-- `src/pages/IncomingRequests.tsx` — **جديد** صفحة الطلبات الواردة
-- `src/App.tsx` — إضافة route `/incoming-requests`
-- `src/lib/i18n.tsx` — ترجمات جديدة
-- `src/hooks/useNotificationSound.ts` — **جديد** hook للصوت والاهتزاز
-- `public/notification.mp3` — ملف صوت الرنة
+## 2. تحديث `Dashboard.tsx`
+
+تغيير شرط `isLocalCoordinator` ليشمل فقط النواب (بدون `local_coordinator`) لعرض بطاقة "الطلبات الواردة":
+```typescript
+const isDeputyLocal = role && [
+  'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
+].includes(role);
+```
+
+## 3. إضافة صيغة التأنيث "(ة)" في الترجمات
+
+### العربية — التغييرات:
+| المفتاح | الحالي | الجديد |
+|---------|--------|--------|
+| `roleAdmin` | `مدير` | `مدير(ة)` |
+| `role_admin` | `مدير` | `مدير(ة)` |
+| `role_regional_supervisor` | `مشرف جهوي` | `مشرف(ة) جهوي(ة)` |
+| `role_deputy_regional_*` | `نائب مشرف جهوي` | `نائب(ة) مشرف(ة) جهوي(ة)` |
+| `role_provincial_manager` | `مسؤول إقليمي` | `مسؤول(ة) إقليمي(ة)` |
+| `role_deputy_provincial_*` | `نائب مسؤول إقليمي` | `نائب(ة) مسؤول(ة) إقليمي(ة)` |
+| `role_local_coordinator` | `منسق محلي` | `منسق(ة) محلي(ة)` |
+| `role_deputy_local_*` | `نائب منسق محلي` | `نائب(ة) منسق(ة) محلي(ة)` |
+| `role_union_officer` | `مسؤول نقابي` | `مسؤول(ة) نقابي(ة)` |
+| `roleOfficer` | `مسؤول نقابي` | `مسؤول(ة) نقابي(ة)` |
+
+### الفرنسية — التغييرات:
+| المفتاح | الحالي | الجديد |
+|---------|--------|--------|
+| `roleAdmin` | `Administrateur` | `Administrateur(trice)` |
+| `role_admin` | `Administrateur` | `Administrateur(trice)` |
+| `role_regional_supervisor` | `Superviseur régional` | `Superviseur(e) régional(e)` |
+| `role_deputy_regional_*` | `Adjoint régional` | `Adjoint(e) régional(e)` |
+| `role_provincial_manager` | `Responsable provincial` | `Responsable provincial(e)` |
+| `role_deputy_provincial_*` | `Adjoint provincial` | `Adjoint(e) provincial(e)` |
+| `role_local_coordinator` | `Coordinateur local` | `Coordinateur(trice) local(e)` |
+| `role_deputy_local_*` | `Adjoint local` | `Adjoint(e) local(e)` |
+| `role_union_officer` | `Responsable syndical` | `Responsable syndical(e)` |
+
+## الملفات المتأثرة
+- **Migration SQL** — تعديل `auto_assign_request` لاستبعاد `local_coordinator`
+- `src/lib/i18n.tsx` — تحديث جميع الأدوار بصيغة التأنيث
+- `src/pages/Dashboard.tsx` — تغيير شرط عرض بطاقة الطلبات للنواب فقط
 

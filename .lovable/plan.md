@@ -1,85 +1,111 @@
 
 
-# نظام تراتبية المناصب الهرمي
+# خطة: نظام توجيه الطلبات والإشعارات للمنسقين المحليين
 
-## الوضع الحالي
-النظام يستخدم 3 أدوار فقط: `teacher`, `union_officer`, `admin`. نحتاج إلى توسيعه لـ 14 دور هرمي مع قواعد ترقية محددة لكل مستوى.
+## ملخص التغييرات
 
-## الأدوار الجديدة (14 دور)
+### 1. فحص اكتمال الملف الشخصي قبل تقديم طلب
+- في `NewRequest.tsx`: جلب بيانات الملف الشخصي عند التحميل
+- إذا لم تكن الحقول (academy, directorate, corps) مكتملة → عرض رسالة تنبيه مع رابط لصفحة الملف الشخصي بدل عرض الفئات
+- المستخدم يدخل لصفحة "طلب جديد" لكن لا يمكنه اختيار فئة إلا بعد إكمال ملفه
 
-```text
-admin (مدير)
-├── regional_supervisor (مشرف جهوي)
-│   ├── deputy_regional_primary (نائب مشرف جهوي - ابتدائي)
-│   ├── deputy_regional_middle (نائب مشرف جهوي - ثانوي إعدادي)
-│   └── deputy_regional_high (نائب مشرف جهوي - ثانوي تأهيلي)
-├── provincial_manager (مسؤول إقليمي)
-│   ├── deputy_provincial_primary (نائب مسؤول إقليمي - ابتدائي)
-│   ├── deputy_provincial_middle (نائب مسؤول إقليمي - ثانوي إعدادي)
-│   └── deputy_provincial_high (نائب مسؤول إقليمي - ثانوي تأهيلي)
-├── local_coordinator (منسق محلي)
-│   ├── deputy_local_primary (نائب منسق محلي - ابتدائي)
-│   ├── deputy_local_middle (نائب منسق محلي - ثانوي إعدادي)
-│   └── deputy_local_high (نائب منسق محلي - ثانوي تأهيلي)
-└── teacher (أستاذ/ة) — الافتراضي
-```
+### 2. توجيه الطلبات تلقائياً للمنسق المحلي المعني
+- **Database trigger** جديد: عند إدراج طلب جديد في جدول `requests`:
+  1. يجلب بيانات المرسل (academy, directorate, corps) من `profiles`
+  2. يبحث عن منسق محلي أو نائبه المطابق للسلك في `user_roles` + `profiles` (نفس الأكاديمية + المديرية)
+  3. يعيّنه في حقل `assigned_to`
+  4. ينشئ إشعاراً في جدول `notifications` للمنسق
 
-## قواعد الترقية
+- **تحديث RLS** على `notifications`: السماح بـ INSERT من trigger (عبر SECURITY DEFINER function)
 
-| من يرقّي | يرقّي إلى | شرط جغرافي |
-|---|---|---|
-| admin | أي منصب | بدون قيود |
-| regional_supervisor | deputy_regional_primary/middle/high | نفس الأكاديمية |
-| regional_supervisor + نوابه | provincial_manager | نفس الأكاديمية |
-| provincial_manager | deputy_provincial_primary/middle/high | نفس المديرية + الأكاديمية |
-| provincial_manager + نوابه | local_coordinator | نفس المديرية + الأكاديمية |
-| local_coordinator | deputy_local_primary/middle/high | نفس المديرية + الأكاديمية |
+### 3. بطاقة "طلبات" في لوحة تحكم المنسقين المحليين
+- في `Dashboard.tsx`: إضافة بطاقة "الطلبات الواردة" تظهر فقط للمنسقين المحليين ونوابهم
+- **شارة الإشعار**: عدد الطلبات غير المقروءة يظهر كدائرة حمراء أعلى البطاقة
+  - يمين في العربية، يسار في الفرنسية
+- جلب العدد من `requests` حيث `assigned_to = user.id` و `status = 'submitted'`
+
+### 4. صفحة الطلبات الواردة (جديدة: `IncomingRequests.tsx`)
+- قائمة احترافية بالطلبات المعيّنة للمنسق
+- كل طلب يعرض: رقم التتبع، الفئة، الموضوع، اسم المرسل، التاريخ، الحالة
+- عند فتح طلب:
+  - تحديث حالته إلى `received`
+  - إضافة سجل في `request_status_history`
+  - إرسال إشعار لصاحب الطلب: "تم التوصل بملفك رقم XXX وهو قيد المراجعة"
+  - تنقيص عداد الإشعارات
+
+### 5. الإشعارات بالصوت والاهتزاز
+- إضافة ملف صوت رنة قصيرة في `public/notification.mp3`
+- عند استلام إشعار جديد (عبر Supabase Realtime على جدول `notifications`):
+  - تشغيل صوت الرنة
+  - تفعيل الاهتزاز `navigator.vibrate(200)`
+
+### 6. Realtime للإشعارات
+- تفعيل Realtime على جدول `notifications`
+- في `Dashboard.tsx` أو hook مخصص: الاشتراك في التغييرات لتحديث العداد مباشرة
 
 ## التفاصيل التقنية
 
-### 1. تعديل قاعدة البيانات (Migration)
-- إضافة 11 قيمة جديدة لـ enum `app_role` (الحالي: teacher, union_officer, admin)
-- تحويل أي مستخدم بدور `union_officer` إلى `teacher`
-- حذف قيمة `union_officer` من الـ enum
-- تحديث دالة `has_role` لتبقى متوافقة
-
+### Migration SQL
 ```sql
--- Add new values to app_role enum
-ALTER TYPE app_role ADD VALUE 'regional_supervisor';
-ALTER TYPE app_role ADD VALUE 'deputy_regional_primary';
--- ... (11 values total)
+-- Enable realtime for notifications
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 
--- Migrate existing union_officer to teacher
-UPDATE user_roles SET role = 'teacher' WHERE role = 'union_officer';
+-- Allow system inserts into notifications (for triggers)
+CREATE POLICY "System can insert notifications"
+ON public.notifications FOR INSERT
+TO authenticated
+WITH CHECK (true);
+
+-- Function to auto-assign request to local coordinator
+CREATE OR REPLACE FUNCTION public.auto_assign_request()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  _profile RECORD;
+  _coordinator_id uuid;
+  _deputy_role app_role;
+BEGIN
+  SELECT academy, directorate, corps INTO _profile
+  FROM public.profiles WHERE user_id = NEW.user_id;
+
+  -- Map corps to deputy role
+  _deputy_role := CASE _profile.corps
+    WHEN 'primary' THEN 'deputy_local_primary'
+    WHEN 'middle_school' THEN 'deputy_local_middle'
+    WHEN 'high_school' THEN 'deputy_local_high'
+  END;
+
+  -- Find matching local_coordinator or deputy
+  SELECT ur.user_id INTO _coordinator_id
+  FROM public.user_roles ur
+  JOIN public.profiles p ON p.user_id = ur.user_id
+  WHERE ur.role IN ('local_coordinator', _deputy_role)
+    AND p.academy = _profile.academy
+    AND p.directorate = _profile.directorate
+  LIMIT 1;
+
+  IF _coordinator_id IS NOT NULL THEN
+    NEW.assigned_to := _coordinator_id;
+    -- Create notification
+    INSERT INTO public.notifications (user_id, title, message, link)
+    VALUES (_coordinator_id, 'طلب جديد', 'تم استلام طلب جديد رقم ' || NEW.tracking_number, '/incoming-requests');
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_auto_assign_request
+BEFORE INSERT ON public.requests
+FOR EACH ROW EXECUTE FUNCTION public.auto_assign_request();
 ```
 
-### 2. صفحة إدارة المستخدمين المحدّثة (`UserManagement.tsx`)
-- عرض فلتر حسب الأكاديمية والمديرية
-- عرض فقط المستخدمين المسموح بترقيتهم حسب دور المستخدم الحالي ومنطقته الجغرافية
-- القائمة المنسدلة للأدوار تعرض فقط المناصب المسموح بها
-- يجب أن يكون المستخدم المُستهدف قد ملأ ملفه الشخصي (الأكاديمية والمديرية)
-
-### 3. حارس الأدوار (`RoleGuard.tsx`)
-- تحديث لدعم الأدوار الجديدة
-
-### 4. لوحة التحكم (`Dashboard.tsx`)
-- إظهار رابط "إدارة المستخدمين" لكل من لديه صلاحية ترقية (ليس فقط admin)
-
-### 5. سياق المصادقة (`useAuth.tsx`)
-- تحديث النوع `AppRole` ليشمل الأدوار الجديدة
-
-### 6. الترجمات (`i18n.tsx`)
-- إضافة أسماء جميع المناصب بالعربية والفرنسية
-
-### 7. Edge Function للترقية الآمنة (اختياري لكن مُوصى به)
-- بدلاً من السماح بتحديث `user_roles` مباشرة من العميل، يمكن إنشاء دالة خادمية تتحقق من صلاحيات الترقية
-- لكن يمكن أيضاً الاعتماد على سياسات RLS مع دوال SECURITY DEFINER
-
 ### الملفات المتأثرة
-- **Migration SQL** — إضافة الأدوار الجديدة وتحديث RLS
-- `src/hooks/useAuth.tsx` — تحديث AppRole type
-- `src/pages/admin/UserManagement.tsx` — إعادة بناء كامل مع منطق الترقية
-- `src/pages/Dashboard.tsx` — إظهار رابط الإدارة للمناصب المخولة
-- `src/components/RoleGuard.tsx` — تحديث الأنواع
-- `src/lib/i18n.tsx` — أسماء المناصب الـ 14
+- **Migration SQL** — trigger + RLS + realtime
+- `src/pages/NewRequest.tsx` — فحص اكتمال الملف الشخصي
+- `src/pages/Dashboard.tsx` — بطاقة "طلبات" مع شارة + realtime
+- `src/pages/IncomingRequests.tsx` — **جديد** صفحة الطلبات الواردة
+- `src/App.tsx` — إضافة route `/incoming-requests`
+- `src/lib/i18n.tsx` — ترجمات جديدة
+- `src/hooks/useNotificationSound.ts` — **جديد** hook للصوت والاهتزاز
+- `public/notification.mp3` — ملف صوت الرنة
 

@@ -62,8 +62,7 @@ const Index = () => {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 leading-tight">
-            منصة
- FNE-UMT<br />FNE-UMT<br />سيدي بنور
+            منصة<br />FNE-UMT
           </h1>
           <p className="text-base md:text-lg text-white/70 mb-2 font-light">
             {t.platformSubtitle}

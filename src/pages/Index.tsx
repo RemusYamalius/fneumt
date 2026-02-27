@@ -8,28 +8,28 @@ const Index = () => {
   const { t, toggleLang, dir } = useI18n();
 
   const actions = [
-    {
-      icon: FilePlus,
-      title: t.newRequest,
-      desc: t.newRequestDesc,
-      to: '/new-request',
-      gradient: 'from-primary to-accent',
-    },
-    {
-      icon: Search,
-      title: t.trackFiles,
-      desc: t.trackFilesDesc,
-      to: '/track',
-      gradient: 'from-accent to-primary',
-    },
-    {
-      icon: LogIn,
-      title: t.login,
-      desc: t.loginDesc,
-      to: '/login',
-      gradient: 'from-secondary to-primary',
-    },
-  ];
+  {
+    icon: FilePlus,
+    title: t.newRequest,
+    desc: t.newRequestDesc,
+    to: '/new-request',
+    gradient: 'from-primary to-accent'
+  },
+  {
+    icon: Search,
+    title: t.trackFiles,
+    desc: t.trackFilesDesc,
+    to: '/track',
+    gradient: 'from-accent to-primary'
+  },
+  {
+    icon: LogIn,
+    title: t.login,
+    desc: t.loginDesc,
+    to: '/login',
+    gradient: 'from-secondary to-primary'
+  }];
+
 
   return (
     <div className="min-h-screen flex flex-col" dir={dir}>
@@ -37,8 +37,8 @@ const Index = () => {
       <div className="absolute top-4 left-4 right-4 flex justify-end z-20" style={{ direction: 'ltr' }}>
         <button
           onClick={toggleLang}
-          className="glass flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-foreground hover:bg-white/90 transition-all shadow-lg"
-        >
+          className="glass flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-foreground hover:bg-white/90 transition-all shadow-lg">
+
           <Globe className="w-4 h-4" />
           {t.langSwitch}
         </button>
@@ -62,7 +62,8 @@ const Index = () => {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 leading-tight">
-            منصة FNE-UMT
+            منصة
+ FNE-UMT<br />FNE-UMT<br />سيدي بنور
           </h1>
           <p className="text-base md:text-lg text-white/70 mb-2 font-light">
             {t.platformSubtitle}
@@ -88,17 +89,16 @@ const Index = () => {
       <main className="flex-1 -mt-4 relative z-10">
         <div className="max-w-5xl mx-auto px-6 pb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ direction: 'ltr' }}>
-          {actions.map((action, index) => (
-              <motion.div
+          {actions.map((action, index) => <motion.div
                 key={action.to}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}
-              >
+                transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}>
+
               <Link
-                to={action.to}
-                className="card-premium group relative p-8 text-center transition-all duration-300 block"
-              >
+                  to={action.to}
+                  className="card-premium group relative p-8 text-center transition-all duration-300 block">
+
                 <div className="relative z-10">
                   <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-accent/20 transition-colors duration-300">
                     <action.icon className="w-7 h-7 text-primary" />
@@ -113,7 +113,7 @@ const Index = () => {
                 </div>
               </Link>
               </motion.div>
-            ))}
+            )}
           </div>
         </div>
       </main>
@@ -146,8 +146,8 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;

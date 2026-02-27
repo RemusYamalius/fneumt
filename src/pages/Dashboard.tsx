@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox } from 'lucide-react';
+import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,7 +48,16 @@ const Dashboard = () => {
 
   const roleLabel = role ? (t[`role_${role}`] || t.roleTeacher) : t.roleTeacher;
 
+  const isLocalCoordinator = role === 'local_coordinator';
+
   const showUserManagement = role && [
+    'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
+    'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
+    'local_coordinator',
+  ].includes(role);
+
+  // Show supervisor dashboard for any promoter role (local_coordinator and above)
+  const showSupervisorDashboard = role && [
     'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
     'local_coordinator',
@@ -59,6 +68,7 @@ const Dashboard = () => {
     { icon: Search, title: t.trackFiles, desc: t.trackFilesDesc, to: '/track', gradient: 'from-accent to-primary' },
     { icon: User, title: t.profile, desc: '', to: '/profile', gradient: 'from-secondary to-primary' },
     ...(isDeputyLocal ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', gradient: 'from-accent to-secondary', badge: pendingCount }] : []),
+    ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', gradient: 'from-accent to-primary' }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', gradient: 'from-primary to-secondary' }] : []),
   ];
 

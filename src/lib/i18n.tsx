@@ -145,6 +145,22 @@ const translations: Record<Lang, Record<string, string>> = {
     profileIncomplete: 'يرجى إكمال ملفك الشخصي أولاً',
     profileIncompleteDesc: 'لتقديم طلب، يجب تعبئة الأكاديمية الجهوية والمديرية الإقليمية والسلك في ملفك الشخصي.',
     completeProfile: 'إكمال الملف الشخصي',
+    // Status change actions
+    markProcessing: 'قيد المعالجة',
+    markResolved: 'تمت التسوية',
+    markRejected: 'رفض',
+    statusChangedSuccess: 'تم تغيير حالة الطلب بنجاح',
+    changeStatus: 'تغيير الحالة',
+    // Supervisor dashboard
+    supervisorDashboard: 'لوحة الإشراف',
+    supervisorDashboardDesc: 'تتبع أداء النواب المعيّنين',
+    deputies: 'النواب',
+    noDeputies: 'لا يوجد نواب معيّنون',
+    requestsByStatus: 'الطلبات حسب الحالة',
+    requestsByCategory: 'الطلبات حسب الفئة',
+    filesTable: 'جدول الملفات',
+    totalRequests: 'إجمالي الطلبات',
+    noUsers: 'لا يوجد مستخدمون',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT Sidi Bennour',
@@ -288,6 +304,22 @@ const translations: Record<Lang, Record<string, string>> = {
     profileIncomplete: 'Veuillez compléter votre profil',
     profileIncompleteDesc: 'Pour soumettre une demande, vous devez remplir l\'académie, la direction provinciale et le corps dans votre profil.',
     completeProfile: 'Compléter le profil',
+    // Status change actions
+    markProcessing: 'En traitement',
+    markResolved: 'Résolu',
+    markRejected: 'Rejeté',
+    statusChangedSuccess: 'Statut de la demande mis à jour avec succès',
+    changeStatus: 'Changer le statut',
+    // Supervisor dashboard
+    supervisorDashboard: 'Tableau de supervision',
+    supervisorDashboardDesc: 'Suivre la performance de vos adjoints',
+    deputies: 'Adjoints',
+    noDeputies: 'Aucun adjoint assigné',
+    requestsByStatus: 'Demandes par statut',
+    requestsByCategory: 'Demandes par catégorie',
+    filesTable: 'Tableau des dossiers',
+    totalRequests: 'Total des demandes',
+    noUsers: 'Aucun utilisateur',
   },
 };
 

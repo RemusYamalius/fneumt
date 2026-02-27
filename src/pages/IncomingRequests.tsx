@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, FileText, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox } from 'lucide-react';
+import { ArrowRight, FileText, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,6 +32,7 @@ const IncomingRequests = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<IncomingRequest | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [changingStatus, setChangingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -57,7 +58,6 @@ const IncomingRequests = () => {
       return;
     }
 
-    // Fetch sender profiles
     const userIds = [...new Set((data || []).map(r => r.user_id))];
     let profilesMap: Record<string, { full_name: string | null; email: string | null }> = {};
     if (userIds.length > 0) {
@@ -79,17 +79,15 @@ const IncomingRequests = () => {
   };
 
   const handleOpenRequest = async (request: IncomingRequest) => {
-    setSelectedRequest(request);
+    setSelectedRequest(prev => prev?.id === request.id ? null : request);
     if (request.status === 'submitted' && user) {
       setProcessing(true);
       try {
-        // Update status to received
         await supabase
           .from('requests')
           .update({ status: 'received' })
           .eq('id', request.id);
 
-        // Add status history
         await supabase
           .from('request_status_history')
           .insert({
@@ -100,7 +98,6 @@ const IncomingRequests = () => {
             note: lang === 'ar' ? 'تم فتح الملف ومراجعته' : 'Dossier ouvert et en cours de révision',
           });
 
-        // Notify the requester
         const notifTitle = lang === 'ar' ? 'تم التوصل بملفك' : 'Dossier reçu';
         const notifMessage = lang === 'ar'
           ? `تم التوصل بملفك رقم ${request.tracking_number} وهو قيد المراجعة`
@@ -113,16 +110,58 @@ const IncomingRequests = () => {
           link: '/track',
         });
 
-        // Update local state
         setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: 'received' } : r));
         setSelectedRequest(prev => prev ? { ...prev, status: 'received' } : null);
-
         toast({ title: lang === 'ar' ? 'تم تحديث الحالة' : 'Statut mis à jour' });
       } catch (err: any) {
         toast({ title: lang === 'ar' ? 'خطأ' : 'Erreur', description: err?.message, variant: 'destructive' });
       } finally {
         setProcessing(false);
       }
+    }
+  };
+
+  const handleStatusChange = async (request: IncomingRequest, newStatus: 'processing' | 'resolved' | 'rejected') => {
+    if (!user) return;
+    setChangingStatus(newStatus);
+    try {
+      await supabase
+        .from('requests')
+        .update({ status: newStatus })
+        .eq('id', request.id);
+
+      await supabase
+        .from('request_status_history')
+        .insert({
+          request_id: request.id,
+          old_status: request.status as any,
+          new_status: newStatus,
+          changed_by: user.id,
+        });
+
+      // Notify requester
+      const statusLabels: Record<string, { ar: string; fr: string }> = {
+        processing: { ar: 'قيد المعالجة', fr: 'En traitement' },
+        resolved: { ar: 'تمت التسوية', fr: 'Résolu' },
+        rejected: { ar: 'مرفوض', fr: 'Rejeté' },
+      };
+      const label = statusLabels[newStatus];
+      await supabase.from('notifications').insert({
+        user_id: request.user_id,
+        title: lang === 'ar' ? 'تحديث حالة ملفك' : 'Mise à jour de votre dossier',
+        message: lang === 'ar'
+          ? `تم تغيير حالة ملفك رقم ${request.tracking_number} إلى: ${label.ar}`
+          : `Le statut de votre dossier n° ${request.tracking_number} a été changé à : ${label.fr}`,
+        link: '/track',
+      });
+
+      setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: newStatus } : r));
+      setSelectedRequest(prev => prev ? { ...prev, status: newStatus } : null);
+      toast({ title: t.statusChangedSuccess });
+    } catch (err: any) {
+      toast({ title: lang === 'ar' ? 'خطأ' : 'Erreur', description: err?.message, variant: 'destructive' });
+    } finally {
+      setChangingStatus(null);
     }
   };
 
@@ -139,6 +178,15 @@ const IncomingRequests = () => {
     }
   };
 
+  // Available next statuses based on current status
+  const getAvailableStatuses = (currentStatus: string): ('processing' | 'resolved' | 'rejected')[] => {
+    switch (currentStatus) {
+      case 'received': return ['processing', 'rejected'];
+      case 'processing': return ['resolved', 'rejected'];
+      default: return [];
+    }
+  };
+
   if (loading || !user) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -147,12 +195,11 @@ const IncomingRequests = () => {
 
   return (
     <div className="min-h-screen bg-background" dir={dir}>
-      {/* Header */}
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
           <img src={logoFne} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
           <div>
-            <p className="font-bold text-sm">{t.incomingRequests || (lang === 'ar' ? 'الطلبات الواردة' : 'Demandes reçues')}</p>
+            <p className="font-bold text-sm">{t.incomingRequests}</p>
             <p className="text-xs text-white/70">{t.platformName}</p>
           </div>
         </div>
@@ -160,9 +207,7 @@ const IncomingRequests = () => {
 
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-foreground">
-            {lang === 'ar' ? 'الطلبات الواردة' : 'Demandes reçues'}
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">{t.incomingRequests}</h1>
           <Button variant="outline" onClick={() => navigate('/dashboard')}>
             <ArrowRight className="w-4 h-4 rtl:rotate-180" />
             {t.backToDashboard}
@@ -228,7 +273,6 @@ const IncomingRequests = () => {
                     </div>
                   </div>
 
-                  {/* Expanded detail */}
                   <AnimatePresence>
                     {selectedRequest?.id === req.id && (
                       <motion.div
@@ -251,10 +295,60 @@ const IncomingRequests = () => {
                               {lang === 'ar' ? 'جارٍ التحديث...' : 'Mise à jour...'}
                             </div>
                           )}
-                          {req.status === 'received' && (
-                            <div className="flex items-center gap-2 text-sm text-emerald-600">
+
+                          {/* Status change buttons */}
+                          {getAvailableStatuses(req.status).length > 0 && (
+                            <div className="flex flex-wrap gap-3 mt-4" onClick={e => e.stopPropagation()}>
+                              <span className="text-sm font-medium text-muted-foreground self-center">{t.changeStatus}:</span>
+                              {getAvailableStatuses(req.status).includes('processing') && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                                  disabled={!!changingStatus}
+                                  onClick={() => handleStatusChange(req, 'processing')}
+                                >
+                                  {changingStatus === 'processing' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Settings className="w-4 h-4" />}
+                                  {t.markProcessing}
+                                </Button>
+                              )}
+                              {getAvailableStatuses(req.status).includes('resolved') && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                                  disabled={!!changingStatus}
+                                  onClick={() => handleStatusChange(req, 'resolved')}
+                                >
+                                  {changingStatus === 'resolved' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                  {t.markResolved}
+                                </Button>
+                              )}
+                              {getAvailableStatuses(req.status).includes('rejected') && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-300 text-red-700 hover:bg-red-50"
+                                  disabled={!!changingStatus}
+                                  onClick={() => handleStatusChange(req, 'rejected')}
+                                >
+                                  {changingStatus === 'rejected' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                                  {t.markRejected}
+                                </Button>
+                              )}
+                            </div>
+                          )}
+
+                          {req.status === 'resolved' && (
+                            <div className="flex items-center gap-2 text-sm text-emerald-600 mt-2">
                               <CheckCircle2 className="w-4 h-4" />
-                              {lang === 'ar' ? 'تم الاطلاع على هذا الطلب' : 'Cette demande a été consultée'}
+                              {lang === 'ar' ? 'تمت تسوية هذا الطلب' : 'Cette demande a été traitée'}
+                            </div>
+                          )}
+                          {req.status === 'rejected' && (
+                            <div className="flex items-center gap-2 text-sm text-red-600 mt-2">
+                              <XCircle className="w-4 h-4" />
+                              {lang === 'ar' ? 'تم رفض هذا الطلب' : 'Cette demande a été rejetée'}
                             </div>
                           )}
                         </div>

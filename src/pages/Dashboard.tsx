@@ -22,19 +22,19 @@ const Dashboard = () => {
     }
   }, [loading, user, navigate]);
 
-  const isLocalCoordinator = role && [
-    'local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
+  const isDeputyLocal = role && [
+    'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
   ].includes(role);
 
   useEffect(() => {
-    if (!user || !isLocalCoordinator) return;
+    if (!user || !isDeputyLocal) return;
     supabase
       .from('requests')
       .select('*', { count: 'exact', head: true })
       .eq('assigned_to', user.id)
       .eq('status', 'submitted')
       .then(({ count }) => setPendingCount(count || 0));
-  }, [user, isLocalCoordinator]);
+  }, [user, isDeputyLocal]);
 
   if (loading) {
     return (
@@ -58,7 +58,7 @@ const Dashboard = () => {
     { icon: FilePlus, title: t.newRequest, desc: t.newRequestDesc, to: '/new-request', gradient: 'from-primary to-accent' },
     { icon: Search, title: t.trackFiles, desc: t.trackFilesDesc, to: '/track', gradient: 'from-accent to-primary' },
     { icon: User, title: t.profile, desc: '', to: '/profile', gradient: 'from-secondary to-primary' },
-    ...(isLocalCoordinator ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', gradient: 'from-accent to-secondary', badge: pendingCount }] : []),
+    ...(isDeputyLocal ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', gradient: 'from-accent to-secondary', badge: pendingCount }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', gradient: 'from-primary to-secondary' }] : []),
   ];
 

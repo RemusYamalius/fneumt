@@ -22,6 +22,7 @@ interface UserWithRole {
   academy: string | null;
   directorate: string | null;
   role: AppRole;
+  promoted_by: string | null;
 }
 
 const UserManagement = () => {
@@ -39,14 +40,15 @@ const UserManagement = () => {
     setLoading(true);
     const [profilesRes, rolesRes] = await Promise.all([
       supabase.from('profiles').select('user_id, full_name, email, corps, institution, academy, directorate'),
-      supabase.from('user_roles').select('user_id, role'),
+      supabase.from('user_roles').select('user_id, role, promoted_by'),
     ]);
 
     if (profilesRes.data && rolesRes.data) {
-      const roleMap = new Map(rolesRes.data.map(r => [r.user_id, r.role as AppRole]));
+      const roleMap = new Map(rolesRes.data.map(r => [r.user_id, { role: r.role as AppRole, promoted_by: (r as any).promoted_by as string | null }]));
       const merged: UserWithRole[] = profilesRes.data.map(p => ({
         ...p,
-        role: roleMap.get(p.user_id) || 'teacher',
+        role: roleMap.get(p.user_id)?.role || 'teacher',
+        promoted_by: roleMap.get(p.user_id)?.promoted_by || null,
       }));
       setUsers(merged);
     }
@@ -55,37 +57,37 @@ const UserManagement = () => {
 
   useEffect(() => { fetchUsers(); }, []);
 
-  // Get allowed promotions for the current user's role
   const allowedPromotions = useMemo(() => {
     if (!myRole) return [];
     return getAllowedPromotions(myRole);
   }, [myRole]);
 
-  // Filter users based on geographic constraints and profile completeness
+  // Filter: admin sees all, others see only users they promoted + teachers in their geo scope
   const filteredUsers = useMemo(() => {
     if (!myRole || !myProfile) return [];
     const geoConstraint = getGeoConstraint(myRole);
 
     return users.filter(u => {
-      // Don't show self
       if (u.user_id === user?.id) return false;
 
-      // Admin sees all
       if (myRole === 'admin') {
-        // Apply UI filters
         if (filterAcademy !== 'all' && u.academy !== filterAcademy) return false;
         if (filterDirectorate !== 'all' && u.directorate !== filterDirectorate) return false;
         return true;
       }
 
-      // Must have profile filled (academy at least)
-      if (!u.academy) return false;
+      // Non-admin: show users promoted by me, OR teachers in my geo scope (for new assignments)
+      const isMyAppointee = u.promoted_by === user?.id;
+      const isTeacherInScope = u.role === 'teacher' && (() => {
+        if (!u.academy) return false;
+        if (geoConstraint === 'academy' && u.academy !== myProfile.academy) return false;
+        if (geoConstraint === 'directorate') {
+          if (u.academy !== myProfile.academy || u.directorate !== myProfile.directorate) return false;
+        }
+        return true;
+      })();
 
-      // Geographic constraints
-      if (geoConstraint === 'academy' && u.academy !== myProfile.academy) return false;
-      if (geoConstraint === 'directorate') {
-        if (u.academy !== myProfile.academy || u.directorate !== myProfile.directorate) return false;
-      }
+      if (!isMyAppointee && !isTeacherInScope) return false;
 
       // Apply UI filters
       if (filterAcademy !== 'all' && u.academy !== filterAcademy) return false;
@@ -103,17 +105,18 @@ const UserManagement = () => {
   }, [filterAcademy, myProfile]);
 
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
+    if (!user) return;
     setSaving(userId);
     const { error } = await supabase
       .from('user_roles')
-      .update({ role: newRole } as any)
+      .update({ role: newRole, promoted_by: user.id } as any)
       .eq('user_id', userId);
 
     if (error) {
       toast({ title: t.error || 'خطأ', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: t.roleUpdated });
-      setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, role: newRole } : u));
+      setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, role: newRole, promoted_by: user.id } : u));
     }
     setSaving(null);
   };
@@ -163,7 +166,7 @@ const UserManagement = () => {
                 <SelectValue placeholder={t.academyLabel} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t.allAcademies || 'جميع الأكاديميات'}</SelectItem>
+                <SelectItem value="all">{t.allAcademies}</SelectItem>
                 {ACADEMIES.map(a => (
                   <SelectItem key={a.label} value={a.label}>{a.label}</SelectItem>
                 ))}
@@ -174,7 +177,7 @@ const UserManagement = () => {
                 <SelectValue placeholder={t.directorateLabel} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t.allDirectorates || 'جميع المديريات'}</SelectItem>
+                <SelectItem value="all">{t.allDirectorates}</SelectItem>
                 {directoratesForFilter.map(d => (
                   <SelectItem key={d} value={d}>{d}</SelectItem>
                 ))}
@@ -216,11 +219,9 @@ const UserManagement = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* Current role always shown */}
                           <SelectItem value={u.role}>
                             {getRoleLabel(u.role)}
                           </SelectItem>
-                          {/* Allowed promotions */}
                           {allowedPromotions
                             .filter(r => r !== u.role)
                             .map(r => (
@@ -228,7 +229,6 @@ const UserManagement = () => {
                                 {getRoleLabel(r)}
                               </SelectItem>
                             ))}
-                          {/* Teacher option for demotion */}
                           {u.role !== 'teacher' && !allowedPromotions.includes('teacher') && myRole === 'admin' && (
                             <SelectItem value="teacher">{getRoleLabel('teacher')}</SelectItem>
                           )}
@@ -240,7 +240,7 @@ const UserManagement = () => {
                 {filteredUsers.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      {t.noUsers || 'لا يوجد مستخدمون'}
+                      {t.noUsers}
                     </TableCell>
                   </TableRow>
                 )}

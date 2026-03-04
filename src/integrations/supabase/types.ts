@@ -316,10 +316,10 @@ export type Database = {
         | "scholarships"
       request_status:
         | "submitted"
-        | "received"
-        | "processing"
-        | "resolved"
-        | "rejected"
+        | "viewed"
+        | "in_progress"
+        | "accepted"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -476,10 +476,10 @@ export const Constants = {
       ],
       request_status: [
         "submitted",
-        "received",
-        "processing",
-        "resolved",
-        "rejected",
+        "viewed",
+        "in_progress",
+        "accepted",
+        "cancelled",
       ],
     },
   },

@@ -45,13 +45,13 @@ export function getAllowedPromotions(promoterRole: AppRole): AppRole[] {
         'teacher',
       ];
     case 'regional_supervisor':
-      return ['deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high', 'provincial_manager'];
+      return ['deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'];
     case 'deputy_regional_primary':
     case 'deputy_regional_middle':
     case 'deputy_regional_high':
       return ['provincial_manager'];
     case 'provincial_manager':
-      return ['deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator'];
+      return ['deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high'];
     case 'deputy_provincial_primary':
     case 'deputy_provincial_middle':
     case 'deputy_provincial_high':

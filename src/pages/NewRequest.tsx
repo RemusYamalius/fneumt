@@ -66,10 +66,16 @@ const NewRequest = () => {
 
   const stepLabels = [t.stepCategory, t.stepDetails, t.stepAttachments, t.stepReview];
 
+  const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+
   const handleFiles = (newFiles: FileList | null) => {
     if (!newFiles) return;
     const arr = Array.from(newFiles);
     const valid = arr.filter(f => {
+      if (!ACCEPTED_TYPES.includes(f.type) && !f.type.startsWith('image/')) {
+        toast({ title: t.invalidFileType || 'نوع الملف غير مقبول', description: f.name, variant: 'destructive' });
+        return false;
+      }
       if (f.size > MAX_FILE_SIZE) {
         toast({ title: t.fileTooLarge, description: f.name, variant: 'destructive' });
         return false;
@@ -248,8 +254,8 @@ const NewRequest = () => {
             >
               <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
               <p className="text-muted-foreground">{t.dropFiles}</p>
-              <p className="text-xs text-muted-foreground mt-1">{t.maxFiles}</p>
-              <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
+              <p className="text-xs text-muted-foreground mt-1">{t.maxFiles} — {t.onlyPdfImages || 'PDF / صور فقط'}</p>
+              <input ref={fileInputRef} type="file" multiple accept="application/pdf,image/*" className="hidden" onChange={e => handleFiles(e.target.files)} />
             </div>
             {files.length > 0 && (
               <div className="mt-4 space-y-2">

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ArrowRight, Check, Clock, FileSearch, XCircle, Inbox } from 'lucide-react';
+import { Search, ArrowRight, Check, Clock, FileSearch, XCircle, Inbox, Eye } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import logoFne from '@/assets/logo-fne.png';
 
-type RequestStatus = 'submitted' | 'received' | 'processing' | 'resolved' | 'rejected';
+type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'cancelled';
 
 interface RequestResult {
   tracking_number: string;
@@ -19,13 +19,13 @@ interface RequestResult {
 
 const STATUS_STEPS: { key: RequestStatus; icon: typeof Check }[] = [
   { key: 'submitted', icon: Inbox },
-  { key: 'received', icon: Check },
-  { key: 'processing', icon: Clock },
-  { key: 'resolved', icon: FileSearch },
+  { key: 'viewed', icon: Eye },
+  { key: 'in_progress', icon: Clock },
+  { key: 'accepted', icon: FileSearch },
 ];
 
 const TrackRequest = () => {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<RequestResult | null>(null);
   const [searching, setSearching] = useState(false);
@@ -54,17 +54,23 @@ const TrackRequest = () => {
   const categoryLabel = (key: string) => t[`cat_${key}`] || key;
   const statusLabel = (key: string) => t[`status_${key}`] || key;
 
+  const formatDateTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleString(lang === 'ar' ? 'ar-MA' : 'fr-FR', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  };
+
   const getStatusIndex = (status: RequestStatus): number => {
-    if (status === 'rejected') return -1;
+    if (status === 'cancelled') return -1;
     return STATUS_STEPS.findIndex(s => s.key === status);
   };
 
   const currentIndex = result ? getStatusIndex(result.status) : -1;
-  const isRejected = result?.status === 'rejected';
+  const isCancelled = result?.status === 'cancelled';
 
   return (
     <div className="min-h-screen bg-background" dir={dir}>
-      {/* Header */}
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-3xl mx-auto px-6 py-6 text-center">
           <Link to="/" className="inline-block mb-4">
@@ -76,7 +82,6 @@ const TrackRequest = () => {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-10">
-        {/* Search */}
         <div className="flex gap-3 mb-8">
           <Input
             value={query}
@@ -91,7 +96,6 @@ const TrackRequest = () => {
           </Button>
         </div>
 
-        {/* Not Found */}
         {notFound && (
           <div className="bg-destructive/5 border border-destructive/20 rounded-2xl p-8 text-center">
             <XCircle className="w-12 h-12 mx-auto mb-3 text-destructive" />
@@ -100,10 +104,8 @@ const TrackRequest = () => {
           </div>
         )}
 
-        {/* Result */}
         {result && (
           <div className="bg-card rounded-2xl border border-border p-6">
-            {/* Request info */}
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div>
                 <span className="text-xs text-muted-foreground">{t.trackingNumberLabel}</span>
@@ -118,16 +120,15 @@ const TrackRequest = () => {
                 <p className="font-medium text-foreground">{result.subject}</p>
               </div>
               <div>
-                <span className="text-xs text-muted-foreground">{t.dateLabel}</span>
-                <p className="font-medium text-foreground">{new Date(result.created_at).toLocaleDateString(dir === 'rtl' ? 'ar-MA' : 'fr-FR')}</p>
+                <span className="text-xs text-muted-foreground">{t.sentAt}</span>
+                <p className="font-medium text-foreground">{formatDateTime(result.created_at)}</p>
               </div>
             </div>
 
-            {/* Status Progress */}
-            {isRejected ? (
+            {isCancelled ? (
               <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 text-center">
                 <XCircle className="w-8 h-8 mx-auto mb-2 text-destructive" />
-                <p className="font-bold text-destructive">{statusLabel('rejected')}</p>
+                <p className="font-bold text-destructive">{statusLabel('cancelled')}</p>
               </div>
             ) : (
               <div>
@@ -156,7 +157,6 @@ const TrackRequest = () => {
           </div>
         )}
 
-        {/* Back link */}
         <div className="mt-8 text-center">
           <Link to="/" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
             <ArrowRight className="w-4 h-4" />

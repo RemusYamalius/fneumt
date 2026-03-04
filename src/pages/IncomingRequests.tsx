@@ -1,14 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, FileText, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Settings } from 'lucide-react';
+import { ArrowRight, FileText, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Filter, Download, Image, FileIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import logoFne from '@/assets/logo-fne.png';
+
+type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'cancelled';
+
+interface Attachment {
+  id: string;
+  file_name: string;
+  file_path: string;
+  file_size: number | null;
+  mime_type: string | null;
+}
 
 interface IncomingRequest {
   id: string;
@@ -16,12 +26,22 @@ interface IncomingRequest {
   category: string;
   subject: string;
   description: string | null;
-  status: string;
+  status: RequestStatus;
   created_at: string;
+  updated_at: string;
   user_id: string;
   sender_name: string | null;
   sender_email: string | null;
 }
+
+const STATUS_FILTERS: { key: RequestStatus | 'all'; color: string }[] = [
+  { key: 'all', color: 'bg-muted text-foreground' },
+  { key: 'submitted', color: 'bg-amber-100 text-amber-800' },
+  { key: 'viewed', color: 'bg-blue-100 text-blue-800' },
+  { key: 'in_progress', color: 'bg-purple-100 text-purple-800' },
+  { key: 'accepted', color: 'bg-emerald-100 text-emerald-800' },
+  { key: 'cancelled', color: 'bg-red-100 text-red-800' },
+];
 
 const IncomingRequests = () => {
   const { t, dir, lang } = useI18n();
@@ -31,8 +51,11 @@ const IncomingRequests = () => {
   const [requests, setRequests] = useState<IncomingRequest[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<IncomingRequest | null>(null);
-  const [processing, setProcessing] = useState(false);
   const [changingStatus, setChangingStatus] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<RequestStatus | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -48,7 +71,7 @@ const IncomingRequests = () => {
     setLoadingData(true);
     const { data, error } = await supabase
       .from('requests')
-      .select('id, tracking_number, category, subject, description, status, created_at, user_id')
+      .select('id, tracking_number, category, subject, description, status, created_at, updated_at, user_id')
       .eq('assigned_to', user.id)
       .order('created_at', { ascending: false });
 
@@ -72,88 +95,91 @@ const IncomingRequests = () => {
 
     setRequests((data || []).map(r => ({
       ...r,
+      status: r.status as RequestStatus,
       sender_name: profilesMap[r.user_id]?.full_name || null,
       sender_email: profilesMap[r.user_id]?.email || null,
     })));
     setLoadingData(false);
   };
 
-  const handleOpenRequest = async (request: IncomingRequest) => {
-    setSelectedRequest(prev => prev?.id === request.id ? null : request);
+  const fetchAttachments = async (requestId: string) => {
+    setLoadingAttachments(true);
+    const { data } = await supabase
+      .from('attachments')
+      .select('id, file_name, file_path, file_size, mime_type')
+      .eq('request_id', requestId);
+    setAttachments(data || []);
+    setLoadingAttachments(false);
+  };
+
+  const handleSelectRequest = async (request: IncomingRequest) => {
+    if (selectedRequest?.id === request.id) {
+      setSelectedRequest(null);
+      setAttachments([]);
+      return;
+    }
+    setSelectedRequest(request);
+    fetchAttachments(request.id);
+
+    // Auto-mark as viewed if submitted
     if (request.status === 'submitted' && user) {
-      setProcessing(true);
       try {
-        await supabase
-          .from('requests')
-          .update({ status: 'received' })
-          .eq('id', request.id);
-
-        await supabase
-          .from('request_status_history')
-          .insert({
-            request_id: request.id,
-            old_status: 'submitted',
-            new_status: 'received',
-            changed_by: user.id,
-            note: lang === 'ar' ? 'تم فتح الملف ومراجعته' : 'Dossier ouvert et en cours de révision',
-          });
-
-        const notifTitle = lang === 'ar' ? 'تم التوصل بملفك' : 'Dossier reçu';
-        const notifMessage = lang === 'ar'
-          ? `تم التوصل بملفك رقم ${request.tracking_number} وهو قيد المراجعة`
-          : `Votre dossier n° ${request.tracking_number} a été reçu et est en cours de révision`;
+        await supabase.from('requests').update({ status: 'viewed' as any }).eq('id', request.id);
+        await supabase.from('request_status_history').insert({
+          request_id: request.id,
+          old_status: 'submitted' as any,
+          new_status: 'viewed' as any,
+          changed_by: user.id,
+          note: lang === 'ar' ? 'تم الاطلاع على الملف' : 'Dossier consulté',
+        } as any);
 
         await supabase.from('notifications').insert({
           user_id: request.user_id,
-          title: notifTitle,
-          message: notifMessage,
+          title: lang === 'ar' ? 'تم الاطلاع على ملفك' : 'Dossier consulté',
+          message: lang === 'ar'
+            ? `تم الاطلاع على ملفك رقم ${request.tracking_number}`
+            : `Votre dossier n° ${request.tracking_number} a été consulté`,
           link: '/track',
         });
 
-        setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: 'received' } : r));
-        setSelectedRequest(prev => prev ? { ...prev, status: 'received' } : null);
-        toast({ title: lang === 'ar' ? 'تم تحديث الحالة' : 'Statut mis à jour' });
-      } catch (err: any) {
-        toast({ title: lang === 'ar' ? 'خطأ' : 'Erreur', description: err?.message, variant: 'destructive' });
-      } finally {
-        setProcessing(false);
+        const updated = { ...request, status: 'viewed' as RequestStatus };
+        setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: 'viewed' as RequestStatus } : r));
+        setSelectedRequest(updated);
+      } catch (err) {
+        console.error(err);
       }
     }
   };
 
-  const handleStatusChange = async (request: IncomingRequest, newStatus: 'processing' | 'resolved' | 'rejected') => {
+  const handleStatusChange = async (request: IncomingRequest, newStatus: RequestStatus) => {
     if (!user) return;
     setChangingStatus(newStatus);
     try {
-      await supabase
-        .from('requests')
-        .update({ status: newStatus })
-        .eq('id', request.id);
+      await supabase.from('requests').update({ status: newStatus as any }).eq('id', request.id);
+      await supabase.from('request_status_history').insert({
+        request_id: request.id,
+        old_status: request.status as any,
+        new_status: newStatus as any,
+        changed_by: user.id,
+      } as any);
 
-      await supabase
-        .from('request_status_history')
-        .insert({
-          request_id: request.id,
-          old_status: request.status as any,
-          new_status: newStatus,
-          changed_by: user.id,
-        });
-
-      // Notify requester
       const statusLabels: Record<string, { ar: string; fr: string }> = {
-        processing: { ar: 'قيد المعالجة', fr: 'En traitement' },
-        resolved: { ar: 'تمت التسوية', fr: 'Résolu' },
-        rejected: { ar: 'مرفوض', fr: 'Rejeté' },
+        viewed: { ar: 'مطلع عليه', fr: 'Consulté' },
+        in_progress: { ar: 'قيد الإجراء', fr: 'En cours' },
+        accepted: { ar: 'مقبول', fr: 'Accepté' },
+        cancelled: { ar: 'ملغى', fr: 'Annulé' },
       };
       const label = statusLabels[newStatus];
-      await supabase.from('notifications').insert({
-        user_id: request.user_id,
-        title: lang === 'ar' ? 'تحديث حالة ملفك' : 'Mise à jour de votre dossier',
-        message: lang === 'ar'
-          ? `تم تغيير حالة ملفك رقم ${request.tracking_number} إلى: ${label.ar}`
-          : `Le statut de votre dossier n° ${request.tracking_number} a été changé à : ${label.fr}`,
-        link: '/track',
-      });
+      if (label) {
+        await supabase.from('notifications').insert({
+          user_id: request.user_id,
+          title: lang === 'ar' ? 'تحديث حالة ملفك' : 'Mise à jour de votre dossier',
+          message: lang === 'ar'
+            ? `تم تغيير حالة ملفك رقم ${request.tracking_number} إلى: ${label.ar}`
+            : `Le statut de votre dossier n° ${request.tracking_number} a été changé à : ${label.fr}`,
+          link: '/track',
+        });
+      }
 
       setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: newStatus } : r));
       setSelectedRequest(prev => prev ? { ...prev, status: newStatus } : null);
@@ -165,27 +191,51 @@ const IncomingRequests = () => {
     }
   };
 
+  const downloadAttachment = async (att: Attachment) => {
+    const { data } = await supabase.storage.from('attachments').createSignedUrl(att.file_path, 300);
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+  };
+
+  const formatDateTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleString(lang === 'ar' ? 'ar-MA' : 'fr-FR', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  };
+
   const categoryLabel = (key: string) => t[`cat_${key}`] || key;
   const statusLabel = (key: string) => t[`status_${key}`] || key;
+  const filterLabel = (key: string) => {
+    if (key === 'all') return t.filterAll;
+    const map: Record<string, string> = {
+      submitted: t.status_submitted || 'مقدّم',
+      viewed: t.filterViewed,
+      in_progress: t.filterInProgress,
+      accepted: t.filterAccepted,
+      cancelled: t.filterCancelled,
+    };
+    return map[key] || key;
+  };
+
   const statusColor = (status: string) => {
     switch (status) {
       case 'submitted': return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'received': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'processing': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'resolved': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      case 'viewed': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'in_progress': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'accepted': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-muted text-muted-foreground';
     }
   };
 
-  // Available next statuses based on current status
-  const getAvailableStatuses = (currentStatus: string): ('processing' | 'resolved' | 'rejected')[] => {
-    switch (currentStatus) {
-      case 'received': return ['processing', 'rejected'];
-      case 'processing': return ['resolved', 'rejected'];
-      default: return [];
-    }
-  };
+  const filteredRequests = requests.filter(r => {
+    if (activeFilter !== 'all' && r.status !== activeFilter) return false;
+    if (searchQuery.trim() && !r.tracking_number.toLowerCase().includes(searchQuery.trim().toLowerCase())) return false;
+    return true;
+  });
+
+  const isFileImage = (mime: string | null) => mime?.startsWith('image/');
+  const isFilePdf = (mime: string | null) => mime === 'application/pdf';
 
   if (loading || !user) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -196,7 +246,7 @@ const IncomingRequests = () => {
   return (
     <div className="min-h-screen bg-background" dir={dir}>
       <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-3">
           <img src={logoFne} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
           <div>
             <p className="font-bold text-sm">{t.incomingRequests}</p>
@@ -205,54 +255,90 @@ const IncomingRequests = () => {
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-6xl mx-auto px-6 py-6">
+        {/* Top bar: back + search */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl font-bold text-foreground">{t.incomingRequests}</h1>
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-            {t.backToDashboard}
-          </Button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground start-3" />
+              <Input
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder={t.searchByTracking}
+                className="ps-9"
+              />
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+              <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+              {t.backToDashboard}
+            </Button>
+          </div>
+        </div>
+
+        {/* Status filter chips */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {STATUS_FILTERS.map(f => (
+            <motion.button
+              key={f.key}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setActiveFilter(f.key)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
+                activeFilter === f.key
+                  ? 'ring-2 ring-primary shadow-md ' + f.color
+                  : 'border-border bg-card text-muted-foreground hover:border-primary/30'
+              }`}
+            >
+              {filterLabel(f.key)}
+              {f.key !== 'all' && (
+                <span className="ms-1.5 text-xs opacity-70">
+                  ({requests.filter(r => r.status === f.key).length})
+                </span>
+              )}
+            </motion.button>
+          ))}
         </div>
 
         {loadingData ? (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : requests.length === 0 ? (
-          <div className="card-premium p-12 text-center">
+        ) : filteredRequests.length === 0 ? (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card-premium p-12 text-center">
             <Inbox className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-lg text-muted-foreground">{lang === 'ar' ? 'لا توجد طلبات واردة حالياً' : 'Aucune demande reçue pour le moment'}</p>
-          </div>
+            <p className="text-lg text-muted-foreground">{lang === 'ar' ? 'لا توجد طلبات' : 'Aucune demande'}</p>
+          </motion.div>
         ) : (
-          <div className="space-y-4">
-            {requests.map((req, index) => (
+          <div className="space-y-3">
+            {filteredRequests.map((req, index) => (
               <motion.div
                 key={req.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.08 }}
+                transition={{ duration: 0.35, delay: index * 0.05, ease: 'easeOut' }}
               >
                 <div
-                  onClick={() => handleOpenRequest(req)}
-                  className={`card-premium p-6 cursor-pointer transition-all duration-200 hover:shadow-xl ${
-                    req.status === 'submitted' ? 'border-2 border-amber-300' : ''
-                  } ${selectedRequest?.id === req.id ? 'ring-2 ring-primary' : ''}`}
+                  onClick={() => handleSelectRequest(req)}
+                  className={`rounded-2xl border bg-card p-5 cursor-pointer transition-all duration-200 hover:shadow-lg ${
+                    req.status === 'submitted' ? 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/10' : 'border-border'
+                  } ${selectedRequest?.id === req.id ? 'ring-2 ring-primary shadow-lg' : ''}`}
                 >
+                  {/* Request row */}
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <span className="font-mono text-sm font-bold text-primary">{req.tracking_number}</span>
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusColor(req.status)}`}>
                           {statusLabel(req.status)}
                         </span>
                         {req.status === 'submitted' && (
-                          <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
+                          <span className="flex items-center gap-1 text-xs text-amber-600 font-medium animate-pulse">
                             <Clock className="w-3.5 h-3.5" />
                             {lang === 'ar' ? 'جديد' : 'Nouveau'}
                           </span>
                         )}
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground mb-1 truncate">{req.subject}</h3>
+                      <h3 className="text-base font-semibold text-foreground mb-1 truncate">{req.subject}</h3>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <Tag className="w-3.5 h-3.5" />
@@ -264,15 +350,14 @@ const IncomingRequests = () => {
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5" />
-                          {new Date(req.created_at).toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR')}
+                          {formatDateTime(req.created_at)}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Eye className="w-5 h-5 text-muted-foreground" />
-                    </div>
+                    <Eye className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
                   </div>
 
+                  {/* Expanded detail */}
                   <AnimatePresence>
                     {selectedRequest?.id === req.id && (
                       <motion.div
@@ -282,75 +367,81 @@ const IncomingRequests = () => {
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                       >
-                        <div className="mt-4 pt-4 border-t border-border">
+                        <div className="mt-4 pt-4 border-t border-border space-y-4">
+                          {/* Description */}
                           {req.description && (
-                            <div className="mb-3">
-                              <span className="text-sm font-medium text-muted-foreground">{t.descriptionLabel}:</span>
+                            <div className="bg-muted/50 rounded-xl p-4">
+                              <span className="text-xs font-medium text-muted-foreground">{t.descriptionLabel}</span>
                               <p className="text-foreground mt-1">{req.description}</p>
                             </div>
                           )}
-                          {processing && (
-                            <div className="flex items-center gap-2 text-sm text-primary">
-                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                              {lang === 'ar' ? 'جارٍ التحديث...' : 'Mise à jour...'}
-                            </div>
-                          )}
 
-                          {/* Status change buttons */}
-                          {getAvailableStatuses(req.status).length > 0 && (
-                            <div className="flex flex-wrap gap-3 mt-4" onClick={e => e.stopPropagation()}>
-                              <span className="text-sm font-medium text-muted-foreground self-center">{t.changeStatus}:</span>
-                              {getAvailableStatuses(req.status).includes('processing') && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                                  disabled={!!changingStatus}
-                                  onClick={() => handleStatusChange(req, 'processing')}
-                                >
-                                  {changingStatus === 'processing' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Settings className="w-4 h-4" />}
-                                  {t.markProcessing}
-                                </Button>
-                              )}
-                              {getAvailableStatuses(req.status).includes('resolved') && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                                  disabled={!!changingStatus}
-                                  onClick={() => handleStatusChange(req, 'resolved')}
-                                >
-                                  {changingStatus === 'resolved' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                                  {t.markResolved}
-                                </Button>
-                              )}
-                              {getAvailableStatuses(req.status).includes('rejected') && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-red-300 text-red-700 hover:bg-red-50"
-                                  disabled={!!changingStatus}
-                                  onClick={() => handleStatusChange(req, 'rejected')}
-                                >
-                                  {changingStatus === 'rejected' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                                  {t.markRejected}
-                                </Button>
-                              )}
-                            </div>
-                          )}
+                          {/* Attachments */}
+                          <div className="bg-muted/50 rounded-xl p-4">
+                            <span className="text-xs font-medium text-muted-foreground mb-2 block">{t.attachments}</span>
+                            {loadingAttachments ? (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              </div>
+                            ) : attachments.length === 0 ? (
+                              <p className="text-sm text-muted-foreground">{t.noAttachments}</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {attachments.map(att => (
+                                  <div key={att.id} className="flex items-center justify-between bg-card rounded-lg px-3 py-2 border border-border">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      {isFileImage(att.mime_type) ? <Image className="w-4 h-4 text-primary shrink-0" /> : <FileIcon className="w-4 h-4 text-primary shrink-0" />}
+                                      <span className="text-sm text-foreground truncate">{att.file_name}</span>
+                                      {att.file_size && <span className="text-xs text-muted-foreground shrink-0">({(att.file_size / 1024 / 1024).toFixed(1)} MB)</span>}
+                                    </div>
+                                    <Button size="sm" variant="ghost" onClick={e => { e.stopPropagation(); downloadAttachment(att); }}>
+                                      <Download className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
 
-                          {req.status === 'resolved' && (
-                            <div className="flex items-center gap-2 text-sm text-emerald-600 mt-2">
-                              <CheckCircle2 className="w-4 h-4" />
-                              {lang === 'ar' ? 'تمت تسوية هذا الطلب' : 'Cette demande a été traitée'}
-                            </div>
-                          )}
-                          {req.status === 'rejected' && (
-                            <div className="flex items-center gap-2 text-sm text-red-600 mt-2">
-                              <XCircle className="w-4 h-4" />
-                              {lang === 'ar' ? 'تم رفض هذا الطلب' : 'Cette demande a été rejetée'}
-                            </div>
-                          )}
+                          {/* Status change buttons — always show all 4 statuses */}
+                          <div className="flex flex-wrap gap-2 pt-2" onClick={e => e.stopPropagation()}>
+                            <span className="text-sm font-medium text-muted-foreground self-center me-1">{t.changeStatus}:</span>
+                            {(['viewed', 'in_progress', 'accepted', 'cancelled'] as RequestStatus[]).map(s => {
+                              const isActive = req.status === s;
+                              const btnStyles: Record<string, string> = {
+                                viewed: 'border-blue-300 text-blue-700 hover:bg-blue-50',
+                                in_progress: 'border-purple-300 text-purple-700 hover:bg-purple-50',
+                                accepted: 'border-emerald-300 text-emerald-700 hover:bg-emerald-50',
+                                cancelled: 'border-red-300 text-red-700 hover:bg-red-50',
+                              };
+                              const icons: Record<string, typeof Eye> = {
+                                viewed: Eye,
+                                in_progress: Clock,
+                                accepted: CheckCircle2,
+                                cancelled: XCircle,
+                              };
+                              const labels: Record<string, string> = {
+                                viewed: t.markViewed,
+                                in_progress: t.markInProgress,
+                                accepted: t.markAccepted,
+                                cancelled: t.markCancelled,
+                              };
+                              const Icon = icons[s];
+                              return (
+                                <Button
+                                  key={s}
+                                  size="sm"
+                                  variant={isActive ? 'default' : 'outline'}
+                                  className={isActive ? '' : btnStyles[s]}
+                                  disabled={isActive || !!changingStatus}
+                                  onClick={() => handleStatusChange(req, s)}
+                                >
+                                  {changingStatus === s ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
+                                  {labels[s]}
+                                </Button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </motion.div>
                     )}

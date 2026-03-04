@@ -177,6 +177,9 @@ const translations: Record<Lang, Record<string, string>> = {
     filesTable: 'جدول الملفات',
     totalRequests: 'إجمالي الطلبات',
     noUsers: 'لا يوجد مستخدمون',
+    // Dashboard groups
+    personalSection: 'الحساب الشخصي',
+    professionalSection: 'المهام الوظيفية',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT',
@@ -352,6 +355,9 @@ const translations: Record<Lang, Record<string, string>> = {
     filesTable: 'Tableau des dossiers',
     totalRequests: 'Total des demandes',
     noUsers: 'Aucun utilisateur',
+    // Dashboard groups
+    personalSection: 'Compte personnel',
+    professionalSection: 'Tâches professionnelles',
   },
 };
 

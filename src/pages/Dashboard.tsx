@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import logoFne from '@/assets/logo-fne.png';
 
 const Dashboard = () => {
@@ -15,6 +14,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { unreadCount } = useRealtimeNotifications(user?.id);
   const [pendingCount, setPendingCount] = useState(0);
+  const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -61,30 +61,155 @@ const Dashboard = () => {
 
   const isLocalCoordinator = role === 'local_coordinator';
 
+  const isPromoterRole = role && [
+    'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
+    'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
+    'local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
+  ].includes(role);
+
   const showUserManagement = role && [
     'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
     'local_coordinator',
   ].includes(role);
 
-  // Show supervisor dashboard for promoter roles EXCEPT local_coordinator
   const showSupervisorDashboard = role && [
     'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
   ].includes(role);
 
-  const actions = [
-    { icon: FilePlus, title: t.newRequest, desc: t.newRequestDesc, to: '/new-request', gradient: 'from-primary to-accent' },
-    { icon: Search, title: t.trackFiles, desc: t.trackFilesDesc, to: '/track', gradient: 'from-accent to-primary' },
-    { icon: User, title: t.profile, desc: '', to: '/profile', gradient: 'from-secondary to-primary' },
-    ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', gradient: 'from-accent to-secondary', badge: pendingCount }] : []),
-    ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', gradient: 'from-accent to-primary' }] : []),
-    ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', gradient: 'from-primary to-secondary' }] : []),
+  // Card color palette - harmonious with primary/accent
+  const cardColors = {
+    newRequest: 'from-[hsl(207,62%,40%)] to-[hsl(207,62%,55%)]',
+    trackFiles: 'from-[hsl(120,61%,34%)] to-[hsl(120,61%,45%)]',
+    profile: 'from-[hsl(207,75%,17%)] to-[hsl(207,75%,30%)]',
+    incomingRequests: 'from-[hsl(30,90%,50%)] to-[hsl(30,90%,60%)]',
+    supervisorDashboard: 'from-[hsl(260,60%,50%)] to-[hsl(260,60%,62%)]',
+    userManagement: 'from-[hsl(340,65%,47%)] to-[hsl(340,65%,58%)]',
+  };
+
+  const personalCards = [
+    { icon: FilePlus, title: t.newRequest, desc: t.newRequestDesc, to: '/new-request', color: cardColors.newRequest },
+    { icon: Search, title: t.trackFiles, desc: t.trackFilesDesc, to: '/track', color: cardColors.trackFiles },
+    { icon: User, title: t.profile, desc: '', to: '/profile', color: cardColors.profile },
+  ];
+
+  const professionalCards = [
+    ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', color: cardColors.incomingRequests, badge: pendingCount }] : []),
+    ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', color: cardColors.supervisorDashboard }] : []),
+    ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
+  ];
+
+  // Simple layout for regular users (teacher/union_officer)
+  const allCards = [
+    ...personalCards,
+    ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', color: cardColors.incomingRequests, badge: pendingCount }] : []),
   ];
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const toggleGroup = (group: 'personal' | 'professional') => {
+    setExpandedGroup(prev => prev === group ? null : group);
+  };
+
+  const renderCard = (action: any, index: number) => (
+    <motion.div
+      key={action.to}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3, delay: index * 0.08 }}
+    >
+      <Link
+        to={action.to}
+        className="group relative overflow-hidden rounded-2xl p-6 text-center transition-all duration-300 block shadow-lg hover:shadow-xl hover:-translate-y-1"
+      >
+        <div className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-10 group-hover:opacity-15 transition-opacity duration-300`} />
+        <div className="relative z-10">
+          <div className="relative inline-block">
+            <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-md`}>
+              <action.icon className="w-6 h-6 text-white" />
+            </div>
+            {(action as any).badge > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                {(action as any).badge > 99 ? '99+' : (action as any).badge}
+              </span>
+            )}
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-1">{action.title}</h2>
+          {action.desc && <p className="text-xs text-muted-foreground">{action.desc}</p>}
+        </div>
+      </Link>
+    </motion.div>
+  );
+
+  const renderGroupCard = (
+    group: 'personal' | 'professional',
+    icon: typeof UserCircle,
+    title: string,
+    cards: any[],
+    gradientClass: string,
+  ) => {
+    const Icon = icon;
+    const isExpanded = expandedGroup === group;
+    const totalBadge = cards.reduce((sum, c) => sum + ((c as any).badge || 0), 0);
+
+    return (
+      <motion.div
+        layout
+        className="w-full"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <button
+          onClick={() => toggleGroup(group)}
+          className={`w-full group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 shadow-lg hover:shadow-xl ${isExpanded ? 'ring-2 ring-primary/30' : ''}`}
+        >
+          <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-10 group-hover:opacity-15 transition-opacity`} />
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-md`}>
+                <Icon className="w-7 h-7 text-white" />
+              </div>
+              <div className="text-start">
+                <h2 className="text-xl font-bold text-foreground">{title}</h2>
+                <p className="text-sm text-muted-foreground">{cards.length} {lang === 'ar' ? 'عناصر' : 'éléments'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {totalBadge > 0 && (
+                <span className="w-6 h-6 bg-destructive text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                  {totalBadge > 99 ? '99+' : totalBadge}
+                </span>
+              )}
+              <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                <ChevronDown className="w-6 h-6 text-muted-foreground" />
+              </motion.div>
+            </div>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+              className="overflow-hidden"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 px-1">
+                {cards.map((card, i) => renderCard(card, i))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
   };
 
   return (
@@ -105,9 +230,9 @@ const Dashboard = () => {
             </button>
             <button className="p-2 rounded-full hover:bg-white/10 transition-colors relative">
               <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
+              {pendingCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  {pendingCount > 99 ? '99+' : pendingCount}
                 </span>
               )}
             </button>
@@ -120,41 +245,54 @@ const Dashboard = () => {
 
       {/* Welcome */}
       <main className="max-w-5xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-foreground mb-8">
+        <motion.h1
+          className="text-2xl font-bold text-foreground mb-8"
+          initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           {t.welcome}، {profile?.full_name || user.email}
-        </h1>
+        </motion.h1>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" style={{ direction: 'ltr' }}>
-          {actions.map((action, index) => (
-            <motion.div
-              key={action.to}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}
-            >
-            <Link
-              to={action.to}
-              className="card-premium group relative p-8 text-center transition-all duration-300 block"
-            >
-              <div className="relative z-10">
-                <div className="relative">
-                  <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-accent/20 transition-colors duration-300">
-                    <action.icon className="w-7 h-7 text-primary" />
+        {/* Grouped layout for promoter roles */}
+        {isPromoterRole ? (
+          <div className="space-y-5 mb-10">
+            {renderGroupCard('personal', UserCircle, t.personalSection, personalCards, 'from-[hsl(207,62%,40%)] to-[hsl(120,61%,34%)]')}
+            {professionalCards.length > 0 && renderGroupCard('professional', Briefcase, t.professionalSection, professionalCards, 'from-[hsl(260,60%,50%)] to-[hsl(340,65%,47%)]')}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" style={{ direction: 'ltr' }}>
+            {allCards.map((action, index) => (
+              <motion.div
+                key={action.to}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}
+              >
+                <Link
+                  to={action.to}
+                  className="group relative overflow-hidden rounded-2xl p-8 text-center transition-all duration-300 block shadow-lg hover:shadow-xl hover:-translate-y-1"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-10 group-hover:opacity-15 transition-opacity duration-300`} />
+                  <div className="relative z-10">
+                    <div className="relative inline-block">
+                      <div className={`w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-md`}>
+                        <action.icon className="w-7 h-7 text-white" />
+                      </div>
+                      {(action as any).badge > 0 && (
+                        <span className={`absolute -top-1 ${dir === 'rtl' ? '-right-1' : '-left-1'} w-6 h-6 bg-destructive text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse`}>
+                          {(action as any).badge > 99 ? '99+' : (action as any).badge}
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="text-xl font-bold text-foreground mb-2">{action.title}</h2>
+                    {action.desc && <p className="text-sm text-muted-foreground">{action.desc}</p>}
                   </div>
-                  {(action as any).badge > 0 && (
-                    <span className={`absolute top-0 ${dir === 'rtl' ? 'right-0 sm:right-4' : 'left-0 sm:left-4'} w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse`}>
-                      {(action as any).badge > 99 ? '99+' : (action as any).badge}
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-xl font-bold text-foreground mb-2">{action.title}</h2>
-                {action.desc && <p className="text-sm text-muted-foreground">{action.desc}</p>}
-              </div>
-            </Link>
-            </motion.div>
-          ))}
-        </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         {/* My Requests */}
         <section>

@@ -22,19 +22,20 @@ const Dashboard = () => {
     }
   }, [loading, user, navigate]);
 
-  const isDeputyLocal = role && [
+  const showIncomingRequests = role && [
     'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
+    'local_coordinator',
   ].includes(role);
 
   useEffect(() => {
-    if (!user || !isDeputyLocal) return;
+    if (!user || !showIncomingRequests) return;
     supabase
       .from('requests')
       .select('*', { count: 'exact', head: true })
       .eq('assigned_to', user.id)
       .eq('status', 'submitted')
       .then(({ count }) => setPendingCount(count || 0));
-  }, [user, isDeputyLocal]);
+  }, [user, showIncomingRequests]);
 
   if (loading) {
     return (
@@ -56,18 +57,17 @@ const Dashboard = () => {
     'local_coordinator',
   ].includes(role);
 
-  // Show supervisor dashboard for any promoter role (local_coordinator and above)
+  // Show supervisor dashboard for promoter roles EXCEPT local_coordinator
   const showSupervisorDashboard = role && [
     'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
-    'local_coordinator',
   ].includes(role);
 
   const actions = [
     { icon: FilePlus, title: t.newRequest, desc: t.newRequestDesc, to: '/new-request', gradient: 'from-primary to-accent' },
     { icon: Search, title: t.trackFiles, desc: t.trackFilesDesc, to: '/track', gradient: 'from-accent to-primary' },
     { icon: User, title: t.profile, desc: '', to: '/profile', gradient: 'from-secondary to-primary' },
-    ...(isDeputyLocal ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', gradient: 'from-accent to-secondary', badge: pendingCount }] : []),
+    ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', gradient: 'from-accent to-secondary', badge: pendingCount }] : []),
     ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', gradient: 'from-accent to-primary' }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', gradient: 'from-primary to-secondary' }] : []),
   ];

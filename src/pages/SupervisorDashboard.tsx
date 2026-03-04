@@ -27,10 +27,10 @@ interface RequestData {
 
 const STATUS_COLORS: Record<string, string> = {
   submitted: '#f59e0b',
-  received: '#3b82f6',
-  processing: '#8b5cf6',
-  resolved: '#10b981',
-  rejected: '#ef4444',
+  viewed: '#3b82f6',
+  in_progress: '#8b5cf6',
+  accepted: '#10b981',
+  cancelled: '#ef4444',
 };
 
 const CATEGORY_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];

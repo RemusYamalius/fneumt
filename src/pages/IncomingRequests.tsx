@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Download, Image as ImageIcon, FileIcon } from 'lucide-react';
+import { ArrowRight, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Download, Image as ImageIcon, FileIcon, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,6 +32,7 @@ interface IncomingRequest {
   user_id: string;
   sender_name: string | null;
   sender_email: string | null;
+  sender_institution: string | null;
 }
 
 const STATUS_FILTERS: { key: RequestStatus | 'all' }[] = [
@@ -91,14 +92,14 @@ const IncomingRequests = () => {
     }
 
     const userIds = [...new Set((data || []).map(r => r.user_id))];
-    let profilesMap: Record<string, { full_name: string | null; email: string | null }> = {};
+    let profilesMap: Record<string, { full_name: string | null; email: string | null; institution: string | null }> = {};
     if (userIds.length > 0) {
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email')
+        .select('user_id, full_name, email, institution')
         .in('user_id', userIds);
       (profiles || []).forEach(p => {
-        profilesMap[p.user_id] = { full_name: p.full_name, email: p.email };
+        profilesMap[p.user_id] = { full_name: p.full_name, email: p.email, institution: p.institution };
       });
     }
 
@@ -107,6 +108,7 @@ const IncomingRequests = () => {
       status: r.status as RequestStatus,
       sender_name: profilesMap[r.user_id]?.full_name || null,
       sender_email: profilesMap[r.user_id]?.email || null,
+      sender_institution: profilesMap[r.user_id]?.institution || null,
     })));
     setLoadingData(false);
   };
@@ -343,37 +345,52 @@ const IncomingRequests = () => {
                   } ${selectedRequest?.id === req.id ? 'request-card-open ring-2 ring-primary/30' : 'hover:-translate-y-0.5 hover:shadow-lg'}`}
                 >
                   {/* Request row */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <span className="font-mono text-sm font-bold text-primary">{req.tracking_number}</span>
-                        <span className={`request-status-badge ${statusThemeClass(req.status)} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
-                          {statusLabel(req.status)}
+                  <div className="grid gap-4 md:grid-cols-[auto,minmax(0,1fr),auto] md:items-start">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <span className="font-mono text-sm font-bold text-primary">{req.tracking_number}</span>
+                      <span className={`request-status-badge ${statusThemeClass(req.status)} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
+                        {statusLabel(req.status)}
+                      </span>
+                      {req.status === 'submitted' && (
+                        <span className="request-status-pill-new flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium animate-pulse">
+                          <Clock className="w-3.5 h-3.5" />
+                          {lang === 'ar' ? 'جديد' : 'Nouveau'}
                         </span>
-                        {req.status === 'submitted' && (
-                          <span className="request-status-pill-new flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium animate-pulse">
-                            <Clock className="w-3.5 h-3.5" />
-                            {lang === 'ar' ? 'جديد' : 'Nouveau'}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-base font-semibold text-foreground mb-1 truncate">{req.subject}</h3>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Tag className="w-3.5 h-3.5" />
-                          {categoryLabel(req.category)}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <User className="w-3.5 h-3.5" />
-                          {req.sender_name || req.sender_email || '—'}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {formatDateTime(req.created_at)}
-                        </span>
+                      )}
+                    </div>
+
+                    <div className="request-owner-chip min-w-0 md:mx-auto">
+                      <div className="flex items-start gap-2">
+                        <div className="request-owner-icon mt-0.5">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="request-owner-name truncate">{req.sender_name || req.sender_email || '—'}</p>
+                          <div className="request-owner-org-wrap">
+                            <Building2 className="w-3.5 h-3.5 shrink-0" />
+                            <p className="request-owner-org truncate">{req.sender_institution || (lang === 'ar' ? 'المؤسسة غير محددة' : 'Établissement non renseigné')}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <Eye className="w-5 h-5 shrink-0 mt-1 text-[color:var(--request-strong)]" />
+
+                    <div className="request-view-icon md:justify-self-end">
+                      <Eye className="w-5 h-5 shrink-0 text-[color:var(--request-strong)]" />
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <h3 className="text-base font-semibold text-foreground mb-1 truncate">{req.subject}</h3>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5" />
+                        {categoryLabel(req.category)}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {formatDateTime(req.created_at)}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Expanded detail */}

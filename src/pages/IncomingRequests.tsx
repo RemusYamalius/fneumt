@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, FileText, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Filter, Download, Image, FileIcon, X } from 'lucide-react';
+import { ArrowRight, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Download, Image as ImageIcon, FileIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,14 +34,23 @@ interface IncomingRequest {
   sender_email: string | null;
 }
 
-const STATUS_FILTERS: { key: RequestStatus | 'all'; color: string }[] = [
-  { key: 'all', color: 'bg-muted text-foreground' },
-  { key: 'submitted', color: 'bg-amber-100 text-amber-800' },
-  { key: 'viewed', color: 'bg-blue-100 text-blue-800' },
-  { key: 'in_progress', color: 'bg-purple-100 text-purple-800' },
-  { key: 'accepted', color: 'bg-emerald-100 text-emerald-800' },
-  { key: 'cancelled', color: 'bg-red-100 text-red-800' },
+const STATUS_FILTERS: { key: RequestStatus | 'all' }[] = [
+  { key: 'all' },
+  { key: 'submitted' },
+  { key: 'viewed' },
+  { key: 'in_progress' },
+  { key: 'accepted' },
+  { key: 'cancelled' },
 ];
+
+const STATUS_THEME_CLASS: Record<RequestStatus | 'all', string> = {
+  all: 'request-theme-all',
+  submitted: 'request-theme-submitted',
+  viewed: 'request-theme-viewed',
+  in_progress: 'request-theme-in-progress',
+  accepted: 'request-theme-accepted',
+  cancelled: 'request-theme-cancelled',
+};
 
 const IncomingRequests = () => {
   const { t, dir, lang } = useI18n();
@@ -153,7 +162,7 @@ const IncomingRequests = () => {
 
   const handleStatusChange = async (request: IncomingRequest, newStatus: RequestStatus) => {
     if (!user) return;
-    setChangingStatus(newStatus);
+    setChangingStatus(`${request.id}:${newStatus}`);
     try {
       await supabase.from('requests').update({ status: newStatus as any }).eq('id', request.id);
       await supabase.from('request_status_history').insert({
@@ -192,8 +201,25 @@ const IncomingRequests = () => {
   };
 
   const downloadAttachment = async (att: Attachment) => {
-    const { data } = await supabase.storage.from('attachments').createSignedUrl(att.file_path, 300);
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+    try {
+      const { data, error } = await supabase.storage.from('attachments').download(att.file_path);
+      if (error || !data) throw error || new Error(lang === 'ar' ? 'تعذر الوصول إلى الملف' : 'Fichier inaccessible');
+
+      const objectUrl = window.URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = att.file_name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1500);
+    } catch (err: any) {
+      toast({
+        title: lang === 'ar' ? 'تعذر تحميل المرفق' : 'Téléchargement impossible',
+        description: err?.message || (lang === 'ar' ? 'تحقق من الصلاحيات ثم أعد المحاولة.' : 'Vérifiez les autorisations puis réessayez.'),
+        variant: 'destructive',
+      });
+    }
   };
 
   const formatDateTime = (dateStr: string) => {
@@ -217,15 +243,8 @@ const IncomingRequests = () => {
     return map[key] || key;
   };
 
-  const statusColor = (status: string) => {
-    switch (status) {
-      case 'submitted': return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'viewed': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'in_progress': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'accepted': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-muted text-muted-foreground';
-    }
+  const statusThemeClass = (status: RequestStatus | 'all') => {
+    return STATUS_THEME_CLASS[status] || STATUS_THEME_CLASS.all;
   };
 
   const filteredRequests = requests.filter(r => {
@@ -281,17 +300,17 @@ const IncomingRequests = () => {
           {STATUS_FILTERS.map(f => (
             <motion.button
               key={f.key}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => setActiveFilter(f.key)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
+              className={`request-filter-chip ${statusThemeClass(f.key)} px-4 py-2 rounded-full text-sm font-semibold ${
                 activeFilter === f.key
-                  ? 'ring-2 ring-primary shadow-md ' + f.color
-                  : 'border-border bg-card text-muted-foreground hover:border-primary/30'
+                  ? 'request-filter-chip-active'
+                  : 'request-filter-chip-inactive'
               }`}
             >
               {filterLabel(f.key)}
               {f.key !== 'all' && (
-                <span className="ms-1.5 text-xs opacity-70">
+                <span className="ms-1.5 text-xs opacity-80">
                   ({requests.filter(r => r.status === f.key).length})
                 </span>
               )}
@@ -319,20 +338,20 @@ const IncomingRequests = () => {
               >
                 <div
                   onClick={() => handleSelectRequest(req)}
-                  className={`rounded-2xl border bg-card p-5 cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                    req.status === 'submitted' ? 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/10' : 'border-border'
-                  } ${selectedRequest?.id === req.id ? 'ring-2 ring-primary shadow-lg' : ''}`}
+                  className={`request-card-shell ${statusThemeClass(req.status)} rounded-2xl p-5 cursor-pointer ${
+                    req.status === 'submitted' ? 'request-card-fresh' : ''
+                  } ${selectedRequest?.id === req.id ? 'request-card-open ring-2 ring-primary/30' : 'hover:-translate-y-0.5 hover:shadow-lg'}`}
                 >
                   {/* Request row */}
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <span className="font-mono text-sm font-bold text-primary">{req.tracking_number}</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusColor(req.status)}`}>
+                        <span className={`request-status-badge ${statusThemeClass(req.status)} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
                           {statusLabel(req.status)}
                         </span>
                         {req.status === 'submitted' && (
-                          <span className="flex items-center gap-1 text-xs text-amber-600 font-medium animate-pulse">
+                          <span className="request-status-pill-new flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium animate-pulse">
                             <Clock className="w-3.5 h-3.5" />
                             {lang === 'ar' ? 'جديد' : 'Nouveau'}
                           </span>
@@ -388,13 +407,13 @@ const IncomingRequests = () => {
                             ) : (
                               <div className="space-y-2">
                                 {attachments.map(att => (
-                                  <div key={att.id} className="flex items-center justify-between bg-card rounded-lg px-3 py-2 border border-border">
+                                  <div key={att.id} className={`request-attachment-tile ${statusThemeClass(req.status)} flex items-center justify-between rounded-lg px-3 py-2`}>
                                     <div className="flex items-center gap-2 min-w-0">
-                                      {isFileImage(att.mime_type) ? <Image className="w-4 h-4 text-primary shrink-0" /> : <FileIcon className="w-4 h-4 text-primary shrink-0" />}
+                                      {isFileImage(att.mime_type) ? <ImageIcon className="w-4 h-4 text-primary shrink-0" /> : <FileIcon className="w-4 h-4 text-primary shrink-0" />}
                                       <span className="text-sm text-foreground truncate">{att.file_name}</span>
                                       {att.file_size && <span className="text-xs text-muted-foreground shrink-0">({(att.file_size / 1024 / 1024).toFixed(1)} MB)</span>}
                                     </div>
-                                    <Button size="sm" variant="ghost" onClick={e => { e.stopPropagation(); downloadAttachment(att); }}>
+                                    <Button size="sm" variant="ghost" className="request-download-btn" onClick={e => { e.stopPropagation(); downloadAttachment(att); }}>
                                       <Download className="w-4 h-4" />
                                     </Button>
                                   </div>
@@ -408,12 +427,6 @@ const IncomingRequests = () => {
                             <span className="text-sm font-medium text-muted-foreground self-center me-1">{t.changeStatus}:</span>
                             {(['viewed', 'in_progress', 'accepted', 'cancelled'] as RequestStatus[]).map(s => {
                               const isActive = req.status === s;
-                              const btnStyles: Record<string, string> = {
-                                viewed: 'border-blue-300 text-blue-700 hover:bg-blue-50',
-                                in_progress: 'border-purple-300 text-purple-700 hover:bg-purple-50',
-                                accepted: 'border-emerald-300 text-emerald-700 hover:bg-emerald-50',
-                                cancelled: 'border-red-300 text-red-700 hover:bg-red-50',
-                              };
                               const icons: Record<string, typeof Eye> = {
                                 viewed: Eye,
                                 in_progress: Clock,
@@ -432,11 +445,11 @@ const IncomingRequests = () => {
                                   key={s}
                                   size="sm"
                                   variant={isActive ? 'default' : 'outline'}
-                                  className={isActive ? '' : btnStyles[s]}
+                                  className={isActive ? '' : `request-action-button ${statusThemeClass(s)}`}
                                   disabled={isActive || !!changingStatus}
                                   onClick={() => handleStatusChange(req, s)}
                                 >
-                                  {changingStatus === s ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
+                                  {changingStatus === `${req.id}:${s}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
                                   {labels[s]}
                                 </Button>
                               );

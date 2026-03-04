@@ -161,4 +161,147 @@
   .dark .card-premium:hover {
     border-color: hsl(280 40% 40%);
   }
+
+  .request-theme-all {
+    --request-soft: hsl(var(--muted));
+    --request-surface: hsl(var(--card));
+    --request-foreground: hsl(var(--foreground));
+    --request-border: hsl(var(--border));
+    --request-strong: hsl(var(--primary));
+    --request-glow: hsl(var(--primary) / 0.18);
+  }
+
+  .request-theme-submitted {
+    --request-soft: hsl(42 100% 94%);
+    --request-surface: hsl(44 100% 98%);
+    --request-foreground: hsl(30 82% 28%);
+    --request-border: hsl(41 89% 77%);
+    --request-strong: hsl(38 92% 46%);
+    --request-glow: hsl(42 98% 52% / 0.24);
+  }
+
+  .request-theme-viewed {
+    --request-soft: hsl(208 100% 95%);
+    --request-surface: hsl(206 100% 98%);
+    --request-foreground: hsl(210 82% 30%);
+    --request-border: hsl(207 88% 78%);
+    --request-strong: hsl(207 78% 46%);
+    --request-glow: hsl(207 88% 52% / 0.24);
+  }
+
+  .request-theme-in-progress {
+    --request-soft: hsl(268 100% 96%);
+    --request-surface: hsl(270 100% 98%);
+    --request-foreground: hsl(270 50% 31%);
+    --request-border: hsl(268 78% 82%);
+    --request-strong: hsl(268 61% 52%);
+    --request-glow: hsl(268 74% 58% / 0.22);
+  }
+
+  .request-theme-accepted {
+    --request-soft: hsl(144 55% 93%);
+    --request-surface: hsl(145 60% 98%);
+    --request-foreground: hsl(146 58% 24%);
+    --request-border: hsl(144 48% 75%);
+    --request-strong: hsl(146 63% 38%);
+    --request-glow: hsl(146 68% 42% / 0.22);
+  }
+
+  .request-theme-cancelled {
+    --request-soft: hsl(0 100% 96%);
+    --request-surface: hsl(0 100% 99%);
+    --request-foreground: hsl(0 72% 34%);
+    --request-border: hsl(0 86% 82%);
+    --request-strong: hsl(0 78% 48%);
+    --request-glow: hsl(0 84% 56% / 0.22);
+  }
+
+  .request-filter-chip {
+    background: linear-gradient(135deg, var(--request-soft), var(--request-surface));
+    color: var(--request-foreground);
+    border: 1px solid var(--request-border);
+    box-shadow: 0 8px 18px -18px var(--request-glow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .request-filter-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -20px var(--request-glow);
+  }
+
+  .request-filter-chip-active {
+    box-shadow: 0 18px 38px -24px var(--request-glow), inset 0 0 0 1px var(--request-border);
+  }
+
+  .request-filter-chip-inactive {
+    opacity: 0.9;
+  }
+
+  .request-card-shell {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--request-border);
+    background: linear-gradient(145deg, var(--request-surface) 0%, hsl(var(--card)) 100%);
+    box-shadow: inset 5px 0 0 var(--request-strong);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .request-card-shell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--request-glow) 0%, transparent 44%);
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  .request-card-shell > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .request-card-fresh {
+    box-shadow: inset 5px 0 0 var(--request-strong), 0 16px 34px -28px var(--request-glow);
+  }
+
+  .request-card-open {
+    transform: translateY(-1px);
+    box-shadow: inset 5px 0 0 var(--request-strong), 0 24px 48px -30px var(--request-glow);
+  }
+
+  .request-status-badge {
+    background: linear-gradient(135deg, var(--request-soft), var(--request-surface));
+    color: var(--request-foreground);
+    border: 1px solid var(--request-border);
+  }
+
+  .request-status-pill-new {
+    color: hsl(30 82% 28%);
+    background: hsl(42 100% 94%);
+    border: 1px solid hsl(41 89% 77%);
+  }
+
+  .request-action-button {
+    border-color: var(--request-border);
+    color: var(--request-foreground);
+  }
+
+  .request-action-button:hover {
+    background: var(--request-soft);
+  }
+
+  .request-attachment-tile {
+    border: 1px solid var(--request-border);
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, var(--request-soft) 100%);
+    box-shadow: 0 10px 24px -26px var(--request-glow);
+  }
+
+  .request-download-btn {
+    color: var(--request-strong);
+  }
+
+  .request-download-btn:hover {
+    background: var(--request-soft);
+  }
 }
+

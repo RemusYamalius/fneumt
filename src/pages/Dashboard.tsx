@@ -47,7 +47,17 @@ const Dashboard = () => {
 
   if (!user) return null;
 
-  const roleLabel = role ? (t[`role_${role}`] || t.roleTeacher) : t.roleTeacher;
+  const getRoleLabel = () => {
+    const base = role ? (t[`role_${role}`] || t.roleTeacher) : t.roleTeacher;
+    if (!role || !profile) return base;
+    const isRegional = ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'].includes(role);
+    const isSubRegional = ['provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role);
+    if (isRegional && profile.academy) return `${base} — ${profile.academy}`;
+    if (isSubRegional && profile.academy && profile.directorate) return `${base} — ${profile.academy} / ${profile.directorate}`;
+    if (isSubRegional && profile.academy) return `${base} — ${profile.academy}`;
+    return base;
+  };
+  const roleLabel = getRoleLabel();
 
   const isLocalCoordinator = role === 'local_coordinator';
 

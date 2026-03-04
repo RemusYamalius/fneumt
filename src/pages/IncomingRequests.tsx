@@ -373,7 +373,7 @@ const IncomingRequests = () => {
                         </span>
                       </div>
                     </div>
-                    <Eye className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
+                    <Eye className="w-5 h-5 shrink-0 mt-1 text-[color:var(--request-strong)]" />
                   </div>
 
                   {/* Expanded detail */}

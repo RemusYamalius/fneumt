@@ -2,38 +2,42 @@
 
 ## التغييرات المطلوبة
 
-إعادة تسمية حقل "المهمة" إلى "الإطار / المهمة" وتوسيع قائمة الاختيارات لتشمل جميع الخيارات الظاهرة في الصورة المرفقة.
+استبدال فئات الطلبات الحالية (7 فئات) بقائمة جديدة من 11 موضوعاً مستوحاة من الصورة المرفقة، مع تحسين بصري احترافي للبطاقات وتغيير العنوان من "اختر الفئة" إلى "موضوع الطلب".
 
 ---
 
-### الملفات المعنية
+### 1. `src/lib/i18n.tsx`
 
-**1. `src/lib/i18n.tsx`**
-- تغيير `missionLabel` من `'المهمة'` إلى `'الإطار / المهمة'` (بالعربية) و `'Cadre / Mission'` (بالفرنسية)
-- حذف `missionTeaching` و `missionAdministration`
-- إضافة مفاتيح جديدة لكل خيار من الصورة (16 خيار):
+**تغيير التسميات:**
+- `selectCategory` → `'موضوع الطلب'` / `'Objet de la demande'`
+- `stepCategory` → `'الموضوع'` / `'Objet'`
 
-| القيمة (value) | العربية | الفرنسية |
+**حذف الفئات القديمة** (cat_medical_file, cat_mohammed_vi_foundation, etc.) واستبدالها بـ 11 مفتاحاً جديداً:
+
+| المفتاح | العربية | الفرنسية |
 |---|---|---|
-| `teacher_primary` | أستاذ التعليم الابتدائي | Enseignant du primaire |
-| `teacher_middle` | أستاذ التعليم الثانوي الإعدادي | Enseignant du collège |
-| `teacher_high` | أستاذ التعليم الثانوي التأهيلي | Enseignant du lycée |
-| `support_staff` | إطار الدعم | Cadre de soutien |
-| `supplier` | ممون | Fournisseur |
-| `educational_advisor` | ملحق تربوي | Conseiller pédagogique |
-| `guard` | حارس عام للخارجية | Surveillant général externe |
-| `director` | مدير | Directeur |
-| `administrator` | متصرف | Administrateur |
-| `educational_inspector` | مفتش تربوي | Inspecteur pédagogique |
-| `tech_assistant` | مساعد تقني | Assistant technique |
-| `economy_admin` | ملحق الاقتصاد و الادارة | Attaché d'économie et admin |
-| `treasurer` | قيم على الخزانة | Trésorier |
-| `other` | آخر | Autre |
+| `cat_rank_promotion` | الترقية في الرتبة | Promotion de grade |
+| `cat_grade_promotion` | الترقية في الدرجة | Promotion d'échelon |
+| `cat_schedules` | جداول الحصص | Emplois du temps |
+| `cat_infrastructure` | البنية المادية للمؤسسة | Infrastructure |
+| `cat_financial_compensation` | التعويضات المالية | Indemnités financières |
+| `cat_zone_compensation` | تعويضات المنطقة | Indemnités de zone |
+| `cat_equipment` | التجهيزات | Équipements |
+| `cat_grievances` | تظلمات | Réclamations |
+| `cat_assignments` | تكليفات | Affectations |
+| `cat_inspection_score` | نقطة التفتيش | Note d'inspection |
+| `cat_other` | آخر | Autre |
 
-**2. `src/pages/Profile.tsx`**
-- تحديث `missionOptions` لتشمل جميع الخيارات الـ 14 الجديدة بدل الخيارين القديمين.
+### 2. `src/pages/NewRequest.tsx`
 
-**3. `src/pages/NewRequest.tsx`** (إن كان يستخدم نفس الخيارات — سأتحقق أثناء التنفيذ)
+- تحديث `RequestCategory` type ليشمل 11 قيمة جديدة
+- تحديث مصفوفة `CATEGORIES` بأيقونات مناسبة لكل موضوع (مثلاً: `Award` للترقية، `Clock` للحصص، `Building2` للبنية، `Coins` للتعويضات، `Wrench` للتجهيزات، `AlertTriangle` للتظلمات، `ClipboardList` للتكليفات، `Search` للتفتيش، `MoreHorizontal` لآخر)
+- تحسين بصري للبطاقات: إضافة حركات framer-motion (scale + fadeIn عند الظهور)، تدرجات لونية فريدة لكل بطاقة، ظلال ناعمة، تأثير hover أقوى
+- تغيير الشبكة إلى `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4` لاستيعاب 11 بطاقة
 
-> لا حاجة لتغيير قاعدة البيانات لأن حقل `mission` هو من نوع `text` ويقبل أي قيمة.
+### 3. ملفات أخرى تستخدم `categoryLabel`
+
+- `src/pages/TrackRequest.tsx` و `src/pages/SupervisorDashboard.tsx` — يستخدمان `t[cat_${category}]` ديناميكياً فلا حاجة لتعديلهما، ستعمل المفاتيح الجديدة تلقائياً.
+
+> **ملاحظة:** حقل `category` في قاعدة البيانات هو `text` فلا حاجة لتعديل DB.
 

@@ -109,8 +109,20 @@ const Profile = () => {
   ];
 
   const missionOptions = [
-    { value: 'teaching', label: t.missionTeaching },
-    { value: 'administration', label: t.missionAdministration },
+    { value: 'teacher_primary', label: t.missionTeacherPrimary },
+    { value: 'teacher_middle', label: t.missionTeacherMiddle },
+    { value: 'teacher_high', label: t.missionTeacherHigh },
+    { value: 'support_staff', label: t.missionSupportStaff },
+    { value: 'supplier', label: t.missionSupplier },
+    { value: 'educational_advisor', label: t.missionEducationalAdvisor },
+    { value: 'guard', label: t.missionGuard },
+    { value: 'director', label: t.missionDirector },
+    { value: 'administrator', label: t.missionAdministrator },
+    { value: 'educational_inspector', label: t.missionEducationalInspector },
+    { value: 'tech_assistant', label: t.missionTechAssistant },
+    { value: 'economy_admin', label: t.missionEconomyAdmin },
+    { value: 'treasurer', label: t.missionTreasurer },
+    { value: 'other', label: t.missionOther },
   ];
 
   return (

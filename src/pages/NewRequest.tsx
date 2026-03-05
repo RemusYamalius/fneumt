@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Heart, TrendingUp, MapPin, Building, CreditCard, GraduationCap } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock, Building2, Coins, MapPin, Wrench, AlertTriangle, ClipboardList, Search, MoreHorizontal } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,16 +11,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import logoFne from '@/assets/logo-fne.png';
 
-type RequestCategory = 'medical_file' | 'mohammed_vi_foundation' | 'promotions' | 'transfer' | 'assets' | 'subscriptions' | 'scholarships';
+type RequestCategory = 'rank_promotion' | 'grade_promotion' | 'schedules' | 'infrastructure' | 'financial_compensation' | 'zone_compensation' | 'equipment' | 'grievances' | 'assignments' | 'inspection_score' | 'other';
 
-const CATEGORIES: { key: RequestCategory; icon: typeof FileText }[] = [
-  { key: 'medical_file', icon: Heart },
-  { key: 'mohammed_vi_foundation', icon: Building },
-  { key: 'promotions', icon: TrendingUp },
-  { key: 'transfer', icon: MapPin },
-  { key: 'assets', icon: CreditCard },
-  { key: 'subscriptions', icon: CreditCard },
-  { key: 'scholarships', icon: GraduationCap },
+const CATEGORIES: { key: RequestCategory; icon: typeof FileText; gradient: string; iconBg: string }[] = [
+  { key: 'rank_promotion', icon: Award, gradient: 'from-blue-500/20 to-indigo-500/20', iconBg: 'bg-blue-500' },
+  { key: 'grade_promotion', icon: Star, gradient: 'from-violet-500/20 to-purple-500/20', iconBg: 'bg-violet-500' },
+  { key: 'schedules', icon: Clock, gradient: 'from-emerald-500/20 to-teal-500/20', iconBg: 'bg-emerald-500' },
+  { key: 'infrastructure', icon: Building2, gradient: 'from-amber-500/20 to-orange-500/20', iconBg: 'bg-amber-500' },
+  { key: 'financial_compensation', icon: Coins, gradient: 'from-yellow-500/20 to-amber-500/20', iconBg: 'bg-yellow-600' },
+  { key: 'zone_compensation', icon: MapPin, gradient: 'from-rose-500/20 to-pink-500/20', iconBg: 'bg-rose-500' },
+  { key: 'equipment', icon: Wrench, gradient: 'from-cyan-500/20 to-blue-500/20', iconBg: 'bg-cyan-600' },
+  { key: 'grievances', icon: AlertTriangle, gradient: 'from-red-500/20 to-rose-500/20', iconBg: 'bg-red-500' },
+  { key: 'assignments', icon: ClipboardList, gradient: 'from-sky-500/20 to-indigo-500/20', iconBg: 'bg-sky-500' },
+  { key: 'inspection_score', icon: Search, gradient: 'from-fuchsia-500/20 to-purple-500/20', iconBg: 'bg-fuchsia-500' },
+  { key: 'other', icon: MoreHorizontal, gradient: 'from-slate-500/20 to-gray-500/20', iconBg: 'bg-slate-500' },
 ];
 
 const MAX_FILES = 5;
@@ -210,18 +215,26 @@ const NewRequest = () => {
                 <Button onClick={() => navigate('/profile')}>{t.completeProfile}</Button>
               </div>
             )}
-            <div className={`grid grid-cols-2 sm:grid-cols-3 gap-4 ${profileComplete === false ? 'opacity-50 pointer-events-none' : ''}`} style={{ direction: 'ltr' }}>
-              {CATEGORIES.map(({ key, icon: Icon }) => (
-                <button
+            <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 ${profileComplete === false ? 'opacity-50 pointer-events-none' : ''}`} style={{ direction: 'ltr' }}>
+              {CATEGORIES.map(({ key, icon: Icon, gradient, iconBg }, index) => (
+                <motion.button
                   key={key}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                  whileHover={{ scale: 1.04, y: -4 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setCategory(key)}
-                  className={`p-6 rounded-2xl border-2 text-center transition-all duration-200 ${category === key ? 'border-primary bg-primary/5 shadow-lg' : 'border-border bg-card hover:border-primary/30 hover:shadow-md'}`}
+                  className={`relative p-5 rounded-2xl border-2 text-center transition-all duration-200 overflow-hidden ${category === key ? 'border-primary shadow-xl ring-2 ring-primary/20' : 'border-border bg-card hover:border-primary/30 hover:shadow-lg'}`}
                 >
-                  <div className={`w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center ${category === key ? 'bg-primary/10' : 'bg-muted'}`}>
-                    <Icon className={`w-6 h-6 ${category === key ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-60`} />
+                  <div className="relative z-10">
+                    <div className={`w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center ${category === key ? 'bg-primary' : iconBg} shadow-lg`}>
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <p className={`text-sm font-semibold ${category === key ? 'text-primary' : 'text-foreground'}`}>{categoryLabel(key)}</p>
                   </div>
-                  <p className={`text-sm font-medium ${category === key ? 'text-primary' : 'text-foreground'}`}>{categoryLabel(key)}</p>
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>

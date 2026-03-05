@@ -318,6 +318,17 @@ export type Database = {
         | "assets"
         | "subscriptions"
         | "scholarships"
+        | "rank_promotion"
+        | "grade_promotion"
+        | "schedules"
+        | "infrastructure"
+        | "financial_compensation"
+        | "zone_compensation"
+        | "equipment"
+        | "grievances"
+        | "assignments"
+        | "inspection_score"
+        | "other"
       request_status:
         | "submitted"
         | "viewed"
@@ -477,6 +488,17 @@ export const Constants = {
         "assets",
         "subscriptions",
         "scholarships",
+        "rank_promotion",
+        "grade_promotion",
+        "schedules",
+        "infrastructure",
+        "financial_compensation",
+        "zone_compensation",
+        "equipment",
+        "grievances",
+        "assignments",
+        "inspection_score",
+        "other",
       ],
       request_status: [
         "submitted",

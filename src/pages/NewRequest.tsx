@@ -214,11 +214,19 @@ const NewRequest = () => {
         <div className="flex items-center justify-between mb-8">
           {stepLabels.map((label, i) => (
             <div key={i} className="flex items-center gap-2 flex-1">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${i + 1 <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-sm ${
+                i + 1 < step
+                  ? 'bg-primary text-primary-foreground shadow-md'
+                  : i + 1 === step
+                    ? 'bg-primary text-primary-foreground ring-4 ring-primary/20 shadow-lg'
+                    : 'bg-card border-2 border-border text-muted-foreground'
+              }`}>
                 {i + 1 < step ? <Check className="w-4 h-4" /> : i + 1}
               </div>
-              <span className={`text-xs hidden sm:block ${i + 1 <= step ? 'text-primary font-medium' : 'text-muted-foreground'}`}>{label}</span>
-              {i < 3 && <div className={`flex-1 h-0.5 mx-2 ${i + 1 < step ? 'bg-primary' : 'bg-muted'}`} />}
+              <span className={`text-xs hidden sm:block font-medium transition-colors ${
+                i + 1 <= step ? 'text-primary' : 'text-muted-foreground'
+              }`}>{label}</span>
+              {i < 3 && <div className={`flex-1 h-0.5 mx-2 rounded-full transition-colors ${i + 1 < step ? 'bg-primary' : 'bg-border'}`} />}
             </div>
           ))}
         </div>

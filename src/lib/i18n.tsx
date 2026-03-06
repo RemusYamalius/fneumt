@@ -307,8 +307,8 @@ const translations: Record<Lang, Record<string, string>> = {
     allAcademies: 'Toutes les académies',
     allDirectorates: 'Toutes les directions',
     // Categories
-    cat_rank_promotion: 'Promotion de grade',
-    cat_grade_promotion: "Promotion d'échelon",
+    cat_rank_promotion: "Promotion d'échelon",
+    cat_grade_promotion: 'Promotion de grade',
     cat_schedules: 'Emplois du temps',
     cat_infrastructure: 'Infrastructure',
     cat_financial_compensation: 'Indemnités financières',

@@ -331,83 +331,122 @@ const NewRequest = () => {
 
         {/* Step 3: Attachments */}
         {step === 3 && (
-          <div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <h2 className="text-xl font-bold text-foreground mb-6">{t.stepAttachments}</h2>
             <div
               onClick={() => fileInputRef.current?.click()}
               onDragOver={e => e.preventDefault()}
               onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-              className="border-2 border-dashed border-border rounded-2xl p-10 text-center cursor-pointer hover:border-primary/50 transition-colors"
+              className="relative overflow-hidden border-2 border-dashed border-primary/30 rounded-2xl p-12 text-center cursor-pointer hover:border-primary/60 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-primary/5 to-accent/5"
             >
-              <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-              <p className="text-muted-foreground">{t.dropFiles}</p>
-              <p className="text-xs text-muted-foreground mt-1">{t.maxFiles} — {t.onlyPdfImages || 'PDF / صور فقط'}</p>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Upload className="w-8 h-8 text-primary" />
+              </div>
+              <p className="text-foreground font-medium mb-1">{t.dropFiles}</p>
+              <p className="text-xs text-muted-foreground">{t.maxFiles} — {t.onlyPdfImages || 'PDF / صور فقط'}</p>
               <input ref={fileInputRef} type="file" multiple accept="application/pdf,image/*" className="hidden" onChange={e => handleFiles(e.target.files)} />
             </div>
             {files.length > 0 && (
               <div className="mt-4 space-y-2">
                 {files.map((file, i) => (
-                  <div key={i} className="flex items-center justify-between bg-muted rounded-xl px-4 py-3">
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-center justify-between bg-card border border-border rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow"
+                  >
                     <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5 text-primary" />
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-primary" />
+                      </div>
                       <div>
                         <p className="text-sm font-medium text-foreground">{file.name}</p>
                         <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                       </div>
                     </div>
-                    <button onClick={() => removeFile(i)} className="p-1 rounded-lg hover:bg-destructive/10 transition-colors">
+                    <button onClick={() => removeFile(i)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-destructive/10 transition-colors">
                       <X className="w-4 h-4 text-destructive" />
                     </button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Step 4: Review */}
         {step === 4 && (
-          <div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <h2 className="text-xl font-bold text-foreground mb-6">{t.stepReview}</h2>
-            <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
-              <div>
-                <span className="text-sm text-muted-foreground">{t.selectCategory}</span>
-                <p className="font-medium text-foreground">{category ? categoryLabel(category) : ''}</p>
-              </div>
+            <div className="bg-card rounded-2xl border-2 border-border p-6 space-y-1 shadow-sm">
+              {/* Category */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-transparent">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <FileText className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <span className="text-xs font-medium text-muted-foreground">{t.selectCategory}</span>
+                  <p className="font-semibold text-foreground">{category ? categoryLabel(category) : ''}</p>
+                </div>
+              </motion.div>
+
               {category === 'other' && (
                 <>
-                  <div>
-                    <span className="text-sm text-muted-foreground">{t.subjectLabel}</span>
-                    <p className="font-medium text-foreground">{subject}</p>
-                  </div>
-                  {description && (
-                    <div>
-                      <span className="text-sm text-muted-foreground">{t.descriptionLabel}</span>
-                      <p className="text-foreground">{description}</p>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="flex items-start gap-4 p-4 rounded-xl">
+                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                      <FileText className="w-5 h-5 text-muted-foreground" />
                     </div>
+                    <div>
+                      <span className="text-xs font-medium text-muted-foreground">{t.subjectLabel}</span>
+                      <p className="font-medium text-foreground">{subject}</p>
+                    </div>
+                  </motion.div>
+                  {description && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-start gap-4 p-4 rounded-xl">
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                        <FileText className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-medium text-muted-foreground">{t.descriptionLabel}</span>
+                        <p className="text-foreground">{description}</p>
+                      </div>
+                    </motion.div>
                   )}
                 </>
               )}
+
               {resolutionLevel && (
-                <div>
-                  <span className="text-sm text-muted-foreground">{t.selectResolutionLevel}</span>
-                  <p className="font-medium text-foreground">{levelLabel(resolutionLevel)}</p>
-                </div>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-accent/5 to-transparent">
+                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Landmark className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-muted-foreground">{t.selectResolutionLevel}</span>
+                    <p className="font-semibold text-foreground">{levelLabel(resolutionLevel)}</p>
+                  </div>
+                </motion.div>
               )}
+
               {files.length > 0 && (
-                <div>
-                  <span className="text-sm text-muted-foreground">{t.stepAttachments} ({files.length})</span>
-                  <ul className="mt-1 space-y-1">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-4 rounded-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                      <Upload className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground">{t.stepAttachments} ({files.length})</span>
+                  </div>
+                  <ul className="space-y-2 ps-13">
                     {files.map((f, i) => (
-                      <li key={i} className="text-sm text-foreground flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-primary" /> {f.name}
+                      <li key={i} className="text-sm text-foreground flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                        <FileText className="w-4 h-4 text-primary shrink-0" /> {f.name}
                       </li>
                     ))}
                   </ul>
-                </div>
+                </motion.div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Navigation */}

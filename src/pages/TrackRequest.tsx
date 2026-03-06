@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ArrowLeft, Check, Clock, FileSearch, XCircle, Inbox, Eye } from 'lucide-react';
+import { Search, ArrowLeft, ArrowRight, Check, Clock, FileSearch, XCircle, Inbox, Eye } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -159,7 +159,7 @@ const TrackRequest = () => {
 
         <div className="mt-8 text-center">
           <Link to="/" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" />
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
             {t.backToHome}
           </Link>
         </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff, Globe, ArrowRight, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Globe, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,7 @@ const Signup = () => {
     <div className="min-h-screen flex flex-col" dir={dir}>
       <div className="absolute top-4 left-4 right-4 flex justify-between z-20" style={{ direction: 'ltr' }}>
         <Link to="/" className="glass flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-foreground hover:bg-white/90 transition-all shadow-lg">
-          <ArrowRight className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4" />
           {t.backToHome}
         </Link>
         <button onClick={toggleLang} className="glass flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-foreground hover:bg-white/90 transition-all shadow-lg">

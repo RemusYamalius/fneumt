@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Globe, ArrowRight, CheckCircle, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Globe, ArrowLeft, CheckCircle, Sparkles } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -94,7 +94,7 @@ const Login = () => {
 
       <div className="absolute top-4 left-4 right-4 z-20 flex justify-between gap-3" style={{ direction: 'ltr' }}>
         <Link to="/" className="auth-top-link">
-          <ArrowRight className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
           {t.backToHome}
         </Link>
 

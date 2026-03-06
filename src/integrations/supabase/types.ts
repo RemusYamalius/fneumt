@@ -213,6 +213,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          resolution_level: string | null
           status: Database["public"]["Enums"]["request_status"]
           subject: string
           tracking_number: string
@@ -225,6 +226,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          resolution_level?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           subject: string
           tracking_number?: string
@@ -237,6 +239,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          resolution_level?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           subject?: string
           tracking_number?: string

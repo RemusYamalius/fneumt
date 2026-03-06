@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, Users, Filter } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield, Users, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -137,7 +137,7 @@ const UserManagement = () => {
             </div>
           </div>
           <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => navigate('/dashboard')}>
-            <ArrowLeft className="w-4 h-4" />
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
             {t.backToDashboard}
           </Button>
         </div>

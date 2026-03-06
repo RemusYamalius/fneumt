@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, BarChart3, PieChart as PieIcon } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -129,7 +129,7 @@ const SupervisorDashboard = () => {
             </div>
           </div>
           <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => navigate('/dashboard')}>
-            <ArrowLeft className="w-4 h-4" />
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
             {t.backToDashboard}
           </Button>
         </div>

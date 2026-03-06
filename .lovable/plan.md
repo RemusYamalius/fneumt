@@ -2,42 +2,57 @@
 
 ## التغييرات المطلوبة
 
-استبدال فئات الطلبات الحالية (7 فئات) بقائمة جديدة من 11 موضوعاً مستوحاة من الصورة المرفقة، مع تحسين بصري احترافي للبطاقات وتغيير العنوان من "اختر الفئة" إلى "موضوع الطلب".
+ثلاث تعديلات رئيسية على صفحة "طلب جديد":
 
 ---
 
-### 1. `src/lib/i18n.tsx`
+### 1. ترتيب البطاقات RTL
 
-**تغيير التسميات:**
-- `selectCategory` → `'موضوع الطلب'` / `'Objet de la demande'`
-- `stepCategory` → `'الموضوع'` / `'Objet'`
+في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
 
-**حذف الفئات القديمة** (cat_medical_file, cat_mohammed_vi_foundation, etc.) واستبدالها بـ 11 مفتاحاً جديداً:
+---
 
-| المفتاح | العربية | الفرنسية |
-|---|---|---|
-| `cat_rank_promotion` | الترقية في الرتبة | Promotion de grade |
-| `cat_grade_promotion` | الترقية في الدرجة | Promotion d'échelon |
-| `cat_schedules` | جداول الحصص | Emplois du temps |
-| `cat_infrastructure` | البنية المادية للمؤسسة | Infrastructure |
-| `cat_financial_compensation` | التعويضات المالية | Indemnités financières |
-| `cat_zone_compensation` | تعويضات المنطقة | Indemnités de zone |
-| `cat_equipment` | التجهيزات | Équipements |
-| `cat_grievances` | تظلمات | Réclamations |
-| `cat_assignments` | تكليفات | Affectations |
-| `cat_inspection_score` | نقطة التفتيش | Note d'inspection |
-| `cat_other` | آخر | Autre |
+### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
 
-### 2. `src/pages/NewRequest.tsx`
+عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
+- **الموضوع** (إلزامي) — `Input`
+- **الوصف** (اختياري) — `Textarea`
 
-- تحديث `RequestCategory` type ليشمل 11 قيمة جديدة
-- تحديث مصفوفة `CATEGORIES` بأيقونات مناسبة لكل موضوع (مثلاً: `Award` للترقية، `Clock` للحصص، `Building2` للبنية، `Coins` للتعويضات، `Wrench` للتجهيزات، `AlertTriangle` للتظلمات، `ClipboardList` للتكليفات، `Search` للتفتيش، `MoreHorizontal` لآخر)
-- تحسين بصري للبطاقات: إضافة حركات framer-motion (scale + fadeIn عند الظهور)، تدرجات لونية فريدة لكل بطاقة، ظلال ناعمة، تأثير hover أقوى
-- تغيير الشبكة إلى `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4` لاستيعاب 11 بطاقة
+تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
 
-### 3. ملفات أخرى تستخدم `categoryLabel`
+تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
 
-- `src/pages/TrackRequest.tsx` و `src/pages/SupervisorDashboard.tsx` — يستخدمان `t[cat_${category}]` ديناميكياً فلا حاجة لتعديلهما، ستعمل المفاتيح الجديدة تلقائياً.
+---
 
-> **ملاحظة:** حقل `category` في قاعدة البيانات هو `text` فلا حاجة لتعديل DB.
+### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
+
+- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
+- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
+  1. المصالح المركزية للوزارة
+  2. الأكاديمية الجهوية
+  3. المديرية الإقليمية
+  4. المؤسسة مقر العمل
+
+- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
+- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
+
+**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
+
+---
+
+### الملفات المعنية
+
+| الملف | التعديل |
+|---|---|
+| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
+| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
+| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
+
+### تدفق الخطوات الجديد:
+```text
+1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
+2. مستوى حل المشكل (4 اختيارات)
+3. المرفقات
+4. المراجعة
+```
 

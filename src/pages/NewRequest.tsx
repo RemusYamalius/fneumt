@@ -464,13 +464,13 @@ const NewRequest = () => {
         {/* Navigation */}
         <div className="flex justify-between mt-8">
           <Button variant="outline" onClick={() => step === 1 ? navigate('/dashboard') : setStep(s => s - 1)}>
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" />
             {step === 1 ? t.backToDashboard : t.previous}
           </Button>
           {step < 4 ? (
             <Button onClick={() => setStep(s => s + 1)} disabled={!canNext()}>
               {t.next}
-              <ArrowRight className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4" />
             </Button>
           ) : (
             <Button onClick={handleSubmit} disabled={submitting}>

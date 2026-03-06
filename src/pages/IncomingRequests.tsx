@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Download, Image as ImageIcon, FileIcon, Building2 } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Download, Image as ImageIcon, FileIcon, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -291,7 +291,7 @@ const IncomingRequests = () => {
               />
             </div>
             <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
-              <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+              <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
               {t.backToDashboard}
             </Button>
           </div>

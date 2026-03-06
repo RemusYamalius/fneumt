@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock, Building2, Coins, MapPin, Wrench, AlertTriangle, ClipboardList, Search, MoreHorizontal } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock, Building2, Coins, MapPin, Wrench, AlertTriangle, ClipboardList, Search, MoreHorizontal, Landmark, GraduationCap, Building, School } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import logoFne from '@/assets/logo-fne.png';
 
 type RequestCategory = 'rank_promotion' | 'grade_promotion' | 'schedules' | 'infrastructure' | 'financial_compensation' | 'zone_compensation' | 'equipment' | 'grievances' | 'assignments' | 'inspection_score' | 'other';
+type ResolutionLevel = 'ministry' | 'academy' | 'directorate' | 'institution';
 
 const CATEGORIES: { key: RequestCategory; icon: typeof FileText; gradient: string; iconBg: string }[] = [
   { key: 'rank_promotion', icon: Award, gradient: 'from-blue-500/20 to-indigo-500/20', iconBg: 'bg-blue-500' },
@@ -27,8 +28,15 @@ const CATEGORIES: { key: RequestCategory; icon: typeof FileText; gradient: strin
   { key: 'other', icon: MoreHorizontal, gradient: 'from-slate-500/20 to-gray-500/20', iconBg: 'bg-slate-500' },
 ];
 
+const RESOLUTION_LEVELS: { key: ResolutionLevel; icon: typeof Landmark; gradient: string; iconBg: string }[] = [
+  { key: 'ministry', icon: Landmark, gradient: 'from-indigo-500/20 to-blue-600/20', iconBg: 'bg-indigo-600' },
+  { key: 'academy', icon: GraduationCap, gradient: 'from-emerald-500/20 to-green-600/20', iconBg: 'bg-emerald-600' },
+  { key: 'directorate', icon: Building, gradient: 'from-amber-500/20 to-orange-600/20', iconBg: 'bg-amber-600' },
+  { key: 'institution', icon: School, gradient: 'from-rose-500/20 to-pink-600/20', iconBg: 'bg-rose-600' },
+];
+
 const MAX_FILES = 5;
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 const NewRequest = () => {
   const { t, dir } = useI18n();
@@ -41,6 +49,7 @@ const NewRequest = () => {
   const [category, setCategory] = useState<RequestCategory | null>(null);
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [resolutionLevel, setResolutionLevel] = useState<ResolutionLevel | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState<string | null>(null);
@@ -69,7 +78,8 @@ const NewRequest = () => {
     </div>
   );
 
-  const stepLabels = [t.stepCategory, t.stepDetails, t.stepAttachments, t.stepReview];
+  // Steps: 1=Category, 2=Resolution Level, 3=Attachments, 4=Review, 5=Success
+  const stepLabels = [t.stepCategory, t.stepResolutionLevel, t.stepAttachments, t.stepReview];
 
   const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 
@@ -93,30 +103,34 @@ const NewRequest = () => {
   const removeFile = (index: number) => setFiles(prev => prev.filter((_, i) => i !== index));
 
   const handleSubmit = async () => {
-    if (!category || !subject.trim() || !user) return;
+    if (!category || !user) return;
+    // For non-other categories, use category label as subject
+    const finalSubject = category === 'other' ? subject.trim() : (t[`cat_${category}`] || category);
+    const finalDescription = category === 'other' ? (description.trim() || null) : null;
+
+    if (!finalSubject) return;
     setSubmitting(true);
     try {
-      // 1. Create request
       const { data: request, error: reqError } = await supabase
         .from('requests')
-        .insert({ category, subject: subject.trim(), description: description.trim() || null, user_id: user.id })
+        .insert({
+          category,
+          subject: finalSubject,
+          description: finalDescription,
+          user_id: user.id,
+          resolution_level: resolutionLevel || null,
+        } as any)
         .select('id, tracking_number')
         .single();
 
       if (reqError || !request) throw reqError;
 
-      // 2. Upload files & create attachment records
       for (const file of files) {
         const filePath = `${user.id}/${request.id}/${file.name}`;
         const { error: uploadError } = await supabase.storage
           .from('attachments')
           .upload(filePath, file);
-
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          continue;
-        }
-
+        if (uploadError) { console.error('Upload error:', uploadError); continue; }
         await supabase.from('attachments').insert({
           request_id: request.id,
           file_name: file.name,
@@ -128,7 +142,7 @@ const NewRequest = () => {
       }
 
       setTrackingNumber(request.tracking_number);
-      setStep(5); // success
+      setStep(5);
     } catch (err: any) {
       toast({ title: t.submitError, description: err?.message, variant: 'destructive' });
     } finally {
@@ -145,12 +159,17 @@ const NewRequest = () => {
   };
 
   const canNext = () => {
-    if (step === 1) return !!category;
-    if (step === 2) return subject.trim().length > 0;
+    if (step === 1) {
+      if (!category) return false;
+      if (category === 'other') return subject.trim().length > 0;
+      return true;
+    }
+    if (step === 2) return !!resolutionLevel;
     return true;
   };
 
   const categoryLabel = (key: RequestCategory) => t[`cat_${key}`] || key;
+  const levelLabel = (key: ResolutionLevel) => t[`level_${key}`] || key;
 
   // Success screen
   if (step === 5) {
@@ -215,7 +234,7 @@ const NewRequest = () => {
                 <Button onClick={() => navigate('/profile')}>{t.completeProfile}</Button>
               </div>
             )}
-            <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 ${profileComplete === false ? 'opacity-50 pointer-events-none' : ''}`} style={{ direction: 'ltr' }}>
+            <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 ${profileComplete === false ? 'opacity-50 pointer-events-none' : ''}`}>
               {CATEGORIES.map(({ key, icon: Icon, gradient, iconBg }, index) => (
                 <motion.button
                   key={key}
@@ -237,20 +256,67 @@ const NewRequest = () => {
                 </motion.button>
               ))}
             </div>
+
+            {/* "Other" category inline fields */}
+            <AnimatePresence>
+              {category === 'other' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-6 p-6 rounded-2xl border-2 border-slate-300 dark:border-slate-600 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-900/40 dark:to-gray-900/40 space-y-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t.subjectLabel} *</label>
+                    <Input
+                      value={subject}
+                      onChange={e => setSubject(e.target.value)}
+                      placeholder={t.subjectPlaceholder}
+                      className="border-slate-300 dark:border-slate-600 focus-visible:ring-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">{t.descriptionLabel}</label>
+                    <Textarea
+                      value={description}
+                      onChange={e => setDescription(e.target.value)}
+                      placeholder={t.descriptionPlaceholder}
+                      rows={4}
+                      className="border-slate-300 dark:border-slate-600 focus-visible:ring-slate-400"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
-        {/* Step 2: Subject & Description */}
+        {/* Step 2: Resolution Level */}
         {step === 2 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-foreground mb-6">{t.stepDetails}</h2>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">{t.subjectLabel} *</label>
-              <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder={t.subjectPlaceholder} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">{t.descriptionLabel}</label>
-              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t.descriptionPlaceholder} rows={5} />
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-6">{t.selectResolutionLevel}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {RESOLUTION_LEVELS.map(({ key, icon: Icon, gradient, iconBg }, index) => (
+                <motion.button
+                  key={key}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.08, duration: 0.3 }}
+                  whileHover={{ scale: 1.03, y: -3 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setResolutionLevel(key)}
+                  className={`relative p-6 rounded-2xl border-2 text-center transition-all duration-200 overflow-hidden ${resolutionLevel === key ? 'border-primary shadow-xl ring-2 ring-primary/20' : 'border-border bg-card hover:border-primary/30 hover:shadow-lg'}`}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-60`} />
+                  <div className="relative z-10 flex items-center gap-4">
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${resolutionLevel === key ? 'bg-primary' : iconBg} shadow-lg shrink-0`}>
+                      <Icon className="w-7 h-7 text-white" />
+                    </div>
+                    <p className={`text-base font-semibold ${resolutionLevel === key ? 'text-primary' : 'text-foreground'}`}>{levelLabel(key)}</p>
+                  </div>
+                </motion.button>
+              ))}
             </div>
           </div>
         )}
@@ -300,14 +366,24 @@ const NewRequest = () => {
                 <span className="text-sm text-muted-foreground">{t.selectCategory}</span>
                 <p className="font-medium text-foreground">{category ? categoryLabel(category) : ''}</p>
               </div>
-              <div>
-                <span className="text-sm text-muted-foreground">{t.subjectLabel}</span>
-                <p className="font-medium text-foreground">{subject}</p>
-              </div>
-              {description && (
+              {category === 'other' && (
+                <>
+                  <div>
+                    <span className="text-sm text-muted-foreground">{t.subjectLabel}</span>
+                    <p className="font-medium text-foreground">{subject}</p>
+                  </div>
+                  {description && (
+                    <div>
+                      <span className="text-sm text-muted-foreground">{t.descriptionLabel}</span>
+                      <p className="text-foreground">{description}</p>
+                    </div>
+                  )}
+                </>
+              )}
+              {resolutionLevel && (
                 <div>
-                  <span className="text-sm text-muted-foreground">{t.descriptionLabel}</span>
-                  <p className="text-foreground">{description}</p>
+                  <span className="text-sm text-muted-foreground">{t.selectResolutionLevel}</span>
+                  <p className="font-medium text-foreground">{levelLabel(resolutionLevel)}</p>
                 </div>
               )}
               {files.length > 0 && (

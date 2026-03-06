@@ -381,15 +381,22 @@ const NewRequest = () => {
             <h2 className="text-xl font-bold text-foreground mb-6">{t.stepReview}</h2>
             <div className="bg-card rounded-2xl border-2 border-border p-6 space-y-1 shadow-sm">
               {/* Category */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-transparent">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <FileText className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <span className="text-xs font-medium text-muted-foreground">{t.selectCategory}</span>
-                  <p className="font-semibold text-foreground">{category ? categoryLabel(category) : ''}</p>
-                </div>
-              </motion.div>
+              {(() => {
+                const catData = CATEGORIES.find(c => c.key === category);
+                const CatIcon = catData?.icon || FileText;
+                const catIconBg = catData?.iconBg || 'bg-primary';
+                return (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-transparent">
+                    <div className={`w-10 h-10 rounded-xl ${catIconBg} flex items-center justify-center shrink-0 mt-0.5 shadow-md`}>
+                      <CatIcon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-medium text-muted-foreground">{t.selectCategory}</span>
+                      <p className="font-semibold text-foreground">{category ? categoryLabel(category) : ''}</p>
+                    </div>
+                  </motion.div>
+                );
+              })()}
 
               {category === 'other' && (
                 <>
@@ -416,17 +423,22 @@ const NewRequest = () => {
                 </>
               )}
 
-              {resolutionLevel && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-accent/5 to-transparent">
-                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Landmark className="w-5 h-5 text-accent" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-medium text-muted-foreground">{t.selectResolutionLevel}</span>
-                    <p className="font-semibold text-foreground">{levelLabel(resolutionLevel)}</p>
-                  </div>
-                </motion.div>
-              )}
+              {resolutionLevel && (() => {
+                const lvlData = RESOLUTION_LEVELS.find(l => l.key === resolutionLevel);
+                const LvlIcon = lvlData?.icon || Landmark;
+                const lvlIconBg = lvlData?.iconBg || 'bg-accent';
+                return (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-accent/5 to-transparent">
+                    <div className={`w-10 h-10 rounded-xl ${lvlIconBg} flex items-center justify-center shrink-0 mt-0.5 shadow-md`}>
+                      <LvlIcon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-medium text-muted-foreground">{t.selectResolutionLevel}</span>
+                      <p className="font-semibold text-foreground">{levelLabel(resolutionLevel)}</p>
+                    </div>
+                  </motion.div>
+                );
+              })()}
 
               {files.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-4 rounded-xl">

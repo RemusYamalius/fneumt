@@ -698,8 +698,10 @@
 
 /* Login page styles */
 .login-card {
-  background: hsl(var(--card));
+  background: transparent;
   box-shadow: 0 40px 80px -30px hsl(207 75% 10% / 0.5);
+  border-radius: 1.5rem;
+  overflow: hidden;
 }
 
 .login-left-panel {

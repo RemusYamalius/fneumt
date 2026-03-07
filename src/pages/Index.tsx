@@ -35,7 +35,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col" dir={dir}>
       {/* Language Toggle */}
-      <div className="absolute top-4 left-4 right-4 flex justify-end z-20" style={{ direction: 'ltr' }}>
+      <div className="absolute top-4 left-4 right-4 flex justify-end z-20" dir={dir}>
         <button
           onClick={toggleLang}
           className="glass flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-foreground hover:bg-white/90 transition-all shadow-lg">

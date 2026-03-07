@@ -56,7 +56,7 @@ const Index = () => {
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-24 text-center">
           {/* Logo */}
           <div className="mb-6 flex justify-center">
-            <AnimatedLogo size="w-24 h-24" className="shadow-2xl" />
+            <AnimatedLogo size="w-48 h-48" className="shadow-2xl" />
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 leading-tight">
@@ -120,7 +120,7 @@ const Index = () => {
         <div className="max-w-5xl mx-auto px-6 py-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <AnimatedLogo size="w-10 h-10" />
+              <AnimatedLogo size="w-20 h-20" />
               <div>
                 <p className="font-bold text-sm">{t.platformName}</p>
                 <p className="text-xs text-white/60">{t.footer}</p>

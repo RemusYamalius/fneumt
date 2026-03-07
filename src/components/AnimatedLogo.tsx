@@ -10,7 +10,7 @@ const AnimatedLogo = ({ size = 'w-10 h-10', className = '' }: AnimatedLogoProps)
     <div className={`relative rounded-full ${size} ${className}`} style={{ isolation: 'isolate' }}>
       {/* Border shine layer - visible during 0-3s of 6s cycle */}
       <div
-        className="absolute inset-[-3px] rounded-full animate-logo-border-shine"
+        className="absolute inset-[-2px] rounded-full animate-logo-border-shine"
         style={{
           background: 'conic-gradient(from 0deg, transparent 0%, transparent 60%, hsl(190 100% 60%) 75%, hsl(210 100% 70%) 85%, transparent 100%)',
         }}
@@ -26,11 +26,12 @@ const AnimatedLogo = ({ size = 'w-10 h-10', className = '' }: AnimatedLogoProps)
         className="relative z-10 w-full h-full object-contain rounded-full p-1"
       />
 
-      {/* Internal sparkle layer - visible during 3-6s of 6s cycle */}
+      {/* Internal sparkle layer - diagonal swipe during 3-6s of 6s cycle */}
       <div
         className="absolute inset-0 rounded-full animate-logo-sparkle z-20 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 40% 35%, hsl(190 100% 80% / 0.8) 0%, hsl(210 100% 70% / 0.4) 30%, transparent 60%)',
+          background: 'linear-gradient(135deg, transparent 30%, hsl(190 100% 80% / 0.6) 45%, hsl(210 100% 90% / 0.4) 55%, transparent 70%)',
+          backgroundSize: '300% 300%',
         }}
       />
     </div>

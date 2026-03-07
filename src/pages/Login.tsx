@@ -122,7 +122,7 @@ const Login = () => {
                 </div>
 
                 <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur-md">
-                  <AnimatedLogo size="w-12 h-12" />
+                  <AnimatedLogo size="w-24 h-24" />
                 </div>
               </div>
 

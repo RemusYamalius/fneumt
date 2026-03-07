@@ -57,8 +57,8 @@ const Signup = () => {
 
         <div className="relative z-10 w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4">
-              <AnimatedLogo size="w-16 h-16" />
+            <div className="w-32 h-32 mx-auto mb-4">
+              <AnimatedLogo size="w-32 h-32" />
             </div>
             <h1 className="text-2xl font-bold text-white">{t.signupTitle}</h1>
           </div>

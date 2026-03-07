@@ -670,14 +670,12 @@
 }
 
 @keyframes logo-sparkle {
-  0%   { opacity: 0; }
-  50%  { opacity: 0; }
-  55%  { opacity: 0.7; }
-  65%  { opacity: 0.3; }
-  75%  { opacity: 0.6; }
-  85%  { opacity: 0.2; }
-  92%  { opacity: 0.5; }
-  100% { opacity: 0; }
+  0%   { opacity: 0; background-position: 150% 150%; }
+  50%  { opacity: 0; background-position: 150% 150%; }
+  52%  { opacity: 1; }
+  85%  { opacity: 1; }
+  90%  { opacity: 0; background-position: -50% -50%; }
+  100% { opacity: 0; background-position: -50% -50%; }
 }
 
 .animate-logo-border-shine {

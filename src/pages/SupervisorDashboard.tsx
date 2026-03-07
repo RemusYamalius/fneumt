@@ -122,7 +122,7 @@ const SupervisorDashboard = () => {
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <AnimatedLogo size="w-10 h-10" />
+            <AnimatedLogo size="w-20 h-20" />
             <div>
               <p className="font-bold text-sm">{t.supervisorDashboard}</p>
               <p className="text-xs text-white/70">{t.platformName}</p>

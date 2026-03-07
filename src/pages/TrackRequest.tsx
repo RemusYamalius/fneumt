@@ -74,7 +74,7 @@ const TrackRequest = () => {
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-3xl mx-auto px-6 py-6 text-center">
           <Link to="/" className="inline-block mb-4">
-            <AnimatedLogo size="w-14 h-14" />
+            <AnimatedLogo size="w-28 h-28" />
           </Link>
           <h1 className="text-2xl font-bold">{t.trackFiles}</h1>
           <p className="text-sm text-white/70 mt-1">{t.trackFilesDesc}</p>

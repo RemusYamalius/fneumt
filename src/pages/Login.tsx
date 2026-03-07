@@ -114,7 +114,7 @@ const Login = () => {
           </aside>
 
           {/* Right form panel */}
-          <section className="login-form-panel flex flex-col items-center px-6 pt-0 pb-10 sm:px-10 lg:px-12 lg:pb-14 rounded-3xl lg:rounded-e-3xl">
+          <section className="login-form-panel flex flex-col items-center px-6 pt-0 pb-10 sm:px-10 lg:px-12 lg:pb-14 rounded-3xl lg:rounded-s-none lg:rounded-e-3xl">
             {/* Floating logo — half above the white panel edge */}
             <div className="relative z-30 -mt-20 animate-logo-float mb-6">
               <AnimatedLogo size="w-40 h-40" />

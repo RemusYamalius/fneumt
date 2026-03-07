@@ -661,4 +661,31 @@
   }
 }
 
+/* Logo animation keyframes */
+@keyframes logo-border-shine {
+  0%   { opacity: 1; transform: rotate(0deg); }
+  50%  { opacity: 1; transform: rotate(360deg); }
+  50.1% { opacity: 0; transform: rotate(360deg); }
+  100% { opacity: 0; transform: rotate(720deg); }
+}
+
+@keyframes logo-sparkle {
+  0%   { opacity: 0; }
+  50%  { opacity: 0; }
+  55%  { opacity: 0.7; }
+  65%  { opacity: 0.3; }
+  75%  { opacity: 0.6; }
+  85%  { opacity: 0.2; }
+  92%  { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+.animate-logo-border-shine {
+  animation: logo-border-shine 6s linear infinite;
+}
+
+.animate-logo-sparkle {
+  animation: logo-sparkle 6s ease-in-out infinite;
+}
+
 

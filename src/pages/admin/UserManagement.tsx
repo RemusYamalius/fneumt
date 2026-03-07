@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 import { getAllowedPromotions, getGeoConstraint } from '@/lib/role-hierarchy';
 import type { AppRole } from '@/lib/role-hierarchy';
 import { ACADEMIES } from '@/lib/academies-data';
@@ -130,7 +130,7 @@ const UserManagement = () => {
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logoFne} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
+            <AnimatedLogo size="w-10 h-10" />
             <div>
               <p className="font-bold text-sm">{t.platformName}</p>
               <p className="text-xs text-white/70">{t.userManagement}</p>

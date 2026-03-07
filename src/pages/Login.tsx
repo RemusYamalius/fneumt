@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 import authReference from '@/assets/auth-reference.png';
 
 const Login = () => {
@@ -122,7 +122,7 @@ const Login = () => {
                 </div>
 
                 <div className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur-md">
-                  <img src={logoFne} alt="شعار المنصة" className="h-12 w-12 object-contain" />
+                  <AnimatedLogo size="w-12 h-12" />
                 </div>
               </div>
 

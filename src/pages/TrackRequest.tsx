@@ -5,7 +5,7 @@ import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 
 type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'cancelled';
 
@@ -74,7 +74,7 @@ const TrackRequest = () => {
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-3xl mx-auto px-6 py-6 text-center">
           <Link to="/" className="inline-block mb-4">
-            <img src={logoFne} alt="Logo" className="w-14 h-14 mx-auto object-contain rounded-xl bg-white/10 p-1" />
+            <AnimatedLogo size="w-14 h-14" />
           </Link>
           <h1 className="text-2xl font-bold">{t.trackFiles}</h1>
           <p className="text-sm text-white/70 mt-1">{t.trackFilesDesc}</p>

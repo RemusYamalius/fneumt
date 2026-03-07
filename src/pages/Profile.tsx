@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 import { ACADEMIES } from '@/lib/academies-data';
 
 const Profile = () => {
@@ -127,7 +127,7 @@ const Profile = () => {
     <div className="min-h-screen bg-background" dir={dir}>
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-3">
-          <img src={logoFne} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
+          <AnimatedLogo size="w-10 h-10" />
           <p className="font-bold text-sm">{t.platformName}</p>
         </div>
       </header>

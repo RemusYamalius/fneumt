@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 import { supabase } from '@/integrations/supabase/client';
 
 const ResetPassword = () => {
@@ -76,8 +76,8 @@ const ResetPassword = () => {
 
         <div className="relative z-10 w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/10 backdrop-blur-sm p-2 border border-white/20">
-              <img src={logoFne} alt="Logo" className="w-full h-full object-contain" />
+            <div className="w-16 h-16 mx-auto mb-4">
+              <AnimatedLogo size="w-16 h-16" />
             </div>
             <h1 className="text-2xl font-bold text-white">{t.resetPasswordTitle}</h1>
           </div>

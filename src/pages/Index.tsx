@@ -2,7 +2,7 @@ import { FilePlus, Search, LogIn, Globe, Phone, Mail, MapPin } from 'lucide-reac
 import { useI18n } from '@/lib/i18n';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 
 const Index = () => {
   const { t, toggleLang, dir } = useI18n();
@@ -56,9 +56,7 @@ const Index = () => {
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-20 pb-24 text-center">
           {/* Logo */}
           <div className="mb-6 flex justify-center">
-            <div className="w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-sm p-2 shadow-2xl border border-white/20">
-              <img src={logoFne} alt="FNE-UMT Logo" className="w-full h-full object-contain" />
-            </div>
+            <AnimatedLogo size="w-24 h-24" className="shadow-2xl" />
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 leading-tight">
@@ -122,7 +120,7 @@ const Index = () => {
         <div className="max-w-5xl mx-auto px-6 py-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <img src={logoFne} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
+              <AnimatedLogo size="w-10 h-10" />
               <div>
                 <p className="font-bold text-sm">{t.platformName}</p>
                 <p className="text-xs text-white/60">{t.footer}</p>

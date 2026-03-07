@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 
 type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'cancelled';
 
@@ -268,7 +268,7 @@ const IncomingRequests = () => {
     <div className="min-h-screen bg-background" dir={dir}>
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-3">
-          <img src={logoFne} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
+          <AnimatedLogo size="w-10 h-10" />
           <div>
             <p className="font-bold text-sm">{t.incomingRequests}</p>
             <p className="text-xs text-white/70">{t.platformName}</p>

@@ -747,25 +747,66 @@
 .login-left-tab-active {
   background: white;
   color: hsl(207 75% 17%);
-  border-radius: 1rem;
+  border-radius: 1rem 0 0 1rem;
   box-shadow: 0 4px 14px -2px hsl(207 75% 17% / 0.2);
   text-shadow: none;
   margin-inline-end: -1px;
   z-index: 10;
+  overflow: visible;
+}
+
+.login-left-tab-active::before,
+.login-left-tab-active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: transparent;
+}
+
+.login-left-tab-active::before {
+  bottom: 100%;
+  border-bottom-right-radius: 12px;
+  box-shadow: 4px 4px 0 4px white;
+}
+
+.login-left-tab-active::after {
+  top: 100%;
+  border-top-right-radius: 12px;
+  box-shadow: 4px -4px 0 4px white;
 }
 
 [dir="rtl"] .login-left-tab-active {
-  border-radius: 1rem;
+  border-radius: 0 1rem 1rem 0;
+}
+
+[dir="rtl"] .login-left-tab-active::before,
+[dir="rtl"] .login-left-tab-active::after {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] .login-left-tab-active::before {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 12px;
+  box-shadow: -4px 4px 0 4px white;
+}
+
+[dir="rtl"] .login-left-tab-active::after {
+  border-top-right-radius: 0;
+  border-top-left-radius: 12px;
+  box-shadow: -4px -4px 0 4px white;
 }
 
 .login-left-tab-inactive {
   color: hsl(0 0% 100% / 0.5);
   background: transparent;
-  border-radius: 1rem;
+  border-radius: 1rem 0 0 1rem;
 }
 
 [dir="rtl"] .login-left-tab-inactive {
-  border-radius: 1rem;
+  border-radius: 0 1rem 1rem 0;
 }
 
 .login-left-tab-inactive:hover {

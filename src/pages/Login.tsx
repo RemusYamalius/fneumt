@@ -90,7 +90,7 @@ const Login = () => {
 
       {/* Main container */}
       <div className="relative z-10 flex min-h-screen items-start lg:items-center justify-center px-4 pb-6 pt-28 lg:py-24 lg:px-8">
-        <div className="login-card grid w-full max-w-sm lg:max-w-xl lg:grid-cols-[0.45fr_0.55fr]">
+        <div className="login-card grid w-full max-w-sm lg:max-w-3xl lg:grid-cols-[0.45fr_0.55fr]">
 
           {/* Left decorative panel */}
           <aside className="login-left-panel relative hidden lg:flex flex-col items-center justify-center overflow-hidden rounded-s-3xl">
@@ -119,25 +119,25 @@ const Login = () => {
           </aside>
 
           {/* Right form panel */}
-          <section className="login-form-panel flex flex-col items-center px-6 pt-0 pb-10 sm:px-10 lg:px-12 lg:pb-14 rounded-3xl lg:rounded-s-none lg:rounded-e-3xl">
+          <section className="login-form-panel flex flex-col items-center px-4 pt-0 pb-5 sm:px-6 lg:px-8 lg:pb-8 rounded-3xl lg:rounded-s-none lg:rounded-e-3xl">
             {/* Floating logo — half above the white panel edge */}
-            <div className="relative z-30 -mt-14 lg:-mt-10 animate-logo-float mb-6">
+            <div className="relative z-30 -mt-14 lg:-mt-10 animate-logo-float mb-3">
               <AnimatedLogo size="w-40 h-40" />
             </div>
 
-            <h2 className="text-2xl font-black tracking-tight text-foreground mb-1">
+            <h2 className="text-base font-black tracking-tight text-foreground mb-1">
               {isLogin
                 ? (dir === 'rtl' ? 'تسجيل الدخول' : 'Login')
                 : (dir === 'rtl' ? 'إنشاء حساب' : 'Sign Up')}
             </h2>
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-xs text-muted-foreground mb-3">
               {isLogin
                 ? (dir === 'rtl' ? 'أدخل بياناتك للمتابعة' : 'Enter your credentials to continue')
                 : (dir === 'rtl' ? 'أنشئ حسابك الجديد' : 'Create your new account')}
             </p>
 
             {/* Mobile tab switcher */}
-            <div className="auth-tabs mb-6 lg:hidden">
+            <div className="auth-tabs mb-3 lg:hidden">
               <button
                 type="button"
                 onClick={() => handleTabChange('login')}
@@ -166,12 +166,12 @@ const Login = () => {
                     exit={{ opacity: 0, x: 20 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                     onSubmit={handleLoginSubmit}
-                    className="space-y-5"
+                    className="space-y-3"
                   >
-                    {loginError && <div className="auth-message auth-message-error">{loginError}</div>}
+                    {loginError && <div className="auth-message auth-message-error text-xs">{loginError}</div>}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email">{t.emailLabel}</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="login-email" className="text-xs">{t.emailLabel}</Label>
                       <div className="relative">
                         <Mail className="login-field-icon" />
                         <Input
@@ -181,15 +181,15 @@ const Login = () => {
                           onChange={(e) => setLoginEmail(e.target.value)}
                           required
                           dir="ltr"
-                          className="auth-input ps-11"
+                          className="auth-input ps-11 h-8 text-xs"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <div className="flex items-center justify-between gap-3">
-                        <Label htmlFor="login-password">{t.passwordLabel}</Label>
-                        <Link to="/forgot-password" className="text-sm font-medium text-primary transition-colors hover:text-accent">
+                        <Label htmlFor="login-password" className="text-xs">{t.passwordLabel}</Label>
+                        <Link to="/forgot-password" className="text-xs font-medium text-primary transition-colors hover:text-accent">
                           {t.forgotPassword}
                         </Link>
                       </div>
@@ -202,7 +202,7 @@ const Login = () => {
                           onChange={(e) => setLoginPassword(e.target.value)}
                           required
                           dir="ltr"
-                          className="auth-input ps-11 pe-11"
+                          className="auth-input ps-11 pe-11 h-8 text-xs"
                         />
                         <button
                           type="button"
@@ -215,11 +215,11 @@ const Login = () => {
                       </div>
                     </div>
 
-                    <Button type="submit" className="auth-submit w-full" disabled={loginLoading}>
+                    <Button type="submit" className="auth-submit w-full h-8 text-xs" disabled={loginLoading}>
                       {loginLoading ? '...' : t.loginButton}
                     </Button>
 
-                    <div className="text-center text-sm text-muted-foreground lg:hidden">
+                    <div className="text-center text-xs text-muted-foreground lg:hidden">
                       {t.noAccount}{' '}
                       <button type="button" onClick={() => handleTabChange('signup')} className="font-bold text-primary hover:text-accent">
                         {t.createAccount}
@@ -233,11 +233,11 @@ const Login = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="auth-message auth-message-success flex flex-col items-center gap-4 py-8 text-center"
+                    className="auth-message auth-message-success flex flex-col items-center gap-3 py-5 text-center"
                   >
-                    <CheckCircle className="h-14 w-14 text-accent" />
-                    <p className="max-w-sm text-sm leading-6 text-foreground">{t.signupSuccess}</p>
-                    <Button type="button" className="auth-submit" onClick={() => handleTabChange('login')}>
+                    <CheckCircle className="h-10 w-10 text-accent" />
+                    <p className="max-w-sm text-xs leading-5 text-foreground">{t.signupSuccess}</p>
+                    <Button type="button" className="auth-submit h-8 text-xs" onClick={() => handleTabChange('login')}>
                       {t.backToLogin}
                     </Button>
                   </motion.div>
@@ -249,12 +249,12 @@ const Login = () => {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                     onSubmit={handleSignupSubmit}
-                    className="space-y-5"
+                    className="space-y-3"
                   >
-                    {signupError && <div className="auth-message auth-message-error">{signupError}</div>}
+                    {signupError && <div className="auth-message auth-message-error text-xs">{signupError}</div>}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-name">{t.fullNameLabel}</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="signup-name" className="text-xs">{t.fullNameLabel}</Label>
                       <div className="relative">
                         <User className="login-field-icon" />
                         <Input
@@ -262,13 +262,13 @@ const Login = () => {
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           required
-                          className="auth-input ps-11"
+                          className="auth-input ps-11 h-8 text-xs"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">{t.emailLabel}</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="signup-email" className="text-xs">{t.emailLabel}</Label>
                       <div className="relative">
                         <Mail className="login-field-icon" />
                         <Input
@@ -278,13 +278,13 @@ const Login = () => {
                           onChange={(e) => setSignupEmail(e.target.value)}
                           required
                           dir="ltr"
-                          className="auth-input ps-11"
+                          className="auth-input ps-11 h-8 text-xs"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">{t.passwordLabel}</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="signup-password" className="text-xs">{t.passwordLabel}</Label>
                       <div className="relative">
                         <Lock className="login-field-icon" />
                         <Input
@@ -294,7 +294,7 @@ const Login = () => {
                           onChange={(e) => setSignupPassword(e.target.value)}
                           required
                           dir="ltr"
-                          className="auth-input ps-11 pe-11"
+                          className="auth-input ps-11 pe-11 h-8 text-xs"
                         />
                         <button
                           type="button"
@@ -307,11 +307,11 @@ const Login = () => {
                       </div>
                     </div>
 
-                    <Button type="submit" className="auth-submit w-full" disabled={signupLoading}>
+                    <Button type="submit" className="auth-submit w-full h-8 text-xs" disabled={signupLoading}>
                       {signupLoading ? '...' : t.signupButton}
                     </Button>
 
-                    <div className="text-center text-sm text-muted-foreground lg:hidden">
+                    <div className="text-center text-xs text-muted-foreground lg:hidden">
                       {t.hasAccount}{' '}
                       <button type="button" onClick={() => handleTabChange('login')} className="font-bold text-primary hover:text-accent">
                         {t.loginTitle}

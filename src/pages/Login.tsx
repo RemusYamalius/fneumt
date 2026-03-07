@@ -93,8 +93,8 @@ const Login = () => {
             <div className="login-chevron login-chevron-2" />
             <div className="login-chevron login-chevron-3" />
 
-            {/* Tab switchers on left panel */}
-            <div className="relative z-10 flex flex-col items-center gap-6 text-primary-foreground">
+            {/* Tab switchers on left panel — aligned to the right edge */}
+            <div className="relative z-10 flex flex-col items-end gap-2 w-full pe-0" style={{ paddingInlineEnd: 0 }}>
               <button
                 type="button"
                 onClick={() => handleTabChange('login')}

@@ -78,13 +78,13 @@ const Index = () => {
         {/* Wave separator */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 40C240 80 480 0 720 40C960 80 1200 0 1440 40V80H0V40Z" fill="currentColor" className="text-transparent" />
+            <path d="M0 40C240 80 480 0 720 40C960 80 1200 0 1440 40V80H0V40Z" fill="hsl(210 20% 98%)" />
           </svg>
         </div>
       </header>
 
       {/* Action Cards */}
-      <main className="flex-1 -mt-4 relative z-10" style={{ backgroundImage: `url(${cardsBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      <main className="flex-1 -mt-4 relative z-10">
         <div className="max-w-5xl mx-auto px-6 pb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ direction: 'ltr' }}>
           {actions.map((action, index) => <motion.div

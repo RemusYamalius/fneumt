@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -93,17 +93,17 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Tajawal', 'Roboto', sans-serif;
+    font-family: 'Cairo', 'Inter', sans-serif;
   }
 
   [dir="rtl"] body,
   [dir="rtl"] {
-    font-family: 'Tajawal', sans-serif;
+    font-family: 'Cairo', sans-serif;
   }
 
   [dir="ltr"] body,
   [dir="ltr"] {
-    font-family: 'Roboto', 'Tajawal', sans-serif;
+    font-family: 'Inter', 'Cairo', sans-serif;
   }
 }
 
@@ -728,18 +728,19 @@
 }
 
 .login-left-tab {
-  font-size: 1.1rem;
+  font-size: 0.92rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0.75rem 2rem;
+  padding: 0.55rem 1.1rem;
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
-  width: 100%;
+  width: auto;
   text-align: center;
   border: none;
   outline: none;
+  white-space: nowrap;
 }
 
 .login-left-tab-active {

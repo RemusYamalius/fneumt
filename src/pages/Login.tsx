@@ -72,10 +72,15 @@ const Login = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-secondary" dir={dir}>
       {/* Top bar */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between gap-3" style={{ direction: 'ltr' }}>
-        <Link to="/" className="auth-top-link">
-          {dir === 'rtl' ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
-          {t.backToHome}
+      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between gap-3" dir={dir}>
+        <Link to="/" className="auth-top-link group" aria-label={t.backToHome}>
+          <motion.span
+            animate={{ x: [0, dir === 'rtl' ? 5 : -5, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+            className="inline-flex"
+          >
+            {dir === 'rtl' ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
+          </motion.span>
         </Link>
         <button type="button" onClick={toggleLang} className="auth-top-link">
           <Globe className="h-4 w-4" />

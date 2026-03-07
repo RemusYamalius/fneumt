@@ -686,4 +686,92 @@
   animation: logo-sparkle 6s ease-in-out infinite;
 }
 
+/* Logo float animation */
+@keyframes logo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-logo-float {
+  animation: logo-float 3s ease-in-out infinite;
+}
+
+/* Login page styles */
+.login-card {
+  background: hsl(var(--card));
+  box-shadow: 0 40px 80px -30px hsl(207 75% 10% / 0.5);
+}
+
+.login-left-panel {
+  background: linear-gradient(160deg, hsl(207 75% 17%) 0%, hsl(207 62% 40%) 60%, hsl(207 70% 30%) 100%);
+  min-height: 420px;
+}
+
+.login-chevron {
+  position: absolute;
+  inset: 0;
+}
+
+.login-chevron-1 {
+  background: hsl(207 75% 20% / 0.6);
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 50% 55%, 0 35%);
+}
+
+.login-chevron-2 {
+  background: hsl(207 62% 35% / 0.4);
+  clip-path: polygon(0 25%, 100% 25%, 100% 60%, 50% 78%, 0 60%);
+}
+
+.login-chevron-3 {
+  background: hsl(207 55% 45% / 0.3);
+  clip-path: polygon(0 50%, 100% 50%, 100% 80%, 50% 95%, 0 80%);
+}
+
+.login-left-tab {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.login-left-tab-active {
+  color: hsl(var(--primary-foreground));
+  text-shadow: 0 2px 12px hsl(0 0% 0% / 0.3);
+}
+
+.login-left-tab-inactive {
+  color: hsl(0 0% 100% / 0.4);
+}
+
+.login-left-tab-inactive:hover {
+  color: hsl(0 0% 100% / 0.7);
+}
+
+.login-form-panel {
+  background:
+    radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.06), transparent 50%),
+    hsl(var(--card));
+}
+
+.login-field-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+
+[dir="rtl"] .login-field-icon {
+  left: auto;
+  right: 0.85rem;
+}
+
+
 

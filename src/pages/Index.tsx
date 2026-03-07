@@ -14,21 +14,21 @@ const Index = () => {
     title: t.newRequest,
     desc: t.newRequestDesc,
     to: '/new-request',
-    gradient: 'from-primary to-accent'
+    color: '#C0392B'
   },
   {
     icon: Search,
     title: t.trackFiles,
     desc: t.trackFilesDesc,
     to: '/track',
-    gradient: 'from-accent to-primary'
+    color: '#F39C12'
   },
   {
     icon: LogIn,
     title: t.login,
     desc: t.loginDesc,
     to: '/login',
-    gradient: 'from-secondary to-primary'
+    color: '#2C3E50'
   }];
 
 
@@ -83,35 +83,52 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Action Cards */}
+      {/* Action Cards - Infographic Style */}
       <main className="flex-1 -mt-4 relative z-10">
-        <div className="max-w-5xl mx-auto px-6 pb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ direction: 'ltr' }}>
-          {actions.map((action, index) => <motion.div
+        <div className="max-w-4xl mx-auto px-6 pb-16">
+          <div className="relative flex flex-col md:flex-row items-start justify-center gap-8 md:gap-0" style={{ direction: 'ltr' }}>
+            
+            {/* Horizontal connecting line (desktop only) */}
+            <div className="hidden md:block absolute top-[168px] left-[16.66%] right-[16.66%] h-0.5 bg-gray-300" />
+
+            {actions.map((action, index) => (
+              <motion.div
                 key={action.to}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}>
+                transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}
+                className="flex-1 flex flex-col items-center relative"
+              >
+                <Link to={action.to} className="flex flex-col items-center text-center group">
+                  {/* Semi-circular arc */}
+                  <div
+                    className="w-28 h-14 border-4 border-b-0 rounded-t-full"
+                    style={{ borderColor: action.color }}
+                  />
 
-              <Link
-                  to={action.to}
-                  className="card-premium group relative p-8 text-center transition-all duration-300 block">
-
-                <div className="relative z-10">
-                  <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-accent/20 transition-colors duration-300">
-                    <action.icon className="w-7 h-7 text-primary" />
+                  {/* Icon circle overlapping arc bottom */}
+                  <div
+                    className="w-14 h-14 bg-white rounded-full shadow-xl -mt-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                    style={{ border: `3px solid ${action.color}` }}
+                  >
+                    <action.icon className="w-6 h-6" style={{ color: action.color }} />
                   </div>
-                  <h2 className="text-xl font-bold text-foreground mb-2">{action.title}</h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{action.desc}</p>
-                </div>
 
-                {/* Arrow indicator */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                  <div className="w-8 h-1 bg-primary rounded-full" />
-                </div>
-              </Link>
+                  {/* Vertical connector */}
+                  <div className="w-0.5 h-8 bg-gray-300 my-1" />
+
+                  {/* Timeline dot */}
+                  <div
+                    className="w-3 h-3 rounded-full mb-4 z-10"
+                    style={{ backgroundColor: action.color }}
+                  />
+
+                  {/* Text content */}
+                  <h2 className="text-lg font-bold text-foreground mb-1 group-hover:opacity-80 transition-opacity">{action.title}</h2>
+                  <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{action.desc}</p>
+                </Link>
               </motion.div>
-            )}
+            ))}
           </div>
         </div>
       </main>

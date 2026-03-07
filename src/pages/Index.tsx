@@ -76,8 +76,8 @@ const Index = () => {
         </div>
 
         {/* Wave separator */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+        <div className="absolute -bottom-px left-0 right-0">
+          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full block">
             <path d="M0 40C240 80 480 0 720 40C960 80 1200 0 1440 40V80H0V40Z" fill="hsl(210 20% 98%)" />
           </svg>
         </div>
@@ -86,7 +86,7 @@ const Index = () => {
       {/* Action Cards - Infographic Style */}
       <main className="flex-1 -mt-4 relative z-10">
         <div className="max-w-4xl mx-auto px-6 pb-16">
-          <div className="relative flex flex-col md:flex-row items-start justify-center gap-8 md:gap-0" style={{ direction: 'ltr' }}>
+          <div className="relative flex flex-col md:flex-row items-center md:items-start justify-center gap-8 md:gap-0" style={{ direction: 'ltr' }}>
             
             {/* Horizontal connecting line (desktop only) */}
             <div className="hidden md:block absolute top-[168px] left-[16.66%] right-[16.66%] h-0.5 bg-gray-300" />

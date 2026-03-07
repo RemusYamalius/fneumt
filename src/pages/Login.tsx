@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Globe, ArrowLeft, ArrowRight, CheckCircle, Mail, Lock, User } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -151,144 +152,169 @@ const Login = () => {
             </div>
 
             <div className="w-full max-w-sm">
-              {isLogin ? (
-                <form onSubmit={handleLoginSubmit} className="space-y-5">
-                  {loginError && <div className="auth-message auth-message-error">{loginError}</div>}
+              <AnimatePresence mode="wait">
+                {isLogin ? (
+                  <motion.form
+                    key="login"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    onSubmit={handleLoginSubmit}
+                    className="space-y-5"
+                  >
+                    {loginError && <div className="auth-message auth-message-error">{loginError}</div>}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">{t.emailLabel}</Label>
-                    <div className="relative">
-                      <Mail className="login-field-icon" />
-                      <Input
-                        id="login-email"
-                        type="email"
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        required
-                        dir="ltr"
-                        className="auth-input ps-11"
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">{t.emailLabel}</Label>
+                      <div className="relative">
+                        <Mail className="login-field-icon" />
+                        <Input
+                          id="login-email"
+                          type="email"
+                          value={loginEmail}
+                          onChange={(e) => setLoginEmail(e.target.value)}
+                          required
+                          dir="ltr"
+                          className="auth-input ps-11"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <Label htmlFor="login-password">{t.passwordLabel}</Label>
-                      <Link to="/forgot-password" className="text-sm font-medium text-primary transition-colors hover:text-accent">
-                        {t.forgotPassword}
-                      </Link>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <Label htmlFor="login-password">{t.passwordLabel}</Label>
+                        <Link to="/forgot-password" className="text-sm font-medium text-primary transition-colors hover:text-accent">
+                          {t.forgotPassword}
+                        </Link>
+                      </div>
+                      <div className="relative">
+                        <Lock className="login-field-icon" />
+                        <Input
+                          id="login-password"
+                          type={showLoginPassword ? 'text' : 'password'}
+                          value={loginPassword}
+                          onChange={(e) => setLoginPassword(e.target.value)}
+                          required
+                          dir="ltr"
+                          className="auth-input ps-11 pe-11"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowLoginPassword(!showLoginPassword)}
+                          className="auth-eye-toggle"
+                          aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
-                    <div className="relative">
-                      <Lock className="login-field-icon" />
-                      <Input
-                        id="login-password"
-                        type={showLoginPassword ? 'text' : 'password'}
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        required
-                        dir="ltr"
-                        className="auth-input ps-11 pe-11"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowLoginPassword(!showLoginPassword)}
-                        className="auth-eye-toggle"
-                        aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+
+                    <Button type="submit" className="auth-submit w-full" disabled={loginLoading}>
+                      {loginLoading ? '...' : t.loginButton}
+                    </Button>
+
+                    <div className="text-center text-sm text-muted-foreground lg:hidden">
+                      {t.noAccount}{' '}
+                      <button type="button" onClick={() => handleTabChange('signup')} className="font-bold text-primary hover:text-accent">
+                        {t.createAccount}
                       </button>
                     </div>
-                  </div>
+                  </motion.form>
+                ) : signupSuccess ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="auth-message auth-message-success flex flex-col items-center gap-4 py-8 text-center"
+                  >
+                    <CheckCircle className="h-14 w-14 text-accent" />
+                    <p className="max-w-sm text-sm leading-6 text-foreground">{t.signupSuccess}</p>
+                    <Button type="button" className="auth-submit" onClick={() => handleTabChange('login')}>
+                      {t.backToLogin}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.form
+                    key="signup"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    onSubmit={handleSignupSubmit}
+                    className="space-y-5"
+                  >
+                    {signupError && <div className="auth-message auth-message-error">{signupError}</div>}
 
-                  <Button type="submit" className="auth-submit w-full" disabled={loginLoading}>
-                    {loginLoading ? '...' : t.loginButton}
-                  </Button>
-
-                  <div className="text-center text-sm text-muted-foreground lg:hidden">
-                    {t.noAccount}{' '}
-                    <button type="button" onClick={() => handleTabChange('signup')} className="font-bold text-primary hover:text-accent">
-                      {t.createAccount}
-                    </button>
-                  </div>
-                </form>
-              ) : signupSuccess ? (
-                <div className="auth-message auth-message-success flex flex-col items-center gap-4 py-8 text-center">
-                  <CheckCircle className="h-14 w-14 text-accent" />
-                  <p className="max-w-sm text-sm leading-6 text-foreground">{t.signupSuccess}</p>
-                  <Button type="button" className="auth-submit" onClick={() => handleTabChange('login')}>
-                    {t.backToLogin}
-                  </Button>
-                </div>
-              ) : (
-                <form onSubmit={handleSignupSubmit} className="space-y-5">
-                  {signupError && <div className="auth-message auth-message-error">{signupError}</div>}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">{t.fullNameLabel}</Label>
-                    <div className="relative">
-                      <User className="login-field-icon" />
-                      <Input
-                        id="signup-name"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        required
-                        className="auth-input ps-11"
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">{t.fullNameLabel}</Label>
+                      <div className="relative">
+                        <User className="login-field-icon" />
+                        <Input
+                          id="signup-name"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          required
+                          className="auth-input ps-11"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">{t.emailLabel}</Label>
-                    <div className="relative">
-                      <Mail className="login-field-icon" />
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        value={signupEmail}
-                        onChange={(e) => setSignupEmail(e.target.value)}
-                        required
-                        dir="ltr"
-                        className="auth-input ps-11"
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">{t.emailLabel}</Label>
+                      <div className="relative">
+                        <Mail className="login-field-icon" />
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          value={signupEmail}
+                          onChange={(e) => setSignupEmail(e.target.value)}
+                          required
+                          dir="ltr"
+                          className="auth-input ps-11"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">{t.passwordLabel}</Label>
-                    <div className="relative">
-                      <Lock className="login-field-icon" />
-                      <Input
-                        id="signup-password"
-                        type={showSignupPassword ? 'text' : 'password'}
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        required
-                        dir="ltr"
-                        className="auth-input ps-11 pe-11"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowSignupPassword(!showSignupPassword)}
-                        className="auth-eye-toggle"
-                        aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">{t.passwordLabel}</Label>
+                      <div className="relative">
+                        <Lock className="login-field-icon" />
+                        <Input
+                          id="signup-password"
+                          type={showSignupPassword ? 'text' : 'password'}
+                          value={signupPassword}
+                          onChange={(e) => setSignupPassword(e.target.value)}
+                          required
+                          dir="ltr"
+                          className="auth-input ps-11 pe-11"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSignupPassword(!showSignupPassword)}
+                          className="auth-eye-toggle"
+                          aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <Button type="submit" className="auth-submit w-full" disabled={signupLoading}>
+                      {signupLoading ? '...' : t.signupButton}
+                    </Button>
+
+                    <div className="text-center text-sm text-muted-foreground lg:hidden">
+                      {t.hasAccount}{' '}
+                      <button type="button" onClick={() => handleTabChange('login')} className="font-bold text-primary hover:text-accent">
+                        {t.loginTitle}
                       </button>
                     </div>
-                  </div>
-
-                  <Button type="submit" className="auth-submit w-full" disabled={signupLoading}>
-                    {signupLoading ? '...' : t.signupButton}
-                  </Button>
-
-                  <div className="text-center text-sm text-muted-foreground lg:hidden">
-                    {t.hasAccount}{' '}
-                    <button type="button" onClick={() => handleTabChange('login')} className="font-bold text-primary hover:text-accent">
-                      {t.loginTitle}
-                    </button>
-                  </div>
-                </form>
-              )}
+                  </motion.form>
+                )}
+              </AnimatePresence>
             </div>
           </section>
         </div>

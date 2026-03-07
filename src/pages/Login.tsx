@@ -84,11 +84,11 @@ const Login = () => {
       </div>
 
       {/* Main container */}
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-24 lg:px-8">
-        <div className="login-card grid w-full max-w-5xl overflow-hidden rounded-3xl shadow-2xl lg:grid-cols-[0.45fr_0.55fr]">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-32 lg:py-24 lg:px-8">
+        <div className="login-card grid w-full max-w-5xl rounded-3xl shadow-2xl lg:grid-cols-[0.45fr_0.55fr]">
 
           {/* Left decorative panel */}
-          <aside className="login-left-panel relative hidden lg:flex flex-col items-center justify-center overflow-hidden">
+          <aside className="login-left-panel relative hidden lg:flex flex-col items-center justify-center overflow-hidden rounded-s-3xl">
             {/* Chevron layers */}
             <div className="login-chevron login-chevron-1" />
             <div className="login-chevron login-chevron-2" />
@@ -116,7 +116,7 @@ const Login = () => {
           {/* Right form panel */}
           <section className="login-form-panel flex flex-col items-center px-6 pt-0 pb-10 sm:px-10 lg:px-12 lg:pb-14">
             {/* Floating logo — half above the white panel edge */}
-            <div className="relative z-20 -mt-20 animate-logo-float mb-6">
+            <div className="relative z-30 -mt-20 animate-logo-float mb-6">
               <AnimatedLogo size="w-40 h-40" />
             </div>
 

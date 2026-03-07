@@ -36,7 +36,7 @@ const translations: Record<Lang, Record<string, string>> = {
     forgotPassword: 'نسيت كلمة المرور؟',
     noAccount: 'ليس لديك حساب؟',
     hasAccount: 'لديك حساب بالفعل؟',
-    createAccount: 'إنشاء حساب',
+    createAccount: 'إنشــاء حســاب',
     backToLogin: 'العودة لتسجيل الدخول',
     backToHome: 'العودة للرئيسية',
     signupSuccess: 'تم إنشاء حسابك بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب.',

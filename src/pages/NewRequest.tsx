@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 
 type RequestCategory = 'rank_promotion' | 'grade_promotion' | 'schedules' | 'infrastructure' | 'financial_compensation' | 'zone_compensation' | 'equipment' | 'grievances' | 'assignments' | 'inspection_score' | 'other';
 type ResolutionLevel = 'ministry' | 'academy' | 'directorate' | 'institution';
@@ -201,7 +201,7 @@ const NewRequest = () => {
       {/* Header */}
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-3">
-          <img src={logoFne} alt="Logo" className="w-10 h-10 object-contain rounded-lg" />
+          <AnimatedLogo size="w-10 h-10" />
           <div>
             <p className="font-bold text-sm">{t.newRequest}</p>
             <p className="text-xs text-white/70">{t.platformName}</p>

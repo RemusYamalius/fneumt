@@ -123,7 +123,7 @@ const Index = () => {
               <AnimatedLogo size="w-20 h-20" />
               <div>
                 <p className="font-bold text-sm">{t.platformName}</p>
-                <p className="text-xs text-white/60">{t.footer}</p>
+                <p className="text-xs text-white/60 whitespace-pre-line">{t.footer}</p>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 text-xs text-white/60">

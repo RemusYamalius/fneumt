@@ -89,7 +89,7 @@ const Login = () => {
       </div>
 
       {/* Main container */}
-      <div className="relative z-10 flex min-h-screen items-start lg:items-center justify-center px-4 pb-6 pt-16 lg:py-24 lg:px-8">
+      <div className="relative z-10 flex min-h-screen items-start lg:items-center justify-center px-4 pb-6 pt-28 lg:py-24 lg:px-8">
         <div className="login-card grid w-full max-w-sm lg:max-w-5xl lg:grid-cols-[0.45fr_0.55fr]">
 
           {/* Left decorative panel */}
@@ -121,7 +121,7 @@ const Login = () => {
           {/* Right form panel */}
           <section className="login-form-panel flex flex-col items-center px-6 pt-0 pb-10 sm:px-10 lg:px-12 lg:pb-14 rounded-3xl lg:rounded-s-none lg:rounded-e-3xl">
             {/* Floating logo — half above the white panel edge */}
-            <div className="relative z-30 -mt-20 animate-logo-float mb-6">
+            <div className="relative z-30 -mt-14 lg:-mt-20 animate-logo-float mb-6">
               <AnimatedLogo size="w-40 h-40" />
             </div>
 

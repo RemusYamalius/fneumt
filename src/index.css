@@ -713,18 +713,18 @@
 }
 
 .login-chevron-1 {
-  background: hsl(207 75% 20% / 0.6);
-  clip-path: polygon(0 0, 100% 0, 100% 35%, 50% 55%, 0 35%);
+  background: linear-gradient(135deg, hsl(207 75% 22% / 0.7), hsl(207 62% 35% / 0.5));
+  clip-path: polygon(0 0, 75% 0, 100% 50%, 75% 100%, 0 100%);
 }
 
 .login-chevron-2 {
-  background: hsl(207 62% 35% / 0.4);
-  clip-path: polygon(0 25%, 100% 25%, 100% 60%, 50% 78%, 0 60%);
+  background: linear-gradient(135deg, hsl(207 62% 30% / 0.5), hsl(207 55% 42% / 0.35));
+  clip-path: polygon(0 0, 60% 0, 85% 50%, 60% 100%, 0 100%);
 }
 
 .login-chevron-3 {
-  background: hsl(207 55% 45% / 0.3);
-  clip-path: polygon(0 50%, 100% 50%, 100% 80%, 50% 95%, 0 80%);
+  background: linear-gradient(135deg, hsl(207 55% 38% / 0.35), hsl(207 50% 48% / 0.25));
+  clip-path: polygon(0 0, 45% 0, 70% 50%, 45% 100%, 0 100%);
 }
 
 .login-left-tab {
@@ -739,16 +739,20 @@
 }
 
 .login-left-tab-active {
-  color: hsl(var(--primary-foreground));
-  text-shadow: 0 2px 12px hsl(0 0% 0% / 0.3);
+  background: white;
+  color: hsl(207 75% 17%);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 14px -2px hsl(207 75% 17% / 0.25);
+  text-shadow: none;
 }
 
 .login-left-tab-inactive {
-  color: hsl(0 0% 100% / 0.4);
+  color: hsl(0 0% 100% / 0.45);
+  background: transparent;
 }
 
 .login-left-tab-inactive:hover {
-  color: hsl(0 0% 100% / 0.7);
+  color: hsl(0 0% 100% / 0.8);
 }
 
 .login-form-panel {

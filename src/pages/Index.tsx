@@ -3,7 +3,7 @@ import { useI18n } from '@/lib/i18n';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AnimatedLogo from '@/components/AnimatedLogo';
-import cardsBg from '@/assets/cards-bg.png';
+
 
 const Index = () => {
   const { t, toggleLang, dir } = useI18n();

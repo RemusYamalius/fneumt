@@ -90,7 +90,7 @@ const Login = () => {
 
       {/* Main container */}
       <div className="relative z-10 flex min-h-screen items-start lg:items-center justify-center px-4 pb-6 pt-28 lg:py-24 lg:px-8">
-        <div className="<div className="login-card grid w-full max-w-sm lg:max-w-3xl lg:grid-cols-[0.45fr_0.55fr]"> lg:grid-cols-[0.45fr_0.55fr]">
+        <div className="login-card grid w-full max-w-sm lg:max-w-3xl lg:grid-cols-[0.45fr_0.55fr]">
 
           {/* Left decorative panel */}
           <aside className="login-left-panel relative hidden lg:flex flex-col items-center justify-center overflow-hidden rounded-s-3xl">

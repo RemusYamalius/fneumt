@@ -342,18 +342,13 @@ const Dashboard = () => {
         )}
 
         {/* My Requests */}
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-4">{t.myRequests}</h2>
-          {loadingRequests ? (
-            <div className="card-premium p-8 flex items-center justify-center">
-              <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : myRequests.length === 0 ? (
-            <div className="card-premium p-8 text-center">
-              <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-              <p className="text-muted-foreground">{t.noRequests}</p>
-            </div>
-          ) : (
+        <RequestsSection
+          t={t}
+          lang={lang}
+          loadingRequests={loadingRequests}
+          myRequests={myRequests}
+          dir={dir}
+        />
             <div className="space-y-3">
               {myRequests.map((req, i) => {
                 const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {

@@ -349,68 +349,153 @@ const Dashboard = () => {
           myRequests={myRequests}
           dir={dir}
         />
-            <div className="space-y-3">
-              {myRequests.map((req, i) => {
-                const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
-                  submitted: { icon: Clock, color: 'text-amber-500' },
-                  viewed: { icon: Eye, color: 'text-blue-500' },
-                  in_progress: { icon: Loader2, color: 'text-orange-500' },
-                  accepted: { icon: CheckCircle2, color: 'text-emerald-500' },
-                  cancelled: { icon: XCircle, color: 'text-destructive' },
-                };
-                const sc = statusConfig[req.status] || statusConfig.submitted;
-                const StatusIcon = sc.icon;
-                const categoryLabel = t[`cat_${req.category}`] || req.category;
-                const statusLabel = t[`status_${req.status}`] || req.status;
-                const dateStr = format(new Date(req.created_at), 'dd MMM yyyy', { locale: lang === 'ar' ? ar : fr });
-
-                return (
-                  <motion.div
-                    key={req.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                  >
-                    <Link
-                      to={`/track?q=${req.tracking_number}`}
-                      className="group block rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                            <span className="font-mono text-sm font-bold text-primary tracking-wide">{req.tracking_number}</span>
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(req.tracking_number);
-                              }}
-                              className="p-0.5 rounded hover:bg-muted transition-colors"
-                              title={t.trackingNumberLabel}
-                            >
-                              <Copy className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
-                            </button>
-                            <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
-                              {categoryLabel}
-                            </span>
-                          </div>
-                          <p className="text-sm font-medium text-foreground truncate">{req.subject}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{t.dateLabel}: {dateStr}</p>
-                        </div>
-                        <div className="flex flex-col items-center gap-1 shrink-0">
-                          <StatusIcon className={`w-5 h-5 ${sc.color} ${req.status === 'in_progress' ? 'animate-spin' : ''}`} />
-                          <span className={`text-[10px] font-semibold ${sc.color}`}>{statusLabel}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-        </section>
       </main>
     </div>
+  );
+};
+
+/* ───── Extracted Requests Section with Filters ───── */
+interface RequestsSectionProps {
+  t: Record<string, string>;
+  lang: string;
+  loadingRequests: boolean;
+  myRequests: any[];
+  dir: string;
+}
+
+const RequestsSection = ({ t, lang, loadingRequests, myRequests, dir }: RequestsSectionProps) => {
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+
+  const filteredRequests = useMemo(() => {
+    let result = myRequests;
+    if (statusFilter !== 'all') {
+      result = result.filter(r => r.status === statusFilter);
+    }
+    return [...result].sort((a, b) => {
+      const da = new Date(a.created_at).getTime();
+      const db = new Date(b.created_at).getTime();
+      return sortOrder === 'newest' ? db - da : da - db;
+    });
+  }, [myRequests, statusFilter, sortOrder]);
+
+  const statusFilters = [
+    { key: 'all', label: t.filterAll },
+    { key: 'submitted', label: t.status_submitted, color: 'bg-amber-500' },
+    { key: 'viewed', label: t.status_viewed, color: 'bg-blue-500' },
+    { key: 'in_progress', label: t.status_in_progress, color: 'bg-orange-500' },
+    { key: 'accepted', label: t.status_accepted, color: 'bg-emerald-500' },
+    { key: 'cancelled', label: t.status_cancelled, color: 'bg-destructive' },
+  ];
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h2 className="text-xl font-bold text-foreground">{t.myRequests}</h2>
+        <button
+          onClick={() => setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest')}
+          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-lg border border-border hover:border-primary/30 transition-all"
+        >
+          <ArrowUpDown className="w-3.5 h-3.5" />
+          {sortOrder === 'newest' ? (lang === 'ar' ? 'الأحدث' : 'Plus récent') : (lang === 'ar' ? 'الأقدم' : 'Plus ancien')}
+        </button>
+      </div>
+
+      {/* Status filter chips */}
+      {myRequests.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+          {statusFilters.map(sf => (
+            <button
+              key={sf.key}
+              onClick={() => setStatusFilter(sf.key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition-all duration-200 ${
+                statusFilter === sf.key
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-foreground'
+              }`}
+            >
+              {sf.color && <span className={`w-2 h-2 rounded-full ${sf.color}`} />}
+              {sf.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {loadingRequests ? (
+        <div className="card-premium p-8 flex items-center justify-center">
+          <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : myRequests.length === 0 ? (
+        <div className="card-premium p-8 text-center">
+          <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+          <p className="text-muted-foreground">{t.noRequests}</p>
+        </div>
+      ) : filteredRequests.length === 0 ? (
+        <div className="card-premium p-6 text-center">
+          <Filter className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">{lang === 'ar' ? 'لا توجد طلبات بهذه الحالة' : 'Aucune demande avec ce statut'}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredRequests.map((req, i) => {
+            const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
+              submitted: { icon: Clock, color: 'text-amber-500' },
+              viewed: { icon: Eye, color: 'text-blue-500' },
+              in_progress: { icon: Loader2, color: 'text-orange-500' },
+              accepted: { icon: CheckCircle2, color: 'text-emerald-500' },
+              cancelled: { icon: XCircle, color: 'text-destructive' },
+            };
+            const sc = statusConfig[req.status] || statusConfig.submitted;
+            const StatusIcon = sc.icon;
+            const categoryLabel = t[`cat_${req.category}`] || req.category;
+            const statusLabel = t[`status_${req.status}`] || req.status;
+            const dateStr = format(new Date(req.created_at), 'dd MMM yyyy', { locale: lang === 'ar' ? ar : fr });
+
+            return (
+              <motion.div
+                key={req.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.05 }}
+              >
+                <Link
+                  to={`/track?q=${req.tracking_number}`}
+                  className="group block rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span className="font-mono text-sm font-bold text-primary tracking-wide">{req.tracking_number}</span>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(req.tracking_number);
+                          }}
+                          className="p-0.5 rounded hover:bg-muted transition-colors"
+                          title={t.trackingNumberLabel}
+                        >
+                          <Copy className="w-3.5 h-3.5 text-muted-foreground hover:text-primary" />
+                        </button>
+                        <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
+                          {categoryLabel}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium text-foreground truncate">{req.subject}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{t.dateLabel}: {dateStr}</p>
+                    </div>
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <StatusIcon className={`w-5 h-5 ${sc.color} ${req.status === 'in_progress' ? 'animate-spin' : ''}`} />
+                      <span className={`text-[10px] font-semibold ${sc.color}`}>{statusLabel}</span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 };
 

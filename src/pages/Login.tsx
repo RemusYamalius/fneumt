@@ -204,7 +204,7 @@ const Login = () => {
                           type="button"
                           onClick={() => setShowLoginPassword(!showLoginPassword)}
                           className="auth-eye-toggle"
-                          aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                          aria-label={showLoginPassword ? t.hidePassword : t.showPassword}
                         >
                           {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>

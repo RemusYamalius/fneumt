@@ -126,14 +126,10 @@ const Login = () => {
             </div>
 
             <h2 className="text-base font-black tracking-tight text-foreground mb-1">
-              {isLogin
-                ? (dir === 'rtl' ? 'تسجيل الدخول' : 'Login')
-                : (dir === 'rtl' ? 'إنشاء حساب' : 'Sign Up')}
+              {isLogin ? t.loginTitle : t.createAccount}
             </h2>
             <p className="text-xs text-muted-foreground mb-3">
-              {isLogin
-                ? (dir === 'rtl' ? 'أدخل بياناتك للمتابعة' : 'Enter your credentials to continue')
-                : (dir === 'rtl' ? 'أنشئ حسابك الجديد' : 'Create your new account')}
+              {isLogin ? t.loginSubtitle : t.signupSubtitle}
             </p>
 
             {/* Mobile tab switcher */}

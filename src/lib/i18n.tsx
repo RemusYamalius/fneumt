@@ -206,6 +206,11 @@ const translations: Record<Lang, Record<string, string>> = {
     // Dashboard groups
     personalSection: 'الحساب الشخصي',
     professionalSection: 'المهام الوظيفية',
+    // Membership verification
+    membershipVerification: 'التحقق من الانخراط',
+    membershipVerificationDesc: 'التحقق من حالة انخراط المسجلين',
+    memberVerified: 'منخرط مفعل',
+    memberNotVerified: 'غير مفعل',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT',

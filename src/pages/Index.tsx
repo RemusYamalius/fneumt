@@ -88,8 +88,6 @@ const Index = () => {
         <div className="max-w-4xl mx-auto px-6 pt-16 pb-16">
           <div className="relative flex flex-col md:flex-row items-center md:items-start justify-center gap-8 md:gap-0" style={{ direction: dir === 'rtl' ? 'rtl' : 'ltr' }}>
             
-            {/* Horizontal connecting line (desktop only) */}
-            <div className="hidden md:block absolute top-[168px] left-[16.66%] right-[16.66%] h-0.5 bg-gray-300" />
 
             {actions.map((action, index) => (
               <motion.div

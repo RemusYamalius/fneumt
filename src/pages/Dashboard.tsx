@@ -42,6 +42,21 @@ const Dashboard = () => {
       .then(({ count }) => setPendingCount(count || 0));
   }, [user, showIncomingRequests]);
 
+  // Fetch user's own requests
+  useEffect(() => {
+    if (!user) return;
+    setLoadingRequests(true);
+    supabase
+      .from('requests')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setMyRequests(data || []);
+        setLoadingRequests(false);
+      });
+  }, [user]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

@@ -86,6 +86,21 @@ const MembershipVerification = () => {
 
       if (error) throw error;
 
+      // Send notification to user about membership change
+      const notifTitle = isMember
+        ? (lang === 'ar' ? 'تم تفعيل انخراطك' : 'Adhésion activée')
+        : (lang === 'ar' ? 'تم تعطيل انخراطك' : 'Adhésion désactivée');
+      const notifMessage = isMember
+        ? (lang === 'ar' ? 'تم التحقق من انخراطك بنجاح من طرف المسؤول المحلي' : 'Votre adhésion a été vérifiée par le responsable local')
+        : (lang === 'ar' ? 'تم تعطيل حالة انخراطك من طرف المسؤول المحلي' : 'Votre statut d\'adhésion a été désactivé par le responsable local');
+
+      await supabase.from('notifications').insert({
+        user_id: targetUser.user_id,
+        title: notifTitle,
+        message: notifMessage,
+        link: '/profile',
+      });
+
       setUsers(prev => prev.map(u =>
         u.user_id === targetUser.user_id
           ? { ...u, is_member: updateData.is_member, membership_verified: updateData.membership_verified ?? u.membership_verified }

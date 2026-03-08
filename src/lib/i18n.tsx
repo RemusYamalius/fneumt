@@ -117,6 +117,13 @@ const translations: Record<Lang, Record<string, string>> = {
     allAcademies: 'جميع الأكاديميات',
     allDirectorates: 'جميع المديريات',
     // Categories
+    cat_medical_file: 'ملف طبي',
+    cat_mohammed_vi_foundation: 'مؤسسة محمد السادس',
+    cat_promotions: 'الترقيات',
+    cat_transfer: 'الانتقال',
+    cat_assets: 'الممتلكات',
+    cat_subscriptions: 'الاشتراكات',
+    cat_scholarships: 'المنح الدراسية',
     cat_rank_promotion: 'الترقية في الرتبة',
     cat_grade_promotion: 'الترقية في الدرجة',
     cat_schedules: 'جداول الحصص',

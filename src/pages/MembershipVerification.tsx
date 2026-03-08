@@ -160,35 +160,44 @@ const MembershipVerification = () => {
 
         {/* Filters */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-          <Select value={filterName} onValueChange={setFilterName}>
-            <SelectTrigger>
-              <SelectValue placeholder={lang === 'ar' ? 'فلتر حسب الاسم' : 'Filtrer par nom'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-              {uniqueNames.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-blue-700">{lang === 'ar' ? 'الاسم' : 'Nom'}</label>
+            <Select value={filterName} onValueChange={setFilterName}>
+              <SelectTrigger>
+                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
+                {uniqueNames.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select value={filterEmployee} onValueChange={setFilterEmployee}>
-            <SelectTrigger>
-              <SelectValue placeholder={lang === 'ar' ? 'فلتر حسب رقم التأجير' : 'Filtrer par numéro'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-              {uniqueEmployees.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-amber-700">{lang === 'ar' ? 'رقم التأجير' : 'N° employé'}</label>
+            <Select value={filterEmployee} onValueChange={setFilterEmployee}>
+              <SelectTrigger>
+                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
+                {uniqueEmployees.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select value={filterInstitution} onValueChange={setFilterInstitution}>
-            <SelectTrigger>
-              <SelectValue placeholder={lang === 'ar' ? 'فلتر حسب المؤسسة' : "Filtrer par établissement"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-              {uniqueInstitutions.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-emerald-700">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
+            <Select value={filterInstitution} onValueChange={setFilterInstitution}>
+              <SelectTrigger>
+                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
+                {uniqueInstitutions.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {hasActiveFilter && (

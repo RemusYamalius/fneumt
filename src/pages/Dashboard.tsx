@@ -17,6 +17,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { unreadCount } = useRealtimeNotifications(user?.id);
   const [pendingCount, setPendingCount] = useState(0);
+  const [myRequests, setMyRequests] = useState<any[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
   const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | null>(null);
 
   useEffect(() => {

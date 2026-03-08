@@ -219,7 +219,7 @@ const translations: Record<Lang, Record<string, string>> = {
     memberVerified: 'منخرط مفعل',
     memberNotVerified: 'غير مفعل',
     badge_gray: 'غير منخرط',
-    badge_black: 'منخرط',
+    badge_black: 'قيد التحقق',
     badge_blue: 'منخرط مفعّل',
     badge_gold: 'مسؤول نقابي',
   },

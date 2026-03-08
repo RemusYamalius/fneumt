@@ -158,9 +158,12 @@ const TrackRequest = () => {
         )}
 
         <div className="mt-8 text-center">
-          <Link to="/" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[hsl(207,75%,17%)] to-[hsl(207,62%,40%)] text-white font-medium text-sm shadow-lg hover:shadow-xl hover:opacity-90 transition-all duration-300"
+          >
             {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-            {t.backToHome}
+            {t.backToDashboard}
           </Link>
         </div>
       </main>

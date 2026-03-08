@@ -158,7 +158,10 @@ const Profile = () => {
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-8">
-        <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-primary hover:underline mb-6">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[hsl(207,75%,17%)] to-[hsl(207,62%,40%)] text-white font-medium text-sm shadow-lg hover:shadow-xl hover:opacity-90 transition-all duration-300 mb-6"
+        >
           <BackArrow className="w-4 h-4" />
           {t.backToDashboard}
         </button>

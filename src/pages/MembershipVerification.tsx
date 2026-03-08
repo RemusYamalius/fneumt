@@ -189,7 +189,7 @@ const MembershipVerification = () => {
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-emerald-700">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
             <Select value={filterInstitution} onValueChange={setFilterInstitution}>
-              <SelectTrigger>
+              <SelectTrigger className="focus:ring-emerald-400 border-emerald-200 text-emerald-700">
                 <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
               </SelectTrigger>
               <SelectContent>

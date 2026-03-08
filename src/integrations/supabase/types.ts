@@ -128,6 +128,8 @@ export type Database = {
           full_name: string | null
           id: string
           institution: string | null
+          is_member: boolean | null
+          membership_card_number: string | null
           mission: string | null
           phone: string | null
           updated_at: string
@@ -144,6 +146,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           institution?: string | null
+          is_member?: boolean | null
+          membership_card_number?: string | null
           mission?: string | null
           phone?: string | null
           updated_at?: string
@@ -160,6 +164,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           institution?: string | null
+          is_member?: boolean | null
+          membership_card_number?: string | null
           mission?: string | null
           phone?: string | null
           updated_at?: string

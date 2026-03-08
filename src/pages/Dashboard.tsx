@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck } from 'lucide-react';
+import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { ar, fr } from 'date-fns/locale';
 import AnimatedLogo from '@/components/AnimatedLogo';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 
@@ -15,6 +17,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { unreadCount } = useRealtimeNotifications(user?.id);
   const [pendingCount, setPendingCount] = useState(0);
+  const [myRequests, setMyRequests] = useState<any[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
   const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | null>(null);
 
   useEffect(() => {
@@ -37,6 +41,21 @@ const Dashboard = () => {
       .eq('status', 'submitted')
       .then(({ count }) => setPendingCount(count || 0));
   }, [user, showIncomingRequests]);
+
+  // Fetch user's own requests
+  useEffect(() => {
+    if (!user) return;
+    setLoadingRequests(true);
+    supabase
+      .from('requests')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setMyRequests(data || []);
+        setLoadingRequests(false);
+      });
+  }, [user]);
 
   if (loading) {
     return (
@@ -314,9 +333,64 @@ const Dashboard = () => {
         {/* My Requests */}
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4">{t.myRequests}</h2>
-          <div className="card-premium p-8 text-center">
-            <p className="text-muted-foreground">{t.noRequests}</p>
-          </div>
+          {loadingRequests ? (
+            <div className="card-premium p-8 flex items-center justify-center">
+              <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : myRequests.length === 0 ? (
+            <div className="card-premium p-8 text-center">
+              <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+              <p className="text-muted-foreground">{t.noRequests}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {myRequests.map((req, i) => {
+                const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
+                  submitted: { icon: Clock, color: 'text-amber-500' },
+                  viewed: { icon: Eye, color: 'text-blue-500' },
+                  in_progress: { icon: Loader2, color: 'text-orange-500' },
+                  accepted: { icon: CheckCircle2, color: 'text-emerald-500' },
+                  cancelled: { icon: XCircle, color: 'text-destructive' },
+                };
+                const sc = statusConfig[req.status] || statusConfig.submitted;
+                const StatusIcon = sc.icon;
+                const categoryLabel = t[`cat_${req.category}`] || req.category;
+                const statusLabel = t[`status_${req.status}`] || req.status;
+                const dateStr = format(new Date(req.created_at), 'dd MMM yyyy', { locale: lang === 'ar' ? ar : fr });
+
+                return (
+                  <motion.div
+                    key={req.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                  >
+                    <Link
+                      to={`/track?q=${req.tracking_number}`}
+                      className="group block rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className="font-mono text-sm font-bold text-primary tracking-wide">{req.tracking_number}</span>
+                            <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
+                              {categoryLabel}
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium text-foreground truncate">{req.subject}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{t.dateLabel}: {dateStr}</p>
+                        </div>
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                          <StatusIcon className={`w-5 h-5 ${sc.color} ${req.status === 'in_progress' ? 'animate-spin' : ''}`} />
+                          <span className={`text-[10px] font-semibold ${sc.color}`}>{statusLabel}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
     </div>

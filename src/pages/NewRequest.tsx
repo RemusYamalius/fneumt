@@ -500,7 +500,7 @@ const NewRequest = () => {
               {dir === 'rtl' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={submitting}>
+            <Button onClick={handleSubmit} disabled={submitting || !step1Valid || !step2Valid}>
               {submitting ? <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> : t.submitRequest}
             </Button>
           )}

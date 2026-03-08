@@ -130,6 +130,7 @@ export type Database = {
           institution: string | null
           is_member: boolean | null
           membership_card_number: string | null
+          membership_verified: boolean | null
           mission: string | null
           phone: string | null
           updated_at: string
@@ -148,6 +149,7 @@ export type Database = {
           institution?: string | null
           is_member?: boolean | null
           membership_card_number?: string | null
+          membership_verified?: boolean | null
           mission?: string | null
           phone?: string | null
           updated_at?: string
@@ -166,6 +168,7 @@ export type Database = {
           institution?: string | null
           is_member?: boolean | null
           membership_card_number?: string | null
+          membership_verified?: boolean | null
           mission?: string | null
           phone?: string | null
           updated_at?: string
@@ -298,6 +301,10 @@ export type Database = {
       is_promoter: { Args: { _user_id: string }; Returns: boolean }
       is_request_owner: {
         Args: { _request_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_same_area_deputy: {
+        Args: { _target_user_id: string; _user_id: string }
         Returns: boolean
       }
     }

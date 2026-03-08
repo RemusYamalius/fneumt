@@ -16,6 +16,8 @@ interface Profile {
   academy: string | null;
   directorate: string | null;
   mission: string | null;
+  is_member: boolean | null;
+  membership_verified: boolean | null;
 }
 
 export type { AppRole };

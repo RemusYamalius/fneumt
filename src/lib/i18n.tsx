@@ -206,6 +206,11 @@ const translations: Record<Lang, Record<string, string>> = {
     // Dashboard groups
     personalSection: 'الحساب الشخصي',
     professionalSection: 'المهام الوظيفية',
+    // Membership verification
+    membershipVerification: 'التحقق من الانخراط',
+    membershipVerificationDesc: 'التحقق من حالة انخراط المسجلين',
+    memberVerified: 'منخرط مفعل',
+    memberNotVerified: 'غير مفعل',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT',
@@ -410,6 +415,11 @@ const translations: Record<Lang, Record<string, string>> = {
     // Dashboard groups
     personalSection: 'Compte personnel',
     professionalSection: 'Tâches professionnelles',
+    // Membership verification
+    membershipVerification: "Vérification d'adhésion",
+    membershipVerificationDesc: "Vérifier le statut d'adhésion des inscrits",
+    memberVerified: 'Adhérent vérifié',
+    memberNotVerified: 'Non vérifié',
   },
 };
 

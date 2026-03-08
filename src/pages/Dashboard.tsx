@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle } from 'lucide-react';
+import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import AnimatedLogo from '@/components/AnimatedLogo';
+import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 
 const Dashboard = () => {
   const { t, toggleLang, dir, lang } = useI18n();
@@ -69,11 +70,15 @@ const Dashboard = () => {
 
   const isLocalCoordinator = role === 'local_coordinator';
 
+  const isDeputyLocal = role && ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role);
+
   const isPromoterRole = role && [
     'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
     'local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
   ].includes(role);
+
+  const badgeStatus = getBadgeStatus(role, profile?.is_member ?? false, profile?.membership_verified ?? false);
 
   const showUserManagement = role && [
     'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
@@ -104,6 +109,7 @@ const Dashboard = () => {
 
   const professionalCards = [
     ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', color: cardColors.incomingRequests, badge: pendingCount }] : []),
+    ...(isDeputyLocal ? [{ icon: UserCheck, title: t.membershipVerification || 'التحقق من الانخراط', desc: t.membershipVerificationDesc || '', to: '/membership-verification', color: 'from-[hsl(160,60%,38%)] to-[hsl(160,60%,50%)]', badge: 0 }] : []),
     ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', color: cardColors.supervisorDashboard }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
   ];
@@ -225,11 +231,14 @@ const Dashboard = () => {
       {/* Top Bar */}
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <AnimatedLogo size="w-20 h-20" />
             <div>
-              <p className="font-bold text-sm">{t.platformName}</p>
-              <p className="text-xs text-white/70">{roleLabel}</p>
+              <p className="font-bold text-base leading-tight">{t.platformName}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="text-xs text-white/70">{roleLabel}</p>
+                <VerifiedBadge status={badgeStatus} size={16} />
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -250,34 +250,29 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background" dir={dir}>
       {/* Top Bar */}
       <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <AnimatedLogo size="w-20 h-20" />
-            <div>
-              <p className="font-bold text-base leading-tight">{t.platformName}</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <p className="text-xs text-white/70">{roleLabel}</p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span><VerifiedBadge status={badgeStatus} size={16} /></span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t[`badge_${badgeStatus}`]}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AnimatedLogo size="w-12 h-12 sm:w-16 sm:h-16" />
+            <p className="font-bold text-sm sm:text-base leading-tight">{t.platformName}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex items-center"><VerifiedBadge status={badgeStatus} size={22} /></span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t[`badge_${badgeStatus}`]}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <button onClick={toggleLang} className="p-2 rounded-full hover:bg-white/10 transition-colors">
               <Globe className="w-5 h-5" />
             </button>
             <button className="p-2 rounded-full hover:bg-white/10 transition-colors relative">
               <Bell className="w-5 h-5" />
               {pendingCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
                   {pendingCount > 99 ? '99+' : pendingCount}
                 </span>
               )}
@@ -285,6 +280,12 @@ const Dashboard = () => {
             <button onClick={handleSignOut} className="p-2 rounded-full hover:bg-white/10 transition-colors">
               <LogOut className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+        {/* Sub-bar: role & scope */}
+        <div className="bg-white/10 border-t border-white/10">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-1.5">
+            <p className="text-xs text-white/80 text-center truncate">{roleLabel}</p>
           </div>
         </div>
       </header>

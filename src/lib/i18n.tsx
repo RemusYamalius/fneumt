@@ -439,7 +439,7 @@ const translations: Record<Lang, Record<string, string>> = {
     memberVerified: 'Adhérent vérifié',
     memberNotVerified: 'Non vérifié',
     badge_gray: 'Non-adhérent',
-    badge_black: 'Adhérent',
+    badge_black: 'En cours de vérification',
     badge_blue: 'Adhérent vérifié',
     badge_gold: 'Responsable syndical',
   },

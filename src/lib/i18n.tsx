@@ -415,6 +415,11 @@ const translations: Record<Lang, Record<string, string>> = {
     // Dashboard groups
     personalSection: 'Compte personnel',
     professionalSection: 'Tâches professionnelles',
+    // Membership verification
+    membershipVerification: "Vérification d'adhésion",
+    membershipVerificationDesc: "Vérifier le statut d'adhésion des inscrits",
+    memberVerified: 'Adhérent vérifié',
+    memberNotVerified: 'Non vérifié',
   },
 };
 

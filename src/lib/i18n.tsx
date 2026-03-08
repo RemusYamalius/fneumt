@@ -333,6 +333,13 @@ const translations: Record<Lang, Record<string, string>> = {
     allAcademies: 'Toutes les académies',
     allDirectorates: 'Toutes les directions',
     // Categories
+    cat_medical_file: 'Dossier médical',
+    cat_mohammed_vi_foundation: 'Fondation Mohammed VI',
+    cat_promotions: 'Promotions',
+    cat_transfer: 'Mutation',
+    cat_assets: 'Patrimoine',
+    cat_subscriptions: 'Abonnements',
+    cat_scholarships: 'Bourses',
     cat_rank_promotion: "Promotion d'échelon",
     cat_grade_promotion: 'Promotion de grade',
     cat_schedules: 'Emplois du temps',

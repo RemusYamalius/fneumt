@@ -193,8 +193,8 @@ const MembershipVerification = () => {
                 <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                {uniqueInstitutions.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                <SelectItem value="all" className="focus:bg-emerald-100 focus:text-emerald-900">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
+                {uniqueInstitutions.map(n => <SelectItem key={n} value={n} className="focus:bg-emerald-100 focus:text-emerald-900">{n}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

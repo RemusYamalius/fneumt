@@ -216,6 +216,18 @@ const NewRequest = () => {
 
       {/* Steps indicator */}
       <div className="max-w-3xl mx-auto px-6 py-6">
+        {step >= 2 && step <= 4 && (
+          <div className="flex justify-end mb-4">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-[hsl(207,75%,17%)] to-[hsl(207,62%,40%)] text-white font-medium text-sm shadow-lg hover:shadow-xl hover:opacity-90 transition-all duration-300"
+            >
+              {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+              {t.backToDashboard}
+            </button>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-8">
           {stepLabels.map((label, i) => {
             const stepNum = i + 1;

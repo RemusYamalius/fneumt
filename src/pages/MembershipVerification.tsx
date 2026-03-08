@@ -163,7 +163,7 @@ const MembershipVerification = () => {
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-blue-700">{lang === 'ar' ? 'الاسم' : 'Nom'}</label>
             <Select value={filterName} onValueChange={setFilterName}>
-              <SelectTrigger>
+              <SelectTrigger className="focus:ring-blue-400 border-blue-200 text-blue-700">
                 <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
               </SelectTrigger>
               <SelectContent>
@@ -176,7 +176,7 @@ const MembershipVerification = () => {
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-amber-700">{lang === 'ar' ? 'رقم التأجير' : 'N° employé'}</label>
             <Select value={filterEmployee} onValueChange={setFilterEmployee}>
-              <SelectTrigger>
+              <SelectTrigger className="focus:ring-amber-400 border-amber-200 text-amber-700">
                 <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
               </SelectTrigger>
               <SelectContent>
@@ -189,7 +189,7 @@ const MembershipVerification = () => {
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-emerald-700">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
             <Select value={filterInstitution} onValueChange={setFilterInstitution}>
-              <SelectTrigger>
+              <SelectTrigger className="focus:ring-emerald-400 border-emerald-200 text-emerald-700">
                 <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
               </SelectTrigger>
               <SelectContent>

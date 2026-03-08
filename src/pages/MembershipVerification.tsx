@@ -1,15 +1,14 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, User, Building2, CreditCard, Hash, Search, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight, User, Building2, CreditCard, Hash, Loader2, RotateCcw } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AnimatedLogo from '@/components/AnimatedLogo';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 
@@ -32,7 +31,9 @@ const MembershipVerification = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filterName, setFilterName] = useState('all');
+  const [filterEmployee, setFilterEmployee] = useState('all');
+  const [filterInstitution, setFilterInstitution] = useState('all');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,7 +48,6 @@ const MembershipVerification = () => {
   const fetchUsers = async () => {
     if (!profile?.academy || !profile?.directorate) return;
     setLoadingData(true);
-
     const { data, error } = await supabase
       .from('profiles')
       .select('id, user_id, full_name, employee_number, institution, membership_card_number, is_member, membership_verified, email')
@@ -55,28 +55,24 @@ const MembershipVerification = () => {
       .eq('directorate', profile.directorate)
       .neq('user_id', user!.id)
       .order('full_name', { ascending: true });
-
-    if (error) {
-      console.error(error);
-    } else {
-      setUsers(data || []);
-    }
+    if (error) console.error(error);
+    else setUsers(data || []);
     setLoadingData(false);
   };
+
+  const uniqueNames = useMemo(() => [...new Set(users.map(u => u.full_name).filter(Boolean))] as string[], [users]);
+  const uniqueEmployees = useMemo(() => [...new Set(users.map(u => u.employee_number).filter(Boolean))] as string[], [users]);
+  const uniqueInstitutions = useMemo(() => [...new Set(users.map(u => u.institution).filter(Boolean))] as string[], [users]);
+
+  const hasActiveFilter = filterName !== 'all' || filterEmployee !== 'all' || filterInstitution !== 'all';
+
+  const resetFilters = () => { setFilterName('all'); setFilterEmployee('all'); setFilterInstitution('all'); };
 
   const handleSetMembershipStatus = async (targetUser: UserProfile, status: 'not_member' | 'pending' | 'verified') => {
     setUpdatingId(targetUser.user_id);
     try {
-      const updateData: Record<string, any> = {
-        is_member: status !== 'not_member',
-        membership_verified: status === 'verified',
-      };
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('user_id', targetUser.user_id);
-
+      const updateData = { is_member: status !== 'not_member', membership_verified: status === 'verified' };
+      const { error } = await supabase.from('profiles').update(updateData).eq('user_id', targetUser.user_id);
       if (error) throw error;
 
       const notifTitles = {
@@ -98,20 +94,11 @@ const MembershipVerification = () => {
       });
 
       setUsers(prev => prev.map(u =>
-        u.user_id === targetUser.user_id
-          ? { ...u, is_member: updateData.is_member, membership_verified: updateData.membership_verified }
-          : u
+        u.user_id === targetUser.user_id ? { ...u, ...updateData } : u
       ));
-
-      toast({
-        title: lang === 'ar' ? 'تم التحديث بنجاح' : 'Mis à jour avec succès',
-      });
+      toast({ title: lang === 'ar' ? 'تم التحديث بنجاح' : 'Mis à jour avec succès' });
     } catch (err: any) {
-      toast({
-        title: lang === 'ar' ? 'خطأ' : 'Erreur',
-        description: err?.message,
-        variant: 'destructive',
-      });
+      toast({ title: lang === 'ar' ? 'خطأ' : 'Erreur', description: err?.message, variant: 'destructive' });
     } finally {
       setUpdatingId(null);
     }
@@ -123,16 +110,19 @@ const MembershipVerification = () => {
     return 'pending';
   };
 
+  const getCardClasses = (status: 'not_member' | 'pending' | 'verified') => {
+    switch (status) {
+      case 'verified': return 'border-blue-300 bg-blue-50/60 shadow-blue-100/50';
+      case 'pending': return 'border-amber-300 bg-amber-50/60 shadow-amber-100/50';
+      default: return 'border-gray-200 bg-gray-50/50 shadow-gray-100/50';
+    }
+  };
+
   const filteredUsers = users.filter(u => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      u.full_name?.toLowerCase().includes(q) ||
-      u.employee_number?.toLowerCase().includes(q) ||
-      u.institution?.toLowerCase().includes(q) ||
-      u.membership_card_number?.toLowerCase().includes(q) ||
-      u.email?.toLowerCase().includes(q)
-    );
+    if (filterName !== 'all' && u.full_name !== filterName) return false;
+    if (filterEmployee !== 'all' && u.employee_number !== filterEmployee) return false;
+    if (filterInstitution !== 'all' && u.institution !== filterInstitution) return false;
+    return true;
   });
 
   if (loading || !user) return (
@@ -159,24 +149,56 @@ const MembershipVerification = () => {
           <h1 className="text-2xl font-bold text-foreground">
             {t.membershipVerification || (lang === 'ar' ? 'التحقق من الانخراط' : "Vérification d'adhésion")}
           </h1>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground start-3" />
-              <Input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder={lang === 'ar' ? 'بحث بالاسم أو رقم التأجير...' : 'Rechercher par nom ou numéro...'}
-                className="ps-9"
-              />
-            </div>
-            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
-              {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-              {t.backToDashboard}
-            </Button>
-          </div>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[hsl(207,75%,17%)] to-[hsl(207,62%,40%)] text-white font-medium text-sm shadow-lg hover:shadow-xl hover:opacity-90 transition-all duration-300"
+          >
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            {t.backToDashboard}
+          </button>
         </div>
 
-        {/* Users count */}
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <Select value={filterName} onValueChange={setFilterName}>
+            <SelectTrigger>
+              <SelectValue placeholder={lang === 'ar' ? 'فلتر حسب الاسم' : 'Filtrer par nom'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
+              {uniqueNames.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <Select value={filterEmployee} onValueChange={setFilterEmployee}>
+            <SelectTrigger>
+              <SelectValue placeholder={lang === 'ar' ? 'فلتر حسب رقم التأجير' : 'Filtrer par numéro'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
+              {uniqueEmployees.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <Select value={filterInstitution} onValueChange={setFilterInstitution}>
+            <SelectTrigger>
+              <SelectValue placeholder={lang === 'ar' ? 'فلتر حسب المؤسسة' : "Filtrer par établissement"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
+              {uniqueInstitutions.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {hasActiveFilter && (
+          <button onClick={resetFilters} className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mb-4">
+            <RotateCcw className="w-3.5 h-3.5" />
+            {lang === 'ar' ? 'إعادة تعيين الفلاتر' : 'Réinitialiser les filtres'}
+          </button>
+        )}
+
+        {/* Count */}
         <div className="mb-4 text-sm text-muted-foreground">
           {lang === 'ar' ? `${filteredUsers.length} مسجل(ة)` : `${filteredUsers.length} inscrit(e)s`}
         </div>
@@ -192,78 +214,62 @@ const MembershipVerification = () => {
           </motion.div>
         ) : (
           <div className="space-y-3">
-            {filteredUsers.map((u, index) => (
-              <motion.div
-                key={u.user_id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.5), ease: 'easeOut' }}
-                className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  {/* User info */}
-                  <div className="flex items-start gap-3 min-w-0 flex-1">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <User className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-semibold text-foreground truncate">{u.full_name || '—'}</p>
-                        <VerifiedBadge
-                          status={getBadgeStatus(null, u.is_member, u.membership_verified)}
-                          size={18}
-                        />
+            {filteredUsers.map((u, index) => {
+              const status = getMembershipStatus(u);
+              return (
+                <motion.div
+                  key={u.user_id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: Math.min(index * 0.03, 0.5), ease: 'easeOut' }}
+                  className={`rounded-2xl border-2 p-5 shadow-sm hover:shadow-md transition-all duration-200 ${getCardClasses(status)}`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <User className="w-5 h-5 text-primary" />
                       </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Hash className="w-3.5 h-3.5" />
-                          {u.employee_number || '—'}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Building2 className="w-3.5 h-3.5" />
-                          {u.institution || '—'}
-                        </span>
-                        {u.membership_card_number && (
-                          <span className="flex items-center gap-1.5">
-                            <CreditCard className="w-3.5 h-3.5" />
-                            {u.membership_card_number}
-                          </span>
-                        )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-foreground truncate">{u.full_name || '—'}</p>
+                          <VerifiedBadge status={getBadgeStatus(null, u.is_member, u.membership_verified)} size={18} />
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1.5"><Hash className="w-3.5 h-3.5" />{u.employee_number || '—'}</span>
+                          <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{u.institution || '—'}</span>
+                          {u.membership_card_number && (
+                            <span className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" />{u.membership_card_number}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Status options */}
-                  <div className="flex items-center gap-4 shrink-0">
-                    {updatingId === u.user_id ? (
-                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                    ) : (
-                      <>
-                        {([
-                          { key: 'verified' as const, label: lang === 'ar' ? 'منخرط مفعل' : 'Vérifié', color: 'text-blue-600' },
-                          { key: 'pending' as const, label: lang === 'ar' ? 'قيد التحقق' : 'En attente', color: 'text-foreground' },
-                          { key: 'not_member' as const, label: lang === 'ar' ? 'غير منخرط' : 'Non adhérent', color: 'text-muted-foreground' },
-                        ]).map(opt => {
-                          const current = getMembershipStatus(u);
-                          return (
+                    <div className="flex items-center gap-4 shrink-0">
+                      {updatingId === u.user_id ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      ) : (
+                        <>
+                          {([
+                            { key: 'verified' as const, label: lang === 'ar' ? 'منخرط مفعل' : 'Vérifié', color: 'text-blue-600' },
+                            { key: 'pending' as const, label: lang === 'ar' ? 'قيد التحقق' : 'En attente', color: 'text-amber-600' },
+                            { key: 'not_member' as const, label: lang === 'ar' ? 'غير منخرط' : 'Non adhérent', color: 'text-muted-foreground' },
+                          ]).map(opt => (
                             <label key={opt.key} className="flex items-center gap-2 cursor-pointer">
                               <Checkbox
-                                checked={current === opt.key}
+                                checked={status === opt.key}
                                 onCheckedChange={() => handleSetMembershipStatus(u, opt.key)}
-                                disabled={current === opt.key}
+                                disabled={status === opt.key}
                               />
-                              <span className={`text-sm font-medium ${opt.color}`}>
-                                {opt.label}
-                              </span>
+                              <span className={`text-sm font-medium ${opt.color}`}>{opt.label}</span>
                             </label>
-                          );
-                        })}
-                      </>
-                    )}
+                          ))}
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>

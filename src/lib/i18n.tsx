@@ -218,6 +218,10 @@ const translations: Record<Lang, Record<string, string>> = {
     membershipVerificationDesc: 'التحقق من حالة انخراط المسجلين',
     memberVerified: 'منخرط مفعل',
     memberNotVerified: 'غير مفعل',
+    badge_gray: 'غير منخرط',
+    badge_black: 'منخرط',
+    badge_blue: 'منخرط مفعّل',
+    badge_gold: 'مسؤول نقابي',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT',
@@ -434,6 +438,10 @@ const translations: Record<Lang, Record<string, string>> = {
     membershipVerificationDesc: "Vérifier le statut d'adhésion des inscrits",
     memberVerified: 'Adhérent vérifié',
     memberNotVerified: 'Non vérifié',
+    badge_gray: 'Non-adhérent',
+    badge_black: 'Adhérent',
+    badge_blue: 'Adhérent vérifié',
+    badge_gold: 'Responsable syndical',
   },
 };
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy } from 'lucide-react';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -256,7 +257,16 @@ const Dashboard = () => {
               <p className="font-bold text-base leading-tight">{t.platformName}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <p className="text-xs text-white/70">{roleLabel}</p>
-                <VerifiedBadge status={badgeStatus} size={16} />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span><VerifiedBadge status={badgeStatus} size={16} /></span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t[`badge_${badgeStatus}`]}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </div>

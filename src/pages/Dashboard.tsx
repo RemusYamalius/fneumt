@@ -333,9 +333,64 @@ const Dashboard = () => {
         {/* My Requests */}
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4">{t.myRequests}</h2>
-          <div className="card-premium p-8 text-center">
-            <p className="text-muted-foreground">{t.noRequests}</p>
-          </div>
+          {loadingRequests ? (
+            <div className="card-premium p-8 flex items-center justify-center">
+              <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : myRequests.length === 0 ? (
+            <div className="card-premium p-8 text-center">
+              <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+              <p className="text-muted-foreground">{t.noRequests}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {myRequests.map((req, i) => {
+                const statusConfig: Record<string, { icon: typeof Clock; color: string }> = {
+                  submitted: { icon: Clock, color: 'text-amber-500' },
+                  viewed: { icon: Eye, color: 'text-blue-500' },
+                  in_progress: { icon: Loader2, color: 'text-orange-500' },
+                  accepted: { icon: CheckCircle2, color: 'text-emerald-500' },
+                  cancelled: { icon: XCircle, color: 'text-destructive' },
+                };
+                const sc = statusConfig[req.status] || statusConfig.submitted;
+                const StatusIcon = sc.icon;
+                const categoryLabel = t[`cat_${req.category}`] || req.category;
+                const statusLabel = t[`status_${req.status}`] || req.status;
+                const dateStr = format(new Date(req.created_at), 'dd MMM yyyy', { locale: lang === 'ar' ? ar : fr });
+
+                return (
+                  <motion.div
+                    key={req.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                  >
+                    <Link
+                      to={`/track?q=${req.tracking_number}`}
+                      className="group block rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className="font-mono text-sm font-bold text-primary tracking-wide">{req.tracking_number}</span>
+                            <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">
+                              {categoryLabel}
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium text-foreground truncate">{req.subject}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{t.dateLabel}: {dateStr}</p>
+                        </div>
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                          <StatusIcon className={`w-5 h-5 ${sc.color} ${req.status === 'in_progress' ? 'animate-spin' : ''}`} />
+                          <span className={`text-[10px] font-semibold ${sc.color}`}>{statusLabel}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
     </div>

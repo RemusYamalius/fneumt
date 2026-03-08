@@ -109,6 +109,7 @@ const Dashboard = () => {
 
   const professionalCards = [
     ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', color: cardColors.incomingRequests, badge: pendingCount }] : []),
+    ...(isDeputyLocal ? [{ icon: UserCheck, title: t.membershipVerification || 'التحقق من الانخراط', desc: t.membershipVerificationDesc || '', to: '/membership-verification', color: 'from-[hsl(160,60%,38%)] to-[hsl(160,60%,50%)]', badge: 0 }] : []),
     ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', color: cardColors.supervisorDashboard }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
   ];

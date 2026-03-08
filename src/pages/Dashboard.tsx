@@ -47,6 +47,14 @@ const Dashboard = () => {
 
   if (!user) return null;
 
+  if (!role || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   const getRoleLabel = () => {
     const base = role ? (t[`role_${role}`] || t.roleTeacher) : t.roleTeacher;
     if (!role || !profile) return base;

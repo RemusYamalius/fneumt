@@ -1,43 +1,58 @@
 
 
-# إصلاح عدم تمرير الصفحة عند فتح قوائم الاختيار
+## التغييرات المطلوبة
 
-## المشكلة
-عند فتح قائمة اختيار (Select)، القائمة المنبثقة قد تظهر خارج نطاق الرؤية لأن Radix Select لا يقوم بتمرير الصفحة تلقائياً لإظهار جميع الخيارات.
+ثلاث تعديلات رئيسية على صفحة "طلب جديد":
 
-## الحل
-في `src/components/ui/select.tsx`، تعديل خاصيتين في `SelectContent`:
+---
 
-1. إضافة `avoidCollisions={true}` و `collisionPadding={8}` لضمان أن القائمة تبقى داخل نطاق الرؤية
-2. إضافة `overflow-y-auto` على الـ Viewport للسماح بالتمرير داخل القائمة عندما تكون الخيارات كثيرة
-3. تعيين `max-h-[60vh]` بدلاً من `max-h-96` لتتناسب مع حجم الشاشة
+### 1. ترتيب البطاقات RTL
 
-### التغيير في `SelectContent` (سطر 66-88):
+في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
 
-```tsx
-<SelectPrimitive.Content
-  ref={ref}
-  className={cn(
-    "relative z-50 max-h-[60vh] min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md ...",
-    ...
-  )}
-  position={position}
-  avoidCollisions={true}
-  collisionPadding={8}
-  {...props}
->
+---
+
+### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
+
+عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
+- **الموضوع** (إلزامي) — `Input`
+- **الوصف** (اختياري) — `Textarea`
+
+تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
+
+تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
+
+---
+
+### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
+
+- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
+- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
+  1. المصالح المركزية للوزارة
+  2. الأكاديمية الجهوية
+  3. المديرية الإقليمية
+  4. المؤسسة مقر العمل
+
+- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
+- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
+
+**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
+
+---
+
+### الملفات المعنية
+
+| الملف | التعديل |
+|---|---|
+| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
+| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
+| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
+
+### تدفق الخطوات الجديد:
+```text
+1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
+2. مستوى حل المشكل (4 اختيارات)
+3. المرفقات
+4. المراجعة
 ```
-
-وتعديل الـ Viewport لإزالة تقييد الارتفاع:
-```tsx
-<SelectPrimitive.Viewport
-  className={cn(
-    "p-1 max-h-[60vh] overflow-y-auto",
-    position === "popper" &&
-      "w-full min-w-[var(--radix-select-trigger-width)]",
-  )}
->
-```
-
-ملف واحد: `src/components/ui/select.tsx`
 

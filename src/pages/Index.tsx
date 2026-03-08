@@ -98,32 +98,65 @@ const Index = () => {
                 className="flex-1 flex flex-col items-center relative"
               >
                 <Link to={action.to} className="flex flex-col items-center text-center group">
-                  {/* Semi-circular arc */}
-                  <div
-                    className="w-28 h-14 border-4 border-b-0 rounded-t-full"
-                    style={{ borderColor: action.color }}
-                  />
+                  {index === 1 ? (
+                    <>
+                      {/* Timeline dot (top) */}
+                      <div
+                        className="w-3 h-3 rounded-full mb-0 z-10"
+                        style={{ backgroundColor: action.color }}
+                      />
 
-                  {/* Icon circle overlapping arc bottom */}
-                  <div
-                    className="w-14 h-14 bg-white rounded-full shadow-xl -mt-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-                    style={{ border: `3px solid ${action.color}` }}
-                  >
-                    <action.icon className="w-6 h-6" style={{ color: action.color }} />
-                  </div>
+                      {/* Vertical connector */}
+                      <div className="w-0.5 h-8 bg-gray-300 my-1" />
 
-                  {/* Vertical connector */}
-                  <div className="w-0.5 h-8 bg-gray-300 my-1" />
+                      {/* Icon circle */}
+                      <div
+                        className="w-14 h-14 bg-white rounded-full shadow-xl -mb-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                        style={{ border: `3px solid ${action.color}` }}
+                      >
+                        <action.icon className="w-6 h-6" style={{ color: action.color }} />
+                      </div>
 
-                  {/* Timeline dot */}
-                  <div
-                    className="w-3 h-3 rounded-full mb-4 z-10"
-                    style={{ backgroundColor: action.color }}
-                  />
+                      {/* Inverted semi-circular arc */}
+                      <div
+                        className="w-28 h-14 border-4 border-t-0 rounded-b-full"
+                        style={{ borderColor: action.color }}
+                      />
 
-                  {/* Text content */}
-                  <h2 className="text-lg font-bold text-foreground mb-1 group-hover:opacity-80 transition-opacity">{action.title}</h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{action.desc}</p>
+                      {/* Text content */}
+                      <h2 className="text-lg font-bold text-foreground mb-1 mt-4 group-hover:opacity-80 transition-opacity">{action.title}</h2>
+                      <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{action.desc}</p>
+                    </>
+                  ) : (
+                    <>
+                      {/* Semi-circular arc */}
+                      <div
+                        className="w-28 h-14 border-4 border-b-0 rounded-t-full"
+                        style={{ borderColor: action.color }}
+                      />
+
+                      {/* Icon circle overlapping arc bottom */}
+                      <div
+                        className="w-14 h-14 bg-white rounded-full shadow-xl -mt-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                        style={{ border: `3px solid ${action.color}` }}
+                      >
+                        <action.icon className="w-6 h-6" style={{ color: action.color }} />
+                      </div>
+
+                      {/* Vertical connector */}
+                      <div className="w-0.5 h-8 bg-gray-300 my-1" />
+
+                      {/* Timeline dot */}
+                      <div
+                        className="w-3 h-3 rounded-full mb-4 z-10"
+                        style={{ backgroundColor: action.color }}
+                      />
+
+                      {/* Text content */}
+                      <h2 className="text-lg font-bold text-foreground mb-1 group-hover:opacity-80 transition-opacity">{action.title}</h2>
+                      <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{action.desc}</p>
+                    </>
+                  )}
                 </Link>
               </motion.div>
             ))}

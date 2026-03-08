@@ -64,20 +64,13 @@ const MembershipVerification = () => {
     setLoadingData(false);
   };
 
-  const handleToggleMembership = async (targetUser: UserProfile, isMember: boolean) => {
+  const handleSetMembershipStatus = async (targetUser: UserProfile, status: 'not_member' | 'pending' | 'verified') => {
     setUpdatingId(targetUser.user_id);
     try {
       const updateData: Record<string, any> = {
-        is_member: isMember,
+        is_member: status !== 'not_member',
+        membership_verified: status === 'verified',
       };
-      // If marking as not member, also reset verification
-      if (!isMember) {
-        updateData.membership_verified = false;
-      }
-      // If marking as member and they have a card number, verify them
-      if (isMember && targetUser.membership_card_number) {
-        updateData.membership_verified = true;
-      }
 
       const { error } = await supabase
         .from('profiles')
@@ -86,24 +79,27 @@ const MembershipVerification = () => {
 
       if (error) throw error;
 
-      // Send notification to user about membership change
-      const notifTitle = isMember
-        ? (lang === 'ar' ? 'تم تفعيل انخراطك' : 'Adhésion activée')
-        : (lang === 'ar' ? 'تم تعطيل انخراطك' : 'Adhésion désactivée');
-      const notifMessage = isMember
-        ? (lang === 'ar' ? 'تم التحقق من انخراطك بنجاح من طرف المسؤول المحلي' : 'Votre adhésion a été vérifiée par le responsable local')
-        : (lang === 'ar' ? 'تم تعطيل حالة انخراطك من طرف المسؤول المحلي' : 'Votre statut d\'adhésion a été désactivé par le responsable local');
+      const notifTitles = {
+        not_member: lang === 'ar' ? 'تم تعطيل انخراطك' : 'Adhésion désactivée',
+        pending: lang === 'ar' ? 'انخراطك قيد التحقق' : 'Adhésion en cours de vérification',
+        verified: lang === 'ar' ? 'تم تفعيل انخراطك' : 'Adhésion activée',
+      };
+      const notifMessages = {
+        not_member: lang === 'ar' ? 'تم تعطيل حالة انخراطك من طرف المسؤول المحلي' : 'Votre statut d\'adhésion a été désactivé par le responsable local',
+        pending: lang === 'ar' ? 'انخراطك قيد التحقق من طرف المسؤول المحلي' : 'Votre adhésion est en cours de vérification par le responsable local',
+        verified: lang === 'ar' ? 'تم التحقق من انخراطك بنجاح من طرف المسؤول المحلي' : 'Votre adhésion a été vérifiée par le responsable local',
+      };
 
       await supabase.from('notifications').insert({
         user_id: targetUser.user_id,
-        title: notifTitle,
-        message: notifMessage,
+        title: notifTitles[status],
+        message: notifMessages[status],
         link: '/profile',
       });
 
       setUsers(prev => prev.map(u =>
         u.user_id === targetUser.user_id
-          ? { ...u, is_member: updateData.is_member, membership_verified: updateData.membership_verified ?? u.membership_verified }
+          ? { ...u, is_member: updateData.is_member, membership_verified: updateData.membership_verified }
           : u
       ));
 
@@ -119,6 +115,12 @@ const MembershipVerification = () => {
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  const getMembershipStatus = (u: UserProfile): 'not_member' | 'pending' | 'verified' => {
+    if (!u.is_member) return 'not_member';
+    if (u.membership_verified) return 'verified';
+    return 'pending';
   };
 
   const filteredUsers = users.filter(u => {
@@ -231,32 +233,31 @@ const MembershipVerification = () => {
                     </div>
                   </div>
 
-                  {/* Checkboxes */}
-                  <div className="flex items-center gap-6 shrink-0">
+                  {/* Status options */}
+                  <div className="flex items-center gap-4 shrink-0">
                     {updatingId === u.user_id ? (
                       <Loader2 className="w-5 h-5 animate-spin text-primary" />
                     ) : (
                       <>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={u.is_member === true}
-                            onCheckedChange={() => handleToggleMembership(u, true)}
-                            disabled={u.is_member === true}
-                          />
-                          <span className="text-sm font-medium text-foreground">
-                            {t.isMember || (lang === 'ar' ? 'منخرط' : 'Adhérent')}
-                          </span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={u.is_member === false || u.is_member === null}
-                            onCheckedChange={() => handleToggleMembership(u, false)}
-                            disabled={u.is_member === false || u.is_member === null}
-                          />
-                          <span className="text-sm font-medium text-foreground">
-                            {t.isNotMember || (lang === 'ar' ? 'غير منخرط' : 'Non adhérent')}
-                          </span>
-                        </label>
+                        {([
+                          { key: 'verified' as const, label: lang === 'ar' ? 'منخرط مفعل' : 'Vérifié', color: 'text-blue-600' },
+                          { key: 'pending' as const, label: lang === 'ar' ? 'قيد التحقق' : 'En attente', color: 'text-foreground' },
+                          { key: 'not_member' as const, label: lang === 'ar' ? 'غير منخرط' : 'Non adhérent', color: 'text-muted-foreground' },
+                        ]).map(opt => {
+                          const current = getMembershipStatus(u);
+                          return (
+                            <label key={opt.key} className="flex items-center gap-2 cursor-pointer">
+                              <Checkbox
+                                checked={current === opt.key}
+                                onCheckedChange={() => handleSetMembershipStatus(u, opt.key)}
+                                disabled={current === opt.key}
+                              />
+                              <span className={`text-sm font-medium ${opt.color}`}>
+                                {opt.label}
+                              </span>
+                            </label>
+                          );
+                        })}
                       </>
                     )}
                   </div>

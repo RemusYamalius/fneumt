@@ -254,8 +254,8 @@ const NewRequest = () => {
               >{label}</button>
               {i < 3 && <div className={`flex-1 h-0.5 mx-2 rounded-full transition-colors ${isCompleted ? 'bg-primary' : 'bg-border'}`} />}
             </div>);
-          }
-          ))}
+          })}
+
         </div>
 
         {/* Step 1: Category */}

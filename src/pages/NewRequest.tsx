@@ -212,22 +212,44 @@ const NewRequest = () => {
       {/* Steps indicator */}
       <div className="max-w-3xl mx-auto px-6 py-6">
         <div className="flex items-center justify-between mb-8">
-          {stepLabels.map((label, i) => (
+          {stepLabels.map((label, i) => {
+            const stepNum = i + 1;
+            const isCompleted = stepNum < step;
+            const isCurrent = stepNum === step;
+            // Can click if: step is completed, OR step is reachable (all prior steps valid)
+            const canNavigate = stepNum !== step && (
+              isCompleted || 
+              (stepNum <= maxReachableStep)
+            );
+            return (
             <div key={i} className="flex items-center gap-2 flex-1">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-sm ${
-                i + 1 < step
-                  ? 'bg-primary text-primary-foreground shadow-md'
-                  : i + 1 === step
-                    ? 'bg-primary text-primary-foreground ring-4 ring-primary/20 shadow-lg'
-                    : 'bg-card border-2 border-border text-muted-foreground'
-              }`}>
-                {i + 1 < step ? <Check className="w-4 h-4" /> : i + 1}
-              </div>
-              <span className={`text-xs hidden sm:block font-medium transition-colors ${
-                i + 1 <= step ? 'text-primary' : 'text-muted-foreground'
-              }`}>{label}</span>
-              {i < 3 && <div className={`flex-1 h-0.5 mx-2 rounded-full transition-colors ${i + 1 < step ? 'bg-primary' : 'bg-border'}`} />}
-            </div>
+              <button
+                type="button"
+                onClick={() => canNavigate && setStep(stepNum)}
+                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-sm ${
+                  isCompleted
+                    ? 'bg-primary text-primary-foreground shadow-md cursor-pointer hover:ring-4 hover:ring-primary/20'
+                    : isCurrent
+                      ? 'bg-primary text-primary-foreground ring-4 ring-primary/20 shadow-lg'
+                      : canNavigate
+                        ? 'bg-card border-2 border-border text-muted-foreground cursor-pointer hover:border-primary/50'
+                        : 'bg-card border-2 border-border text-muted-foreground opacity-50 cursor-not-allowed'
+                }`}
+                disabled={!canNavigate}
+              >
+                {isCompleted ? <Check className="w-4 h-4" /> : stepNum}
+              </button>
+              <button
+                type="button"
+                onClick={() => canNavigate && setStep(stepNum)}
+                disabled={!canNavigate}
+                className={`text-xs hidden sm:block font-medium transition-colors ${
+                  stepNum <= step ? 'text-primary' : canNavigate ? 'text-muted-foreground hover:text-primary cursor-pointer' : 'text-muted-foreground opacity-50 cursor-not-allowed'
+                }`}
+              >{label}</button>
+              {i < 3 && <div className={`flex-1 h-0.5 mx-2 rounded-full transition-colors ${isCompleted ? 'bg-primary' : 'bg-border'}`} />}
+            </div>);
+          }
           ))}
         </div>
 

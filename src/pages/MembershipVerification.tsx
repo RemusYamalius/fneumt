@@ -233,32 +233,31 @@ const MembershipVerification = () => {
                     </div>
                   </div>
 
-                  {/* Checkboxes */}
-                  <div className="flex items-center gap-6 shrink-0">
+                  {/* Status options */}
+                  <div className="flex items-center gap-4 shrink-0">
                     {updatingId === u.user_id ? (
                       <Loader2 className="w-5 h-5 animate-spin text-primary" />
                     ) : (
                       <>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={u.is_member === true}
-                            onCheckedChange={() => handleToggleMembership(u, true)}
-                            disabled={u.is_member === true}
-                          />
-                          <span className="text-sm font-medium text-foreground">
-                            {t.isMember || (lang === 'ar' ? 'منخرط' : 'Adhérent')}
-                          </span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={u.is_member === false || u.is_member === null}
-                            onCheckedChange={() => handleToggleMembership(u, false)}
-                            disabled={u.is_member === false || u.is_member === null}
-                          />
-                          <span className="text-sm font-medium text-foreground">
-                            {t.isNotMember || (lang === 'ar' ? 'غير منخرط' : 'Non adhérent')}
-                          </span>
-                        </label>
+                        {([
+                          { key: 'verified' as const, label: lang === 'ar' ? 'منخرط مفعل' : 'Vérifié', color: 'text-blue-600' },
+                          { key: 'pending' as const, label: lang === 'ar' ? 'قيد التحقق' : 'En attente', color: 'text-foreground' },
+                          { key: 'not_member' as const, label: lang === 'ar' ? 'غير منخرط' : 'Non adhérent', color: 'text-muted-foreground' },
+                        ]).map(opt => {
+                          const current = getMembershipStatus(u);
+                          return (
+                            <label key={opt.key} className="flex items-center gap-2 cursor-pointer">
+                              <Checkbox
+                                checked={current === opt.key}
+                                onCheckedChange={() => handleSetMembershipStatus(u, opt.key)}
+                                disabled={current === opt.key}
+                              />
+                              <span className={`text-sm font-medium ${opt.color}`}>
+                                {opt.label}
+                              </span>
+                            </label>
+                          );
+                        })}
                       </>
                     )}
                   </div>

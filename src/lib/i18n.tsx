@@ -245,6 +245,8 @@ const translations: Record<Lang, Record<string, string>> = {
     passwordsMismatch: 'Les mots de passe ne correspondent pas',
     showPassword: 'Afficher',
     hidePassword: 'Masquer',
+    loginSubtitle: 'Entrez vos identifiants pour continuer',
+    signupSubtitle: 'Créez votre nouveau compte',
     phoneLabel: 'Téléphone',
     employeeNumberLabel: "Numéro d'employé",
     zoneLabel: 'Zone',

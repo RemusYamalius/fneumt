@@ -231,11 +231,14 @@ const Dashboard = () => {
       {/* Top Bar */}
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <AnimatedLogo size="w-20 h-20" />
             <div>
-              <p className="font-bold text-sm">{t.platformName}</p>
-              <p className="text-xs text-white/70">{roleLabel}</p>
+              <p className="font-bold text-base leading-tight">{t.platformName}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="text-xs text-white/70">{roleLabel}</p>
+                <VerifiedBadge status={badgeStatus} size={16} />
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">

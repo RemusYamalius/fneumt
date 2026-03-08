@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Save, Loader2, User, Phone, Hash, Building2, MapPin, Briefcase, GraduationCap, CreditCard } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import AnimatedLogo from '@/components/AnimatedLogo';
 import { ACADEMIES } from '@/lib/academies-data';
+
+interface ProfileFormFieldProps {
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}
+
+const ProfileFormField = ({ label, icon, children }: ProfileFormFieldProps) => (
+  <div className="space-y-2">
+    <Label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+      {icon}
+      {label}
+    </Label>
+    {children}
+  </div>
+);
 
 const Profile = () => {
   const { t, dir } = useI18n();
@@ -30,6 +46,8 @@ const Profile = () => {
     directorate: '',
     academy: '',
     mission: '',
+    is_member: false,
+    membership_card_number: '',
   });
 
   useEffect(() => {
@@ -48,11 +66,13 @@ const Profile = () => {
         directorate: profile.directorate || '',
         academy: profile.academy || '',
         mission: (profile as any).mission || '',
+        is_member: (profile as any).is_member || false,
+        membership_card_number: (profile as any).membership_card_number || '',
       });
     }
   }, [profile]);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | boolean) => {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -81,6 +101,8 @@ const Profile = () => {
         directorate: form.directorate || null,
         academy: form.academy || null,
         mission: form.mission || null,
+        is_member: form.is_member,
+        membership_card_number: form.is_member ? (form.membership_card_number.trim() || null) : null,
       } as any)
       .eq('user_id', user.id);
 
@@ -123,6 +145,9 @@ const Profile = () => {
     { value: 'other', label: t.missionOther },
   ];
 
+  const inputClasses = "bg-muted/50 border-border/60 focus:border-primary focus:bg-background transition-colors";
+  const selectTriggerClasses = "bg-muted/50 border-border/60 focus:border-primary focus:bg-background transition-colors";
+
   return (
     <div className="min-h-screen bg-background" dir={dir}>
       <header className="gradient-primary text-white shadow-lg">
@@ -140,36 +165,31 @@ const Profile = () => {
 
         <h1 className="text-2xl font-bold text-foreground mb-8">{t.profile}</h1>
 
-        <div className="bg-card rounded-2xl border border-border p-6 md:p-8 space-y-6">
-          {/* 1. Email (read-only) */}
-          <div className="space-y-2">
-            <Label>{t.emailLabel}</Label>
-            <Input value={user.email || ''} disabled className="bg-muted" />
-          </div>
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-6 md:p-8 space-y-6">
+          {/* Email (read-only) */}
+          <ProfileFormField label={t.emailLabel} icon={<User className="w-4 h-4 text-primary" />}>
+            <Input value={user.email || ''} disabled className="bg-muted/70 text-muted-foreground" />
+          </ProfileFormField>
 
-          {/* 2. Full Name */}
-          <div className="space-y-2">
-            <Label>{t.fullNameLabel}</Label>
-            <Input value={form.full_name} onChange={e => handleChange('full_name', e.target.value)} />
-          </div>
+          {/* Full Name */}
+          <ProfileFormField label={t.fullNameLabel} icon={<User className="w-4 h-4 text-primary" />}>
+            <Input value={form.full_name} onChange={e => handleChange('full_name', e.target.value)} className={inputClasses} />
+          </ProfileFormField>
 
-          {/* 3. Phone */}
-          <div className="space-y-2">
-            <Label>{t.phoneLabel}</Label>
-            <Input value={form.phone} onChange={e => handleChange('phone', e.target.value)} dir="ltr" />
-          </div>
+          {/* Phone */}
+          <ProfileFormField label={t.phoneLabel} icon={<Phone className="w-4 h-4 text-primary" />}>
+            <Input value={form.phone} onChange={e => handleChange('phone', e.target.value)} dir="ltr" className={inputClasses} />
+          </ProfileFormField>
 
-          {/* 4. Employee Number */}
-          <div className="space-y-2">
-            <Label>{t.employeeNumberLabel}</Label>
-            <Input value={form.employee_number} onChange={e => handleChange('employee_number', e.target.value)} dir="ltr" />
-          </div>
+          {/* Employee Number */}
+          <ProfileFormField label={t.employeeNumberLabel} icon={<Hash className="w-4 h-4 text-primary" />}>
+            <Input value={form.employee_number} onChange={e => handleChange('employee_number', e.target.value)} dir="ltr" className={inputClasses} />
+          </ProfileFormField>
 
-          {/* 5. Academy */}
-          <div className="space-y-2">
-            <Label>{t.academyLabel}</Label>
+          {/* Academy */}
+          <ProfileFormField label={t.academyLabel} icon={<GraduationCap className="w-4 h-4 text-primary" />}>
             <Select value={form.academy} onValueChange={handleAcademyChange}>
-              <SelectTrigger>
+              <SelectTrigger className={selectTriggerClasses}>
                 <SelectValue placeholder={t.academyLabel} />
               </SelectTrigger>
               <SelectContent>
@@ -178,13 +198,12 @@ const Profile = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </ProfileFormField>
 
-          {/* 6. Directorate */}
-          <div className="space-y-2">
-            <Label>{t.directorateLabel}</Label>
+          {/* Directorate */}
+          <ProfileFormField label={t.directorateLabel} icon={<MapPin className="w-4 h-4 text-primary" />}>
             <Select value={form.directorate} onValueChange={v => handleChange('directorate', v)} disabled={!form.academy}>
-              <SelectTrigger>
+              <SelectTrigger className={selectTriggerClasses}>
                 <SelectValue placeholder={t.directorateLabel} />
               </SelectTrigger>
               <SelectContent>
@@ -193,13 +212,12 @@ const Profile = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </ProfileFormField>
 
-          {/* 7. Mission */}
-          <div className="space-y-2">
-            <Label>{t.missionLabel}</Label>
+          {/* Mission */}
+          <ProfileFormField label={t.missionLabel} icon={<Briefcase className="w-4 h-4 text-primary" />}>
             <Select value={form.mission} onValueChange={v => handleChange('mission', v)}>
-              <SelectTrigger>
+              <SelectTrigger className={selectTriggerClasses}>
                 <SelectValue placeholder={t.missionLabel} />
               </SelectTrigger>
               <SelectContent>
@@ -208,13 +226,12 @@ const Profile = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </ProfileFormField>
 
-          {/* 8. Corps */}
-          <div className="space-y-2">
-            <Label>{t.corpsLabel}</Label>
+          {/* Corps */}
+          <ProfileFormField label={t.corpsLabel} icon={<GraduationCap className="w-4 h-4 text-primary" />}>
             <Select value={form.corps} onValueChange={v => handleChange('corps', v)}>
-              <SelectTrigger>
+              <SelectTrigger className={selectTriggerClasses}>
                 <SelectValue placeholder={t.corpsLabel} />
               </SelectTrigger>
               <SelectContent>
@@ -223,15 +240,74 @@ const Profile = () => {
                 ))}
               </SelectContent>
             </Select>
+          </ProfileFormField>
+
+          {/* Institution */}
+          <ProfileFormField label={t.institutionLabel} icon={<Building2 className="w-4 h-4 text-primary" />}>
+            <Input value={form.institution} onChange={e => handleChange('institution', e.target.value)} className={inputClasses} />
+          </ProfileFormField>
+
+          {/* Membership Status */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <CreditCard className="w-4 h-4 text-primary" />
+              {t.membershipLabel}
+            </Label>
+            <div className="flex gap-4">
+              {/* Member option */}
+              <label
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all flex-1 ${
+                  form.is_member
+                    ? 'border-primary bg-primary/10 shadow-sm'
+                    : 'border-border bg-muted/30 hover:border-border/80'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.is_member}
+                  onChange={() => handleChange('is_member', true)}
+                  className="w-4 h-4 rounded border-primary text-primary accent-[hsl(var(--primary))]"
+                />
+                <span className={`font-medium text-sm ${form.is_member ? 'text-primary' : 'text-muted-foreground'}`}>
+                  {t.isMember}
+                </span>
+              </label>
+
+              {/* Non-member option */}
+              <label
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all flex-1 ${
+                  !form.is_member
+                    ? 'border-destructive bg-destructive/10 shadow-sm'
+                    : 'border-border bg-muted/30 hover:border-border/80'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={!form.is_member}
+                  onChange={() => handleChange('is_member', false)}
+                  className="w-4 h-4 rounded border-destructive text-destructive accent-[hsl(var(--destructive))]"
+                />
+                <span className={`font-medium text-sm ${!form.is_member ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  {t.isNotMember}
+                </span>
+              </label>
+            </div>
+
+            {/* Membership card number - shown only when member */}
+            {form.is_member && (
+              <div className="mt-3 animate-in slide-in-from-top-2 duration-200">
+                <Input
+                  value={form.membership_card_number}
+                  onChange={e => handleChange('membership_card_number', e.target.value)}
+                  placeholder={t.membershipCardPlaceholder}
+                  dir="ltr"
+                  className={`${inputClasses} border-primary/30`}
+                />
+              </div>
+            )}
           </div>
 
-          {/* 8. Institution */}
-          <div className="space-y-2">
-            <Label>{t.institutionLabel}</Label>
-            <Input value={form.institution} onChange={e => handleChange('institution', e.target.value)} />
-          </div>
-
-          <Button onClick={handleSave} disabled={saving} className="w-full">
+          <Button onClick={handleSave} disabled={saving} className="w-full mt-4">
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             {t.saveProfile}
           </Button>

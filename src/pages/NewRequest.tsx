@@ -168,6 +168,11 @@ const NewRequest = () => {
     return true;
   };
 
+  // Calculate max reachable step based on completed data
+  const step1Valid = category ? (category === 'other' ? subject.trim().length > 0 : true) : false;
+  const step2Valid = !!resolutionLevel;
+  const maxReachableStep = !step1Valid ? 1 : !step2Valid ? 2 : 4;
+
   const categoryLabel = (key: RequestCategory) => t[`cat_${key}`] || key;
   const levelLabel = (key: ResolutionLevel) => t[`level_${key}`] || key;
 

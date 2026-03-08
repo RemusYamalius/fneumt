@@ -46,6 +46,8 @@ const translations: Record<Lang, Record<string, string>> = {
     passwordsMismatch: 'كلمتا المرور غير متطابقتين',
     showPassword: 'إظهار',
     hidePassword: 'إخفاء',
+    loginSubtitle: 'أدخل بياناتك للمتابعة',
+    signupSubtitle: 'أنشئ حسابك الجديد',
     phoneLabel: 'الهاتف',
     employeeNumberLabel: 'رقم التأجير',
     zoneLabel: 'المنطقة',

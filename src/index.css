@@ -799,9 +799,10 @@
 }
 
 .login-left-tab-inactive {
-  color: hsl(0 0% 100% / 0.5);
+  color: hsl(0 0% 100% / 0.45);
   background: transparent;
   border-radius: 1rem 0 0 1rem;
+  transform: scale(0.95);
 }
 
 [dir="rtl"] .login-left-tab-inactive {
@@ -809,8 +810,9 @@
 }
 
 .login-left-tab-inactive:hover {
-  color: hsl(0 0% 100% / 0.85);
-  background: hsl(0 0% 100% / 0.08);
+  color: hsl(0 0% 100% / 0.9);
+  background: hsl(0 0% 100% / 0.1);
+  transform: scale(1);
 }
 
 .login-form-panel {

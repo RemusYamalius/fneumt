@@ -257,7 +257,16 @@ const Dashboard = () => {
               <p className="font-bold text-base leading-tight">{t.platformName}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <p className="text-xs text-white/70">{roleLabel}</p>
-                <VerifiedBadge status={badgeStatus} size={16} />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span><VerifiedBadge status={badgeStatus} size={16} /></span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t[`badge_${badgeStatus}`]}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </div>

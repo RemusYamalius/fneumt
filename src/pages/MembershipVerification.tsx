@@ -48,15 +48,24 @@ const MembershipVerification = () => {
   const fetchUsers = async () => {
     if (!profile?.academy || !profile?.directorate) return;
     setLoadingData(true);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, user_id, full_name, employee_number, institution, membership_card_number, is_member, membership_verified, email')
-      .eq('academy', profile.academy)
-      .eq('directorate', profile.directorate)
-      .neq('user_id', user!.id)
-      .order('full_name', { ascending: true });
+    const [{ data, error }, { data: promotedRoles }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, user_id, full_name, employee_number, institution, membership_card_number, is_member, membership_verified, email')
+        .eq('academy', profile.academy)
+        .eq('directorate', profile.directorate)
+        .neq('user_id', user!.id)
+        .order('full_name', { ascending: true }),
+      supabase
+        .from('user_roles')
+        .select('user_id')
+        .neq('role', 'teacher'),
+    ]);
     if (error) console.error(error);
-    else setUsers(data || []);
+    else {
+      const promotedUserIds = new Set((promotedRoles || []).map(r => r.user_id));
+      setUsers((data || []).filter(u => !promotedUserIds.has(u.user_id)));
+    }
     setLoadingData(false);
   };
 

@@ -230,13 +230,18 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background" dir={dir}>
       {/* Top Bar */}
       <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <AnimatedLogo size="w-12 h-12 sm:w-16 sm:h-16" />
-            <p className="font-bold text-sm sm:text-base leading-tight">{t.platformName}</p>
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <AnimatedLogo size="w-20 h-20" />
+            <div>
+              <p className="font-bold text-base leading-tight">{t.platformName}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="text-xs text-white/70">{roleLabel}</p>
+                <VerifiedBadge status={badgeStatus} size={16} />
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <VerifiedBadge status={badgeStatus} size={20} />
+          <div className="flex items-center gap-2">
             <button onClick={toggleLang} className="p-2 rounded-full hover:bg-white/10 transition-colors">
               <Globe className="w-5 h-5" />
             </button>
@@ -254,12 +259,6 @@ const Dashboard = () => {
           </div>
         </div>
       </header>
-      {/* Sub-bar: role & location */}
-      <div className="bg-primary/10 border-b border-primary/20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2 text-center">
-          <p className="text-xs sm:text-sm font-medium text-primary truncate">{roleLabel}</p>
-        </div>
-      </div>
 
       {/* Welcome */}
       <main className="max-w-5xl mx-auto px-6 py-8">

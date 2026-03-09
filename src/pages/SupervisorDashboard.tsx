@@ -749,12 +749,12 @@ const SupervisorDashboard = () => {
                                 className="mb-6"
                               >
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 text-center">
                                     <UsersRound className="w-5 h-5 mx-auto mb-2 text-primary" />
                                     <p className="text-2xl font-bold text-foreground">{dep.teamSize || 0}</p>
                                     <p className="text-xs text-muted-foreground">{t.appointedSubordinates}</p>
                                   </div>
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 p-4 text-center">
                                     <FileText className="w-5 h-5 mx-auto mb-2 text-primary" />
                                     <p className="text-2xl font-bold text-foreground">{stats.total}</p>
                                     <p className="text-xs text-muted-foreground">{t.directRequests}</p>

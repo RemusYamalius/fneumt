@@ -934,13 +934,14 @@ const SupervisorDashboard = () => {
                                                 {t[`status_${req.status}`] || req.status}
                                               </span>
                                             </TableCell>
-                                            <TableCell className="text-xs text-muted-foreground">
-                                              {new Date(req.created_at).toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR')}
-                                            </TableCell>
-                                          </TableRow>
-                                        ))}
-                                      </TableBody>
-                                    </Table>
+                                              <TableCell className="text-xs text-start text-muted-foreground whitespace-nowrap">
+                                                {new Date(req.created_at).toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR')}
+                                              </TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    </div>
                                   </motion.div>
                                 )}
                               </>

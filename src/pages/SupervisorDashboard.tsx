@@ -535,19 +535,22 @@ const SupervisorDashboard = () => {
                 <span className="font-medium">{t.filterByLevel}:</span>
               </div>
               <div className="flex gap-1.5 flex-wrap">
-                {(['all', 'regional', 'provincial', 'local'] as const).map(level => (
-                  <button
-                    key={level}
-                    onClick={() => setFilterLevel(level)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                      filterLevel === level
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
-                    {t[`filter${level.charAt(0).toUpperCase() + level.slice(1)}` as keyof typeof t]}
-                  </button>
-                ))}
+                {(['all', 'regional', 'provincial', 'local'] as const).map(level => {
+                  const labelKey = level === 'all' ? 'filterLevelAll' : `filter${level.charAt(0).toUpperCase() + level.slice(1)}`;
+                  return (
+                    <button
+                      key={level}
+                      onClick={() => setFilterLevel(level)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        filterLevel === level
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {t[labelKey as keyof typeof t]}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="w-px h-6 bg-border mx-1 hidden sm:block" />

@@ -141,7 +141,7 @@ const UserManagement = () => {
           </Button>
         </div>
 
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-6 bg-gradient-to-br from-slate-50 to-blue-50/40 p-5 rounded-2xl border border-blue-100/40">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
             <Users className="w-6 h-6 text-primary" />
           </div>
@@ -153,7 +153,7 @@ const UserManagement = () => {
 
         {/* Filters */}
         {myRole === 'admin' && (
-          <div className="flex flex-wrap gap-4 mb-6 p-4 bg-card rounded-xl border border-border">
+          <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gradient-to-br from-slate-100/80 to-blue-50/50 rounded-xl border border-white/60 shadow-sm">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium text-muted-foreground">{t.filterLabel || 'فلتر'}:</span>
@@ -188,15 +188,15 @@ const UserManagement = () => {
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="bg-card rounded-2xl border border-border overflow-hidden">
+          <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl border border-blue-100/40 overflow-hidden shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>{t.fullNameLabel}</TableHead>
-                  <TableHead>{t.emailLabel}</TableHead>
-                  <TableHead>{t.academyLabel}</TableHead>
-                  <TableHead>{t.directorateLabel}</TableHead>
-                  <TableHead>{t.roleLabel || 'الدور'}</TableHead>
+                <TableRow className="bg-gradient-to-r from-[hsl(207,78%,28%)] to-[hsl(207,78%,38%)]">
+                  <TableHead className="text-white font-bold">{t.fullNameLabel}</TableHead>
+                  <TableHead className="text-white font-bold">{t.emailLabel}</TableHead>
+                  <TableHead className="text-white font-bold">{t.academyLabel}</TableHead>
+                  <TableHead className="text-white font-bold">{t.directorateLabel}</TableHead>
+                  <TableHead className="text-white font-bold">{t.roleLabel || 'الدور'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

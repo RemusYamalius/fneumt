@@ -12,6 +12,58 @@ import { ar, fr } from 'date-fns/locale';
 import AnimatedLogo from '@/components/AnimatedLogo';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 
+/* ─── Sub-bar with shimmer + pulsing characters ─── */
+const SubBarShimmer = ({ roleLabel, dir }: { roleLabel: string; dir: 'rtl' | 'ltr' }) => {
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPulse(true);
+      setTimeout(() => setPulse(false), 1500);
+    }, 5000);
+    // trigger first shimmer after mount
+    const firstId = setTimeout(() => {
+      setPulse(true);
+      setTimeout(() => setPulse(false), 1500);
+    }, 1200);
+    return () => { clearInterval(id); clearTimeout(firstId); };
+  }, []);
+
+  const chars = roleLabel.split('');
+
+  return (
+    <div className="subbar-shimmer-wrap bg-white/10 border-t border-white/10 relative overflow-hidden">
+      {/* Shimmer beam */}
+      <div
+        className="subbar-shimmer-beam"
+        style={{ animationDirection: dir === 'rtl' ? 'reverse' : 'normal' }}
+      />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-1.5">
+        <p className="text-sm font-semibold text-white/90 text-center truncate flex items-center justify-center gap-0" aria-label={roleLabel}>
+          {chars.map((ch, i) => (
+            <motion.span
+              key={i}
+              animate={pulse ? {
+                scale: [1, 1.18, 1],
+                color: ['rgba(255,255,255,0.9)', 'rgba(255,255,255,1)', 'rgba(255,255,255,0.9)'],
+              } : {}}
+              transition={pulse ? {
+                duration: 0.4,
+                delay: (dir === 'rtl' ? chars.length - 1 - i : i) * (1.2 / chars.length),
+                ease: 'easeInOut',
+              } : {}}
+              className="inline-block"
+              style={{ whiteSpace: ch === ' ' ? 'pre' : undefined }}
+            >
+              {ch}
+            </motion.span>
+          ))}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const { t, toggleLang, dir, lang } = useI18n();
   const { user, profile, role, loading, signOut } = useAuth();

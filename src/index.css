@@ -696,6 +696,36 @@
   animation: logo-float 3s ease-in-out infinite;
 }
 
+/* Sub-bar shimmer */
+@keyframes subbar-shimmer {
+  0%   { transform: translateX(-100%); }
+  30%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+.subbar-shimmer-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.subbar-shimmer-beam {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(0 0% 100% / 0.08) 20%,
+    hsl(0 0% 100% / 0.22) 50%,
+    hsl(0 0% 100% / 0.08) 80%,
+    transparent 100%
+  );
+  animation: subbar-shimmer 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Login page styles */
 .login-card {
   background: transparent;

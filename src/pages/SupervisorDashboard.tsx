@@ -127,7 +127,7 @@ const KPICard = ({ icon: Icon, label, value, suffix, color, delay }: {
     initial={{ opacity: 0, y: 30, scale: 0.95 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ duration: 0.5, delay, ease: 'easeOut' }}
-    className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
+    className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card to-accent/5 p-5 shadow-sm hover:shadow-md transition-shadow"
   >
     <div className="flex items-center gap-3 mb-3">
       <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
@@ -144,7 +144,7 @@ const KPICard = ({ icon: Icon, label, value, suffix, color, delay }: {
 
 /* ── Mini stat pill ── */
 const MiniStat = ({ label, value, color }: { label: string; value: number; color: string }) => (
-  <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted/50">
+  <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-b from-muted/60 to-muted/30 border border-border/30">
     <span className="text-lg font-bold" style={{ color }}>{value}</span>
     <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">{label}</span>
   </div>
@@ -598,7 +598,7 @@ const SupervisorDashboard = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.4 }}
-              className="flex flex-wrap items-center gap-3 mb-6"
+              className="flex flex-wrap items-center gap-3 mb-6 bg-gradient-to-br from-muted/40 to-accent/5 p-4 rounded-2xl border border-border/40"
             >
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Filter className="w-4 h-4" />
@@ -668,7 +668,7 @@ const SupervisorDashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: idx * 0.1 }}
-                    className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                    className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-primary/[0.03] overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   >
                     {/* Deputy Header */}
                     <button
@@ -749,12 +749,12 @@ const SupervisorDashboard = () => {
                                 className="mb-6"
                               >
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 text-center">
                                     <UsersRound className="w-5 h-5 mx-auto mb-2 text-primary" />
                                     <p className="text-2xl font-bold text-foreground">{dep.teamSize || 0}</p>
                                     <p className="text-xs text-muted-foreground">{t.appointedSubordinates}</p>
                                   </div>
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 p-4 text-center">
                                     <FileText className="w-5 h-5 mx-auto mb-2 text-primary" />
                                     <p className="text-2xl font-bold text-foreground">{stats.total}</p>
                                     <p className="text-xs text-muted-foreground">{t.directRequests}</p>
@@ -789,17 +789,17 @@ const SupervisorDashboard = () => {
                                   transition={{ delay: 0.15 }}
                                   className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6"
                                 >
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-blue-50/80 to-blue-100/40 dark:from-blue-950/30 dark:to-blue-900/10 border border-blue-200/50 dark:border-blue-800/30 p-4 text-center">
                                     <Eye className="w-5 h-5 mx-auto mb-2 text-primary" />
                                     <p className="text-2xl font-bold text-foreground">{stats.responseRate}%</p>
                                     <p className="text-xs text-muted-foreground">{t.viewedRate}</p>
                                   </div>
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-purple-50/80 to-purple-100/40 dark:from-purple-950/30 dark:to-purple-900/10 border border-purple-200/50 dark:border-purple-800/30 p-4 text-center">
                                     <Clock className="w-5 h-5 mx-auto mb-2 text-primary" />
                                     <p className="text-2xl font-bold text-foreground">{formatResponseTime(stats.avgResponseHours)}</p>
                                     <p className="text-xs text-muted-foreground">{t.avgResponseTime}</p>
                                   </div>
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-teal-50/80 to-teal-100/40 dark:from-teal-950/30 dark:to-teal-900/10 border border-teal-200/50 dark:border-teal-800/30 p-4 text-center">
                                     <Activity className="w-5 h-5 mx-auto mb-2 text-accent" />
                                     <p className="text-foreground">
                                       <span className="text-xl font-bold text-accent">{stats.acceptanceRate}%</span>
@@ -817,7 +817,7 @@ const SupervisorDashboard = () => {
                                     initial={{ opacity: 0, y: 15 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.2 }}
-                                    className="rounded-xl border border-border bg-background p-4"
+                                    className="rounded-xl border border-blue-200/50 dark:border-blue-800/30 bg-gradient-to-br from-blue-50/60 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/10 p-4"
                                   >
                                     <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                                       <BarChart3 className="w-4 h-4 text-primary" />
@@ -843,7 +843,7 @@ const SupervisorDashboard = () => {
                                     initial={{ opacity: 0, y: 15 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.25 }}
-                                    className="rounded-xl border border-border bg-background p-4"
+                                    className="rounded-xl border border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/60 to-pink-50/30 dark:from-purple-950/20 dark:to-pink-950/10 p-4"
                                   >
                                     <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                                       <PieIcon className="w-4 h-4 text-primary" />
@@ -867,7 +867,7 @@ const SupervisorDashboard = () => {
                                     initial={{ opacity: 0, y: 15 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 }}
-                                    className="rounded-xl border border-border bg-background p-4"
+                                    className="rounded-xl border border-teal-200/50 dark:border-teal-800/30 bg-gradient-to-br from-teal-50/60 to-emerald-50/30 dark:from-teal-950/20 dark:to-emerald-950/10 p-4"
                                   >
                                     <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                                       <TrendingUp className="w-4 h-4 text-primary" />
@@ -897,31 +897,32 @@ const SupervisorDashboard = () => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.35 }}
-                                    className="rounded-xl border border-border overflow-hidden"
+                                    className="rounded-xl border border-amber-200/50 dark:border-amber-800/30 overflow-hidden bg-gradient-to-br from-amber-50/40 to-orange-50/20 dark:from-amber-950/20 dark:to-orange-950/10"
                                   >
-                                    <div className="px-4 py-3 bg-muted/30 border-b border-border">
+                                    <div className="px-4 py-3 bg-gradient-to-r from-amber-100/60 to-orange-100/40 dark:from-amber-900/20 dark:to-orange-900/10 border-b border-amber-200/50 dark:border-amber-800/30">
                                       <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                                         <FileText className="w-4 h-4 text-primary" />
                                         {t.recentRequests}
                                       </h4>
                                     </div>
-                                    <Table>
-                                      <TableHeader>
-                                        <TableRow>
-                                          <TableHead className="text-xs">{t.trackingNumberLabel}</TableHead>
-                                          <TableHead className="text-xs">{t.subjectLabel}</TableHead>
-                                          <TableHead className="text-xs">{t.stepCategory}</TableHead>
-                                          <TableHead className="text-xs">{t.currentStatus}</TableHead>
-                                          <TableHead className="text-xs">{t.dateLabel}</TableHead>
-                                        </TableRow>
-                                      </TableHeader>
-                                      <TableBody>
-                                        {stats.recent5.map(req => (
-                                          <TableRow key={req.id}>
-                                            <TableCell className="font-mono text-xs font-bold text-primary">{req.tracking_number}</TableCell>
-                                            <TableCell className="text-xs">{req.subject}</TableCell>
-                                            <TableCell className="text-xs">{t[`cat_${req.category}`] || req.category}</TableCell>
-                                            <TableCell>
+                                    <div dir="rtl">
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow className="bg-amber-50/50 dark:bg-amber-950/10">
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.trackingNumberLabel}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.subjectLabel}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.stepCategory}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.currentStatus}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.dateLabel}</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {stats.recent5.map(req => (
+                                            <TableRow key={req.id}>
+                                              <TableCell className="font-mono text-xs text-start font-bold text-primary whitespace-nowrap">{req.tracking_number}</TableCell>
+                                              <TableCell className="text-xs text-start">{req.subject}</TableCell>
+                                              <TableCell className="text-xs text-start whitespace-nowrap">{t[`cat_${req.category}`] || req.category}</TableCell>
+                                              <TableCell className="text-start">
                                               <span
                                                 className="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
                                                 style={{
@@ -933,13 +934,14 @@ const SupervisorDashboard = () => {
                                                 {t[`status_${req.status}`] || req.status}
                                               </span>
                                             </TableCell>
-                                            <TableCell className="text-xs text-muted-foreground">
-                                              {new Date(req.created_at).toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR')}
-                                            </TableCell>
-                                          </TableRow>
-                                        ))}
-                                      </TableBody>
-                                    </Table>
+                                              <TableCell className="text-xs text-start text-muted-foreground whitespace-nowrap">
+                                                {new Date(req.created_at).toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR')}
+                                              </TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    </div>
                                   </motion.div>
                                 )}
                               </>

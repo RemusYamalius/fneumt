@@ -523,9 +523,58 @@ const SupervisorDashboard = () => {
               <KPICard icon={Eye} label={t.responseRate} value={globalKPIs.responseRate} suffix="%" color="hsl(38, 92%, 46%)" delay={0.3} />
             </div>
 
+            {/* Filters */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              className="flex flex-wrap items-center gap-3 mb-6"
+            >
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Filter className="w-4 h-4" />
+                <span className="font-medium">{t.filterByLevel}:</span>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {(['all', 'regional', 'provincial', 'local'] as const).map(level => (
+                  <button
+                    key={level}
+                    onClick={() => setFilterLevel(level)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterLevel === level
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {t[`filter${level.charAt(0).toUpperCase() + level.slice(1)}` as keyof typeof t]}
+                  </button>
+                ))}
+              </div>
+
+              <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-medium">{t.filterByCorps}:</span>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {(['all', 'primary', 'middle', 'high'] as const).map(corps => (
+                  <button
+                    key={corps}
+                    onClick={() => setFilterCorps(corps)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      filterCorps === corps
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {t[`filter${corps.charAt(0).toUpperCase() + corps.slice(1)}` as keyof typeof t]}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+
             {/* Deputy Cards */}
             <div className="space-y-4">
-              {deputies.map((dep, idx) => {
+              {filteredDeputies.map((dep, idx) => {
                 const stats = getDeputyStats(dep.user_id);
                 const isExpanded = expandedDeputy === dep.user_id;
                 const isPlaceholder = dep.user_id.startsWith('placeholder_');

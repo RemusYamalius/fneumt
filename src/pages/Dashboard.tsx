@@ -12,26 +12,8 @@ import { ar, fr } from 'date-fns/locale';
 import AnimatedLogo from '@/components/AnimatedLogo';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 
-/* ─── Sub-bar with shimmer + pulsing words ─── */
-const SHIMMER_CYCLE = 5000; // matches CSS animation duration
-const SHIMMER_CROSS_DURATION = 1500; // beam crosses in first 30% of cycle (5s * 0.3)
-
+/* ─── Sub-bar with shimmer ─── */
 const SubBarShimmer = ({ roleLabel, dir }: { roleLabel: string; dir: 'rtl' | 'ltr' }) => {
-  const [pulseKey, setPulseKey] = useState(0);
-
-  useEffect(() => {
-    // Sync with CSS animation - trigger pulse at start of each shimmer cycle
-    const id = setInterval(() => {
-      setPulseKey(k => k + 1);
-    }, SHIMMER_CYCLE);
-    // First pulse slightly after mount to sync with CSS animation start
-    const firstId = setTimeout(() => setPulseKey(1), 100);
-    return () => { clearInterval(id); clearTimeout(firstId); };
-  }, []);
-
-  const words = roleLabel.split(' ').filter(Boolean);
-  const n = words.length;
-
   return (
     <div className="subbar-shimmer-wrap bg-white/10 border-t border-white/10 relative overflow-hidden">
       <div
@@ -39,33 +21,8 @@ const SubBarShimmer = ({ roleLabel, dir }: { roleLabel: string; dir: 'rtl' | 'lt
         style={{ animationDirection: dir === 'rtl' ? 'reverse' : 'normal' }}
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-1.5">
-        <p className="text-sm font-semibold text-white/90 text-center truncate flex items-center justify-center gap-1" aria-label={roleLabel}>
-          {words.map((word, i) => {
-            // Calculate delay so pulse happens when shimmer beam is over this word
-            // For LTR: word 0 pulses first, word n-1 pulses last
-            // For RTL: word n-1 pulses first (since beam goes right to left)
-            const position = dir === 'rtl' ? (n - 1 - i) / Math.max(n - 1, 1) : i / Math.max(n - 1, 1);
-            const delay = position * (SHIMMER_CROSS_DURATION / 1000); // in seconds
-
-            return (
-              <motion.span
-                key={`${i}-${pulseKey}`}
-                initial={{ scale: 1, color: 'rgba(255,255,255,0.9)' }}
-                animate={{
-                  scale: [1, 1.2, 1],
-                  color: ['rgba(255,255,255,0.9)', 'rgba(255,255,255,1)', 'rgba(255,255,255,0.9)'],
-                }}
-                transition={{
-                  duration: 0.35,
-                  delay: delay,
-                  ease: 'easeOut',
-                }}
-                className="inline-block"
-              >
-                {word}
-              </motion.span>
-            );
-          })}
+        <p className="text-sm font-semibold text-white/90 text-center truncate">
+          {roleLabel}
         </p>
       </div>
     </div>

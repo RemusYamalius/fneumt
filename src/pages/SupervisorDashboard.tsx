@@ -248,29 +248,56 @@ const SupervisorDashboard = () => {
     const realDeputyIds = allDeputyRoles.filter(r => !r.user_id.startsWith('placeholder_')).map(r => r.user_id);
 
     if (realDeputyIds.length > 0) {
-      const [profilesRes, requestsRes, allProfilesRes, teamCountsRes] = await Promise.all([
-        supabase.from('profiles').select('user_id, full_name').in('user_id', realDeputyIds),
+      const [profilesRes, requestsRes, allProfilesRes] = await Promise.all([
+        supabase.from('profiles').select('user_id, full_name, academy, directorate').in('user_id', realDeputyIds),
         supabase.from('requests').select('id, tracking_number, category, status, created_at, subject, assigned_to').in('assigned_to', realDeputyIds).order('created_at', { ascending: false }),
         supabase.from('profiles').select('user_id, is_member, membership_verified'),
-        supabase.from('user_roles').select('promoted_by').in('promoted_by', realDeputyIds),
       ]);
 
-      const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p.full_name]));
+      const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, { full_name: p.full_name, academy: p.academy, directorate: p.directorate }]));
 
-      // Count team members per deputy
+      // Count team members per deputy using area-based matching
       const teamCounts = new Map<string, number>();
-      (teamCountsRes.data || []).forEach(r => {
-        if (r.promoted_by) {
-          teamCounts.set(r.promoted_by, (teamCounts.get(r.promoted_by) || 0) + 1);
+      for (const dep of (profilesRes.data || [])) {
+        const depRole = allDeputyRoles.find(r => r.user_id === dep.user_id)?.role;
+        if (!depRole) continue;
+        
+        // Find what subordinate roles this deputy's role manages
+        const depAreaConfig = AREA_CONFIG[depRole];
+        if (!depAreaConfig) continue;
+        
+        // Query for subordinates in the same geographic area
+        let subQuery = supabase.from('profiles').select('user_id').neq('user_id', dep.user_id);
+        if (depAreaConfig.matchFields.includes('academy') && dep.academy) {
+          subQuery = subQuery.eq('academy', dep.academy);
         }
-      });
+        if (depAreaConfig.matchFields.includes('directorate') && dep.directorate) {
+          subQuery = subQuery.eq('directorate', dep.directorate);
+        }
+        const { data: subProfiles } = await subQuery;
+        const subUserIds = (subProfiles || []).map(p => p.user_id);
+        
+        if (subUserIds.length > 0) {
+          const { data: subRoles } = await supabase
+            .from('user_roles')
+            .select('user_id')
+            .in('user_id', subUserIds)
+            .in('role', depAreaConfig.subordinates as any);
+          teamCounts.set(dep.user_id, (subRoles || []).length);
+        }
+      }
 
-      setDeputies(allDeputyRoles.map(r => ({
-        user_id: r.user_id,
-        full_name: r.user_id.startsWith('placeholder_') ? null : (profileMap.get(r.user_id) || null),
-        role: r.role,
-        teamSize: r.user_id.startsWith('placeholder_') ? 0 : (teamCounts.get(r.user_id) || 0),
-      })));
+      setDeputies(allDeputyRoles.map(r => {
+        const prof = profileMap.get(r.user_id);
+        return {
+          user_id: r.user_id,
+          full_name: r.user_id.startsWith('placeholder_') ? null : (prof?.full_name || null),
+          role: r.role,
+          teamSize: r.user_id.startsWith('placeholder_') ? 0 : (teamCounts.get(r.user_id) || 0),
+          academy: prof?.academy || null,
+          directorate: prof?.directorate || null,
+        };
+      }));
       setRequests(requestsRes.data || []);
       setProfiles(allProfilesRes.data || []);
 

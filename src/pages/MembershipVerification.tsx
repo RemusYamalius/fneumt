@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import AnimatedLogo from '@/components/AnimatedLogo';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 
 interface UserProfile {
@@ -141,16 +141,7 @@ const MembershipVerification = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-3">
-          <AnimatedLogo size="w-20 h-20" />
-          <div>
-            <p className="font-bold text-sm">{t.membershipVerification || (lang === 'ar' ? 'التحقق من الانخراط' : "Vérification d'adhésion")}</p>
-            <p className="text-xs text-white/70">{t.platformName}</p>
-          </div>
-        </div>
-      </header>
+    <AuthenticatedLayout>
 
       <div className="max-w-6xl mx-auto px-6 py-6">
         {/* Top bar */}
@@ -291,7 +282,7 @@ const MembershipVerification = () => {
           </div>
         )}
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

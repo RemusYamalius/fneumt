@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import AnimatedLogo from '@/components/AnimatedLogo';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, AreaChart, Area
@@ -473,23 +473,7 @@ const SupervisorDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      {/* Header */}
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AnimatedLogo size="w-16 h-16" />
-            <div>
-              <p className="font-bold text-sm">{t.supervisorDashboard}</p>
-              <p className="text-xs text-white/70">{t.platformName}</p>
-            </div>
-          </div>
-          <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => navigate('/dashboard')}>
-            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-            {t.backToDashboard}
-          </Button>
-        </div>
-      </header>
+    <AuthenticatedLayout>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* Title */}
@@ -898,7 +882,7 @@ const SupervisorDashboard = () => {
           </>
         )}
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

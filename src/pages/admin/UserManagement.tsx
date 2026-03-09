@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import AnimatedLogo from '@/components/AnimatedLogo';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { getAllowedPromotions, getGeoConstraint } from '@/lib/role-hierarchy';
 import type { AppRole } from '@/lib/role-hierarchy';
 import { ACADEMIES } from '@/lib/academies-data';
@@ -126,22 +126,7 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AnimatedLogo size="w-20 h-20" />
-            <div>
-              <p className="font-bold text-sm">{t.platformName}</p>
-              <p className="text-xs text-white/70">{t.userManagement}</p>
-            </div>
-          </div>
-          <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => navigate('/dashboard')}>
-            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-            {t.backToDashboard}
-          </Button>
-        </div>
-      </header>
+    <AuthenticatedLayout>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
@@ -249,7 +234,7 @@ const UserManagement = () => {
           </div>
         )}
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

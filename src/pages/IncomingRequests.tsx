@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import AnimatedLogo from '@/components/AnimatedLogo';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'cancelled';
 
@@ -265,16 +265,7 @@ const IncomingRequests = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-3">
-          <AnimatedLogo size="w-20 h-20" />
-          <div>
-            <p className="font-bold text-sm">{t.incomingRequests}</p>
-            <p className="text-xs text-white/70">{t.platformName}</p>
-          </div>
-        </div>
-      </header>
+    <AuthenticatedLayout>
 
       <div className="max-w-6xl mx-auto px-6 py-6">
         {/* Top bar: back + search */}
@@ -482,7 +473,7 @@ const IncomingRequests = () => {
           </div>
         )}
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

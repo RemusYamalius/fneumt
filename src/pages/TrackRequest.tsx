@@ -5,7 +5,7 @@ import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import AnimatedLogo from '@/components/AnimatedLogo';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'cancelled';
 
@@ -70,16 +70,7 @@ const TrackRequest = () => {
   const isCancelled = result?.status === 'cancelled';
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-3xl mx-auto px-6 py-6 text-center">
-          <Link to="/" className="inline-block mb-4">
-            <AnimatedLogo size="w-28 h-28" />
-          </Link>
-          <h1 className="text-2xl font-bold">{t.trackFiles}</h1>
-          <p className="text-sm text-white/70 mt-1">{t.trackFilesDesc}</p>
-        </div>
-      </header>
+    <AuthenticatedLayout>
 
       <main className="max-w-2xl mx-auto px-6 py-10">
         <div className="flex gap-3 mb-8">
@@ -167,7 +158,7 @@ const TrackRequest = () => {
           </Link>
         </div>
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

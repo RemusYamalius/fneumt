@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import AnimatedLogo from '@/components/AnimatedLogo';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 type RequestCategory = 'rank_promotion' | 'grade_promotion' | 'schedules' | 'infrastructure' | 'financial_compensation' | 'zone_compensation' | 'equipment' | 'grievances' | 'assignments' | 'inspection_score' | 'other';
 type ResolutionLevel = 'ministry' | 'academy' | 'directorate' | 'institution';
@@ -202,17 +202,7 @@ const NewRequest = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      {/* Header */}
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-3">
-          <AnimatedLogo size="w-20 h-20" />
-          <div>
-            <p className="font-bold text-sm">{t.newRequest}</p>
-            <p className="text-xs text-white/70">{t.platformName}</p>
-          </div>
-        </div>
-      </header>
+    <AuthenticatedLayout>
 
       {/* Steps indicator */}
       <div className="max-w-3xl mx-auto px-6 py-6">
@@ -518,7 +508,7 @@ const NewRequest = () => {
           )}
         </div>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

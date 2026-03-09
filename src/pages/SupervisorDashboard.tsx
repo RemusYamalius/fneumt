@@ -392,12 +392,19 @@ const SupervisorDashboard = () => {
                       className="w-full p-5 flex items-center justify-between text-start"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg shadow-md">
-                          {(dep.full_name || '?')[0]}
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md ${dep.user_id.startsWith('placeholder_') ? 'bg-muted-foreground/30' : 'bg-gradient-to-br from-primary to-secondary'}`}>
+                          {dep.user_id.startsWith('placeholder_') ? '?' : (dep.full_name || '?')[0]}
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold text-foreground">{dep.full_name || '—'}</h3>
-                          <p className="text-xs text-muted-foreground">{getRoleLabel(dep.role)}</p>
+                          <h3 className="text-lg font-bold text-foreground">
+                            {dep.user_id.startsWith('placeholder_') ? t.awaitingAssignment : (dep.full_name || '—')}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground">{getRoleLabel(dep.role)}</p>
+                            {dep.user_id.startsWith('placeholder_') && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">{t.notAssigned}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">

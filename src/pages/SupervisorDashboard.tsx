@@ -144,7 +144,7 @@ const KPICard = ({ icon: Icon, label, value, suffix, color, delay }: {
 
 /* ── Mini stat pill ── */
 const MiniStat = ({ label, value, color }: { label: string; value: number; color: string }) => (
-  <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted/50">
+  <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-b from-muted/60 to-muted/30 border border-border/30">
     <span className="text-lg font-bold" style={{ color }}>{value}</span>
     <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">{label}</span>
   </div>

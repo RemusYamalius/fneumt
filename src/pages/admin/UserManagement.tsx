@@ -191,12 +191,12 @@ const UserManagement = () => {
           <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl border border-blue-100/40 overflow-hidden shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>{t.fullNameLabel}</TableHead>
-                  <TableHead>{t.emailLabel}</TableHead>
-                  <TableHead>{t.academyLabel}</TableHead>
-                  <TableHead>{t.directorateLabel}</TableHead>
-                  <TableHead>{t.roleLabel || 'الدور'}</TableHead>
+                <TableRow className="bg-gradient-to-r from-[hsl(207,78%,28%)] to-[hsl(207,78%,38%)]">
+                  <TableHead className="text-white font-bold">{t.fullNameLabel}</TableHead>
+                  <TableHead className="text-white font-bold">{t.emailLabel}</TableHead>
+                  <TableHead className="text-white font-bold">{t.academyLabel}</TableHead>
+                  <TableHead className="text-white font-bold">{t.directorateLabel}</TableHead>
+                  <TableHead className="text-white font-bold">{t.roleLabel || 'الدور'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

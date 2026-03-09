@@ -867,7 +867,7 @@ const SupervisorDashboard = () => {
                                     initial={{ opacity: 0, y: 15 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 }}
-                                    className="rounded-xl border border-border bg-background p-4"
+                                    className="rounded-xl border border-teal-200/50 dark:border-teal-800/30 bg-gradient-to-br from-teal-50/60 to-emerald-50/30 dark:from-teal-950/20 dark:to-emerald-950/10 p-4"
                                   >
                                     <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                                       <TrendingUp className="w-4 h-4 text-primary" />

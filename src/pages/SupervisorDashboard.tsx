@@ -897,31 +897,32 @@ const SupervisorDashboard = () => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.35 }}
-                                    className="rounded-xl border border-border overflow-hidden"
+                                    className="rounded-xl border border-amber-200/50 dark:border-amber-800/30 overflow-hidden bg-gradient-to-br from-amber-50/40 to-orange-50/20 dark:from-amber-950/20 dark:to-orange-950/10"
                                   >
-                                    <div className="px-4 py-3 bg-muted/30 border-b border-border">
+                                    <div className="px-4 py-3 bg-gradient-to-r from-amber-100/60 to-orange-100/40 dark:from-amber-900/20 dark:to-orange-900/10 border-b border-amber-200/50 dark:border-amber-800/30">
                                       <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                                         <FileText className="w-4 h-4 text-primary" />
                                         {t.recentRequests}
                                       </h4>
                                     </div>
-                                    <Table>
-                                      <TableHeader>
-                                        <TableRow>
-                                          <TableHead className="text-xs">{t.trackingNumberLabel}</TableHead>
-                                          <TableHead className="text-xs">{t.subjectLabel}</TableHead>
-                                          <TableHead className="text-xs">{t.stepCategory}</TableHead>
-                                          <TableHead className="text-xs">{t.currentStatus}</TableHead>
-                                          <TableHead className="text-xs">{t.dateLabel}</TableHead>
-                                        </TableRow>
-                                      </TableHeader>
-                                      <TableBody>
-                                        {stats.recent5.map(req => (
-                                          <TableRow key={req.id}>
-                                            <TableCell className="font-mono text-xs font-bold text-primary">{req.tracking_number}</TableCell>
-                                            <TableCell className="text-xs">{req.subject}</TableCell>
-                                            <TableCell className="text-xs">{t[`cat_${req.category}`] || req.category}</TableCell>
-                                            <TableCell>
+                                    <div dir="rtl">
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow className="bg-amber-50/50 dark:bg-amber-950/10">
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.trackingNumberLabel}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.subjectLabel}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.stepCategory}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.currentStatus}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.dateLabel}</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {stats.recent5.map(req => (
+                                            <TableRow key={req.id}>
+                                              <TableCell className="font-mono text-xs text-start font-bold text-primary whitespace-nowrap">{req.tracking_number}</TableCell>
+                                              <TableCell className="text-xs text-start">{req.subject}</TableCell>
+                                              <TableCell className="text-xs text-start whitespace-nowrap">{t[`cat_${req.category}`] || req.category}</TableCell>
+                                              <TableCell className="text-start">
                                               <span
                                                 className="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
                                                 style={{

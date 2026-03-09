@@ -158,7 +158,7 @@ const TrackRequest = () => {
           </Link>
         </div>
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

@@ -481,20 +481,77 @@ const SupervisorDashboard = () => {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* Title */}
-        <motion.div
-          className="flex items-center gap-3 mb-8"
-          initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-            <Users className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{t.supervisorDashboard}</h1>
-            <p className="text-sm text-muted-foreground">{t.supervisorDashboardDesc}</p>
-          </div>
-        </motion.div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <motion.div
+            className="flex items-center gap-3"
+            initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+              <Users className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">{t.supervisorDashboard}</h1>
+              <p className="text-sm text-muted-foreground">{t.supervisorDashboardDesc}</p>
+            </div>
+          </motion.div>
+
+          {/* Export controls */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="flex items-center gap-2 flex-wrap"
+          >
+            <Select value={exportLang} onValueChange={(v) => setExportLang(v as 'ar' | 'fr')}>
+              <SelectTrigger className="w-[110px] h-9 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ar">العربية</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={exporting || loadingData || deputies.length === 0}
+              onClick={async () => {
+                setExporting(true);
+                try {
+                  await exportToPDF({
+                    kpis: globalKPIs,
+                    deputies: filteredDeputies,
+                    getDeputyStats,
+                    getRoleLabel,
+                  }, exportLang);
+                } finally { setExporting(false); }
+              }}
+              className="gap-1.5 text-xs"
+            >
+              <Download className="w-3.5 h-3.5" />
+              PDF
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={exporting || loadingData || deputies.length === 0}
+              onClick={() => {
+                exportToExcel({
+                  kpis: globalKPIs,
+                  deputies: filteredDeputies,
+                  getDeputyStats,
+                  getRoleLabel,
+                }, exportLang);
+              }}
+              className="gap-1.5 text-xs"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Excel
+            </Button>
+          </motion.div>
+        </div>
 
         {loadingData ? (
           <div className="flex justify-center py-16">

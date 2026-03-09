@@ -446,6 +446,8 @@ const translations: Record<Lang, Record<string, string>> = {
     supervisorDashboardDesc: 'Suivre la performance de vos adjoints',
     deputies: 'Adjoints',
     noDeputies: 'Aucun adjoint assigné',
+    awaitingAssignment: 'En attente d\'affectation',
+    notAssigned: 'Non affecté',
     requestsByStatus: 'Demandes par statut',
     requestsByCategory: 'Demandes par catégorie',
     filesTable: 'Tableau des dossiers',

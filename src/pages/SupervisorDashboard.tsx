@@ -668,7 +668,7 @@ const SupervisorDashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: idx * 0.1 }}
-                    className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                    className="rounded-2xl border border-border/50 bg-gradient-to-br from-card to-primary/[0.03] overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   >
                     {/* Deputy Header */}
                     <button

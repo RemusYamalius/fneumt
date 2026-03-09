@@ -126,10 +126,6 @@ const Dashboard = () => {
     ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', color: cardColors.incomingRequests, badge: pendingCount }] : []),
   ];
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
 
   const toggleGroup = (group: 'personal' | 'professional') => {
     setExpandedGroup(prev => prev === group ? null : group);

@@ -158,6 +158,34 @@ const SupervisorDashboard = () => {
   const [profiles, setProfiles] = useState<ProfileData[]>([]);
   const [expandedDeputy, setExpandedDeputy] = useState<string | null>(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [filterLevel, setFilterLevel] = useState<'all' | 'regional' | 'provincial' | 'local'>('all');
+  const [filterCorps, setFilterCorps] = useState<'all' | 'primary' | 'middle' | 'high'>('all');
+
+  const filteredDeputies = useMemo(() => {
+    return deputies.filter(dep => {
+      // Level filter
+      if (filterLevel !== 'all') {
+        const levelMap: Record<string, string[]> = {
+          regional: ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],
+          provincial: ['provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high'],
+          local: ['local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'],
+        };
+        if (!levelMap[filterLevel]?.includes(dep.role)) return false;
+      }
+      // Corps filter
+      if (filterCorps !== 'all') {
+        const corpsMap: Record<string, string[]> = {
+          primary: ['deputy_regional_primary', 'deputy_provincial_primary', 'deputy_local_primary'],
+          middle: ['deputy_regional_middle', 'deputy_provincial_middle', 'deputy_local_middle'],
+          high: ['deputy_regional_high', 'deputy_provincial_high', 'deputy_local_high'],
+        };
+        // Non-corps roles (supervisor, manager, coordinator) show in all corps filters
+        const allCorpsRoles = ['regional_supervisor', 'provincial_manager', 'local_coordinator'];
+        if (!corpsMap[filterCorps]?.includes(dep.role) && !allCorpsRoles.includes(dep.role)) return false;
+      }
+      return true;
+    });
+  }, [deputies, filterLevel, filterCorps]);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');

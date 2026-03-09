@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon, TrendingUp, Clock, CheckCircle2, XCircle, Eye, FileText, Activity, UserCheck, ChevronDown, UsersRound, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -161,31 +161,39 @@ const SupervisorDashboard = () => {
   const [filterLevel, setFilterLevel] = useState<'all' | 'regional' | 'provincial' | 'local'>('all');
   const [filterCorps, setFilterCorps] = useState<'all' | 'primary' | 'middle' | 'high'>('all');
 
-  const filteredDeputies = useMemo(() => {
+  const levelMap: Record<string, string[]> = {
+    regional: ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],
+    provincial: ['provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high'],
+    local: ['local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'],
+  };
+  const corpsMap: Record<string, string[]> = {
+    primary: ['deputy_regional_primary', 'deputy_provincial_primary', 'deputy_local_primary'],
+    middle: ['deputy_regional_middle', 'deputy_provincial_middle', 'deputy_local_middle'],
+    high: ['deputy_regional_high', 'deputy_provincial_high', 'deputy_local_high'],
+  };
+  const allCorpsRoles = ['regional_supervisor', 'provincial_manager', 'local_coordinator'];
+
+  const applyFilters = useCallback((lvl: string, corps: string) => {
     return deputies.filter(dep => {
-      // Level filter
-      if (filterLevel !== 'all') {
-        const levelMap: Record<string, string[]> = {
-          regional: ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],
-          provincial: ['provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high'],
-          local: ['local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'],
-        };
-        if (!levelMap[filterLevel]?.includes(dep.role)) return false;
-      }
-      // Corps filter
-      if (filterCorps !== 'all') {
-        const corpsMap: Record<string, string[]> = {
-          primary: ['deputy_regional_primary', 'deputy_provincial_primary', 'deputy_local_primary'],
-          middle: ['deputy_regional_middle', 'deputy_provincial_middle', 'deputy_local_middle'],
-          high: ['deputy_regional_high', 'deputy_provincial_high', 'deputy_local_high'],
-        };
-        // Non-corps roles (supervisor, manager, coordinator) show in all corps filters
-        const allCorpsRoles = ['regional_supervisor', 'provincial_manager', 'local_coordinator'];
-        if (!corpsMap[filterCorps]?.includes(dep.role) && !allCorpsRoles.includes(dep.role)) return false;
-      }
+      if (lvl !== 'all' && !levelMap[lvl]?.includes(dep.role)) return false;
+      if (corps !== 'all' && !corpsMap[corps]?.includes(dep.role) && !allCorpsRoles.includes(dep.role)) return false;
       return true;
     });
-  }, [deputies, filterLevel, filterCorps]);
+  }, [deputies]);
+
+  const filteredDeputies = useMemo(() => applyFilters(filterLevel, filterCorps), [applyFilters, filterLevel, filterCorps]);
+
+  const filterCounts = useMemo(() => {
+    const levelCounts: Record<string, number> = {};
+    for (const lvl of ['all', 'regional', 'provincial', 'local']) {
+      levelCounts[lvl] = applyFilters(lvl, filterCorps).length;
+    }
+    const corpsCounts: Record<string, number> = {};
+    for (const c of ['all', 'primary', 'middle', 'high']) {
+      corpsCounts[c] = applyFilters(filterLevel, c).length;
+    }
+    return { levelCounts, corpsCounts };
+  }, [applyFilters, filterLevel, filterCorps]);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -548,6 +556,9 @@ const SupervisorDashboard = () => {
                       }`}
                     >
                       {t[labelKey as keyof typeof t]}
+                      <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] leading-none ${
+                        filterLevel === level ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-background text-muted-foreground'
+                      }`}>{filterCounts.levelCounts[level]}</span>
                     </button>
                   );
                 })}
@@ -572,6 +583,9 @@ const SupervisorDashboard = () => {
                       }`}
                     >
                       {t[labelKey as keyof typeof t]}
+                      <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] leading-none ${
+                        filterCorps === corps ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-background text-muted-foreground'
+                      }`}>{filterCounts.corpsCounts[corps]}</span>
                     </button>
                   );
                 })}

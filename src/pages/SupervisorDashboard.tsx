@@ -174,13 +174,35 @@ const SupervisorDashboard = () => {
 
     let allDeputyRoles: { user_id: string; role: string; promoted_by: string | null }[] = [];
 
+    // All supervisory roles in hierarchy order
+    const ALL_SUPERVISORY_ROLES = [
+      'regional_supervisor',
+      'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
+      'provincial_manager',
+      'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
+      'local_coordinator',
+      'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
+    ];
+
     if (role === 'admin') {
-      // Admin sees all regional_supervisors
+      // Admin sees ALL non-teacher supervisory roles + placeholders for missing ones
       const { data } = await supabase
         .from('user_roles')
         .select('user_id, role, promoted_by')
-        .eq('role', 'regional_supervisor');
+        .neq('role', 'teacher');
       allDeputyRoles = data || [];
+
+      // Inject placeholders for ALL missing supervisory roles
+      const existingRoles = new Set(allDeputyRoles.map(r => r.role));
+      ALL_SUPERVISORY_ROLES.forEach(r => {
+        if (!existingRoles.has(r)) {
+          allDeputyRoles.push({ user_id: `placeholder_${r}`, role: r, promoted_by: null });
+        }
+      });
+
+      // Sort by hierarchy order
+      const roleOrder = Object.fromEntries(ALL_SUPERVISORY_ROLES.map((r, i) => [r, i]));
+      allDeputyRoles.sort((a, b) => (roleOrder[a.role] ?? 99) - (roleOrder[b.role] ?? 99));
     } else {
       // Strategy 1: subordinates linked via promoted_by
       const { data: rolesData } = await supabase

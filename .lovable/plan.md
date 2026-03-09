@@ -1,64 +1,58 @@
 
 
-# إظهار بطاقات "في انتظار التعيين" لجميع المناصب المفقودة
+## التغييرات المطلوبة
 
-## تحليل الوضع الحالي
+ثلاث تعديلات رئيسية على صفحة "طلب جديد":
 
-البيانات الحالية تُظهر أن كل مستوى هرمي يحتوي فقط على السلك **الإعدادي** (middle):
-- `deputy_regional_middle` ← بدون primary و high
-- `deputy_provincial_middle` ← بدون primary و high
-- `deputy_local_middle` ← بدون primary و high
+---
 
-**منطق Placeholder الحالي** يعمل فقط لـ 3 أدوار: `local_coordinator`, `provincial_manager`, `regional_supervisor` (عبر `TRIO_ROLES`). **لا يعمل** لـ:
-1. **Admin** — يرى فقط `regional_supervisor` بدون placeholders للمناصب المفقودة الأخرى
-2. **النواب** (`deputy_regional_*`, `deputy_provincial_*`) — يرون مرؤوساً واحداً فقط بدون placeholders
+### 1. ترتيب البطاقات RTL
 
-## الحل
+في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
 
-### تعديل `src/pages/SupervisorDashboard.tsx`
+---
 
-**1. لوحة Admin الشاملة:**
-بدلاً من عرض `regional_supervisor` فقط، يعرض Admin **جميع** الأدوار الإشرافية المعينة + placeholders لكل المناصب المفقودة في الهيكل الكامل:
+### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
 
-```typescript
-if (role === 'admin') {
-  // Fetch ALL non-teacher roles
-  const { data } = await supabase.from('user_roles')
-    .select('user_id, role, promoted_by')
-    .neq('role', 'teacher');
-  allDeputyRoles = data || [];
-  
-  // Inject placeholders for ALL 13 supervisory roles that don't exist
-  const ALL_SUPERVISORY_ROLES = [
-    'regional_supervisor',
-    'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
-    'provincial_manager',
-    'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
-    'local_coordinator',
-    'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
-  ];
-  const existingRoles = new Set(allDeputyRoles.map(r => r.role));
-  ALL_SUPERVISORY_ROLES.forEach(r => {
-    if (!existingRoles.has(r)) {
-      allDeputyRoles.push({ user_id: `placeholder_${r}`, role: r, promoted_by: null });
-    }
-  });
-}
-```
+عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
+- **الموضوع** (إلزامي) — `Input`
+- **الوصف** (اختياري) — `Textarea`
 
-**2. أدوار النواب — إضافة trio للمرؤوس الموجود:**
-عندما يكون النائب (مثل `deputy_regional_middle`) لديه مرؤوس (`provincial_manager`)، نضيف أيضاً placeholders لأدوار trio الخاصة بذلك المرؤوس إذا لم تكن موجودة. هذا يعني أن `deputy_regional_middle` سيرى:
-- `provincial_manager` (حقيقي)
-- + اختيارياً أدوار trio التابعة له كمعلومات إضافية
+تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
 
-لكن هذا سيغير هيكل اللوحة بشكل كبير. الأبسط: **لا تغيير للنواب** — هم يرون مرؤوسهم المباشر فقط (وهذا صحيح هيكلياً).
+تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
 
-**3. ترتيب البطاقات:**
-ترتيب البطاقات حسب مستوى الدور في الهيكل الهرمي لتسهيل القراءة (جهوي → إقليمي → محلي).
+---
 
-## الملفات المعنية
+### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
+
+- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
+- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
+  1. المصالح المركزية للوزارة
+  2. الأكاديمية الجهوية
+  3. المديرية الإقليمية
+  4. المؤسسة مقر العمل
+
+- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
+- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
+
+**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
+
+---
+
+### الملفات المعنية
 
 | الملف | التعديل |
 |---|---|
-| `src/pages/SupervisorDashboard.tsx` | تعديل مسار Admin ليعرض جميع الأدوار + placeholders |
+| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
+| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
+| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
+
+### تدفق الخطوات الجديد:
+```text
+1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
+2. مستوى حل المشكل (4 اختيارات)
+3. المرفقات
+4. المراجعة
+```
 

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import AnimatedLogo from '@/components/AnimatedLogo';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { getAllowedPromotions, getGeoConstraint } from '@/lib/role-hierarchy';
 import type { AppRole } from '@/lib/role-hierarchy';
 import { ACADEMIES } from '@/lib/academies-data';

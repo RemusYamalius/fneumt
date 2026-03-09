@@ -1,33 +1,13 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FilePlus, Search, User, LogOut, Bell, Globe, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter } from 'lucide-react';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
-import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ar, fr } from 'date-fns/locale';
-import AnimatedLogo from '@/components/AnimatedLogo';
-import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
-
-/* ─── Sub-bar with shimmer ─── */
-const SubBarShimmer = ({ roleLabel, dir }: { roleLabel: string; dir: 'rtl' | 'ltr' }) => {
-  return (
-    <div className="subbar-shimmer-wrap bg-white/10 border-t border-white/10 relative overflow-hidden">
-      <div
-        className="subbar-shimmer-beam"
-        style={{ animationDirection: dir === 'rtl' ? 'reverse' : 'normal' }}
-      />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-1.5">
-        <p className="text-sm font-semibold text-white/90 text-center truncate">
-          {roleLabel}
-        </p>
-      </div>
-    </div>
-  );
-};
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 const Dashboard = () => {
   const { t, toggleLang, dir, lang } = useI18n();

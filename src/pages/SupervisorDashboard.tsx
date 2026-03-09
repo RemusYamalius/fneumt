@@ -789,17 +789,17 @@ const SupervisorDashboard = () => {
                                   transition={{ delay: 0.15 }}
                                   className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6"
                                 >
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-blue-50/80 to-blue-100/40 dark:from-blue-950/30 dark:to-blue-900/10 border border-blue-200/50 dark:border-blue-800/30 p-4 text-center">
                                     <Eye className="w-5 h-5 mx-auto mb-2 text-primary" />
                                     <p className="text-2xl font-bold text-foreground">{stats.responseRate}%</p>
                                     <p className="text-xs text-muted-foreground">{t.viewedRate}</p>
                                   </div>
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-purple-50/80 to-purple-100/40 dark:from-purple-950/30 dark:to-purple-900/10 border border-purple-200/50 dark:border-purple-800/30 p-4 text-center">
                                     <Clock className="w-5 h-5 mx-auto mb-2 text-primary" />
                                     <p className="text-2xl font-bold text-foreground">{formatResponseTime(stats.avgResponseHours)}</p>
                                     <p className="text-xs text-muted-foreground">{t.avgResponseTime}</p>
                                   </div>
-                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                  <div className="rounded-xl bg-gradient-to-br from-teal-50/80 to-teal-100/40 dark:from-teal-950/30 dark:to-teal-900/10 border border-teal-200/50 dark:border-teal-800/30 p-4 text-center">
                                     <Activity className="w-5 h-5 mx-auto mb-2 text-accent" />
                                     <p className="text-foreground">
                                       <span className="text-xl font-bold text-accent">{stats.acceptanceRate}%</span>

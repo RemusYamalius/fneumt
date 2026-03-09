@@ -1,13 +1,17 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon, TrendingUp, Clock, CheckCircle2, XCircle, Eye, FileText, Activity, UserCheck, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AnimatedLogo from '@/components/AnimatedLogo';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, AreaChart, Area
+} from 'recharts';
 
 interface Deputy {
   user_id: string;
@@ -25,15 +29,82 @@ interface RequestData {
   assigned_to: string;
 }
 
+interface StatusHistoryEntry {
+  request_id: string;
+  old_status: string | null;
+  new_status: string;
+  created_at: string;
+}
+
+interface ProfileData {
+  user_id: string;
+  is_member: boolean | null;
+  membership_verified: boolean | null;
+}
+
 const STATUS_COLORS: Record<string, string> = {
-  submitted: '#f59e0b',
-  viewed: '#3b82f6',
-  in_progress: '#8b5cf6',
-  accepted: '#10b981',
-  cancelled: '#ef4444',
+  submitted: 'hsl(38, 92%, 46%)',
+  viewed: 'hsl(207, 78%, 46%)',
+  in_progress: 'hsl(268, 61%, 52%)',
+  accepted: 'hsl(146, 63%, 38%)',
+  cancelled: 'hsl(0, 78%, 48%)',
 };
 
-const CATEGORY_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+const CATEGORY_COLORS = [
+  'hsl(207, 78%, 46%)', 'hsl(146, 63%, 38%)', 'hsl(38, 92%, 46%)',
+  'hsl(0, 78%, 48%)', 'hsl(268, 61%, 52%)', 'hsl(340, 65%, 47%)',
+  'hsl(180, 60%, 40%)', 'hsl(30, 90%, 50%)',
+];
+
+/* ── Animated counter ── */
+const AnimatedNumber = ({ value, suffix = '' }: { value: number; suffix?: string }) => {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (value === 0) { setDisplay(0); return; }
+    const duration = 800;
+    const steps = 30;
+    const increment = value / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= value) { setDisplay(value); clearInterval(timer); }
+      else setDisplay(Math.round(current));
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [value]);
+  return <span>{display}{suffix}</span>;
+};
+
+/* ── KPI Card ── */
+const KPICard = ({ icon: Icon, label, value, suffix, color, delay }: {
+  icon: any; label: string; value: number; suffix?: string; color: string; delay: number;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ duration: 0.5, delay, ease: 'easeOut' }}
+    className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
+  >
+    <div className="flex items-center gap-3 mb-3">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
+        <Icon className="w-5 h-5" style={{ color }} />
+      </div>
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+    </div>
+    <p className="text-3xl font-bold text-foreground">
+      <AnimatedNumber value={value} suffix={suffix} />
+    </p>
+    <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-5" style={{ background: color, transform: 'translate(30%, -30%)' }} />
+  </motion.div>
+);
+
+/* ── Mini stat pill ── */
+const MiniStat = ({ label, value, color }: { label: string; value: number; color: string }) => (
+  <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-muted/50">
+    <span className="text-lg font-bold" style={{ color }}>{value}</span>
+    <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">{label}</span>
+  </div>
+);
 
 const SupervisorDashboard = () => {
   const { t, dir, lang } = useI18n();
@@ -41,7 +112,9 @@ const SupervisorDashboard = () => {
   const navigate = useNavigate();
   const [deputies, setDeputies] = useState<Deputy[]>([]);
   const [requests, setRequests] = useState<RequestData[]>([]);
-  const [selectedDeputy, setSelectedDeputy] = useState<string | null>(null);
+  const [statusHistory, setStatusHistory] = useState<StatusHistoryEntry[]>([]);
+  const [profiles, setProfiles] = useState<ProfileData[]>([]);
+  const [expandedDeputy, setExpandedDeputy] = useState<string | null>(null);
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
@@ -57,7 +130,6 @@ const SupervisorDashboard = () => {
     if (!user) return;
     setLoadingData(true);
 
-    // Fetch deputies promoted by this user
     const { data: rolesData } = await supabase
       .from('user_roles')
       .select('user_id, role, promoted_by')
@@ -66,9 +138,10 @@ const SupervisorDashboard = () => {
     const deputyIds = (rolesData || []).map(r => r.user_id);
 
     if (deputyIds.length > 0) {
-      const [profilesRes, requestsRes] = await Promise.all([
+      const [profilesRes, requestsRes, allProfilesRes] = await Promise.all([
         supabase.from('profiles').select('user_id, full_name').in('user_id', deputyIds),
         supabase.from('requests').select('id, tracking_number, category, status, created_at, subject, assigned_to').in('assigned_to', deputyIds).order('created_at', { ascending: false }),
+        supabase.from('profiles').select('user_id, is_member, membership_verified'),
       ]);
 
       const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p.full_name]));
@@ -78,6 +151,17 @@ const SupervisorDashboard = () => {
         role: r.role,
       })));
       setRequests(requestsRes.data || []);
+      setProfiles(allProfilesRes.data || []);
+
+      // Fetch status history for response time calculations
+      const requestIds = (requestsRes.data || []).map(r => r.id);
+      if (requestIds.length > 0) {
+        const { data: historyData } = await supabase
+          .from('request_status_history')
+          .select('request_id, old_status, new_status, created_at')
+          .in('request_id', requestIds);
+        setStatusHistory(historyData || []);
+      }
     } else {
       setDeputies([]);
       setRequests([]);
@@ -85,31 +169,87 @@ const SupervisorDashboard = () => {
     setLoadingData(false);
   };
 
-  const deputyRequests = useMemo(() => {
-    if (!selectedDeputy) return requests;
-    return requests.filter(r => r.assigned_to === selectedDeputy);
-  }, [requests, selectedDeputy]);
+  /* ── Global KPIs ── */
+  const globalKPIs = useMemo(() => {
+    const total = requests.length;
+    const processed = requests.filter(r => r.status === 'accepted').length;
+    const viewed = requests.filter(r => ['viewed', 'in_progress', 'accepted', 'cancelled'].includes(r.status)).length;
+    const responseRate = total > 0 ? Math.round((viewed / total) * 100) : 0;
+    const verifiedCount = profiles.filter(p => p.membership_verified === true).length;
+    return { total, processed, responseRate, verifiedCount };
+  }, [requests, profiles]);
 
-  const statusChartData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    deputyRequests.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
-    return Object.entries(counts).map(([status, count]) => ({
-      name: t[`status_${status}`] || status,
-      value: count,
-      status,
-    }));
-  }, [deputyRequests, t]);
+  /* ── Per-deputy stats ── */
+  const getDeputyStats = (deputyId: string) => {
+    const depRequests = requests.filter(r => r.assigned_to === deputyId);
+    const total = depRequests.length;
+    const byStatus = {
+      submitted: depRequests.filter(r => r.status === 'submitted').length,
+      viewed: depRequests.filter(r => r.status === 'viewed').length,
+      in_progress: depRequests.filter(r => r.status === 'in_progress').length,
+      accepted: depRequests.filter(r => r.status === 'accepted').length,
+      cancelled: depRequests.filter(r => r.status === 'cancelled').length,
+    };
+    const viewedTotal = total - byStatus.submitted;
+    const responseRate = total > 0 ? Math.round((viewedTotal / total) * 100) : 0;
+    const acceptanceRate = total > 0 ? Math.round((byStatus.accepted / total) * 100) : 0;
+    const cancellationRate = total > 0 ? Math.round((byStatus.cancelled / total) * 100) : 0;
 
-  const categoryChartData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    deputyRequests.forEach(r => { counts[r.category] = (counts[r.category] || 0) + 1; });
-    return Object.entries(counts).map(([cat, count]) => ({
+    // Average response time (submitted → viewed)
+    let avgResponseHours = 0;
+    const depRequestIds = depRequests.map(r => r.id);
+    const viewedHistories = statusHistory.filter(
+      h => depRequestIds.includes(h.request_id) && h.new_status === 'viewed' && (h.old_status === 'submitted' || h.old_status === null)
+    );
+    if (viewedHistories.length > 0) {
+      const requestMap = new Map(depRequests.map(r => [r.id, r.created_at]));
+      const totalMs = viewedHistories.reduce((sum, h) => {
+        const submitted = requestMap.get(h.request_id);
+        if (!submitted) return sum;
+        return sum + (new Date(h.created_at).getTime() - new Date(submitted).getTime());
+      }, 0);
+      avgResponseHours = totalMs / viewedHistories.length / (1000 * 60 * 60);
+    }
+
+    // Status chart data
+    const statusChartData = Object.entries(byStatus)
+      .filter(([, v]) => v > 0)
+      .map(([status, count]) => ({
+        name: t[`status_${status}`] || status,
+        value: count,
+        status,
+      }));
+
+    // Category chart data
+    const catCounts: Record<string, number> = {};
+    depRequests.forEach(r => { catCounts[r.category] = (catCounts[r.category] || 0) + 1; });
+    const categoryChartData = Object.entries(catCounts).map(([cat, count]) => ({
       name: t[`cat_${cat}`] || cat,
       value: count,
     }));
-  }, [deputyRequests, t]);
 
-  const getRoleLabel = (role: string) => t[`role_${role}`] || role;
+    // Timeline data (last 30 days)
+    const now = new Date();
+    const days: { date: string; count: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const count = depRequests.filter(r => r.created_at.slice(0, 10) === key).length;
+      days.push({ date: d.toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR', { day: 'numeric', month: 'short' }), count });
+    }
+
+    const recent5 = depRequests.slice(0, 5);
+
+    return { total, byStatus, responseRate, acceptanceRate, cancellationRate, avgResponseHours, statusChartData, categoryChartData, timelineData: days, recent5 };
+  };
+
+  const getRoleLabel = (r: string) => t[`role_${r}`] || r;
+
+  const formatResponseTime = (hours: number) => {
+    if (hours < 1) return `${Math.round(hours * 60)} ${t.minutes}`;
+    return `${hours.toFixed(1)} ${t.hours}`;
+  };
 
   if (loading || !user) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -119,10 +259,11 @@ const SupervisorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background" dir={dir}>
+      {/* Header */}
       <header className="gradient-primary text-white shadow-lg">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <AnimatedLogo size="w-20 h-20" />
+            <AnimatedLogo size="w-16 h-16" />
             <div>
               <p className="font-bold text-sm">{t.supervisorDashboard}</p>
               <p className="text-xs text-white/70">{t.platformName}</p>
@@ -135,8 +276,14 @@ const SupervisorDashboard = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-3 mb-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        {/* Title */}
+        <motion.div
+          className="flex items-center gap-3 mb-8"
+          initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
             <Users className="w-6 h-6 text-primary" />
           </div>
@@ -144,134 +291,275 @@ const SupervisorDashboard = () => {
             <h1 className="text-2xl font-bold text-foreground">{t.supervisorDashboard}</h1>
             <p className="text-sm text-muted-foreground">{t.supervisorDashboardDesc}</p>
           </div>
-        </div>
+        </motion.div>
 
         {loadingData ? (
           <div className="flex justify-center py-16">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : deputies.length === 0 ? (
-          <div className="card-premium p-12 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-2xl border border-border bg-card p-12 text-center"
+          >
             <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-lg text-muted-foreground">{t.noDeputies}</p>
-          </div>
+          </motion.div>
         ) : (
           <>
-            {/* Deputy cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              <div
-                onClick={() => setSelectedDeputy(null)}
-                className={`card-premium p-4 cursor-pointer transition-all ${!selectedDeputy ? 'ring-2 ring-primary' : ''}`}
-              >
-                <p className="font-bold text-foreground">{lang === 'ar' ? 'جميع النواب' : 'Tous les adjoints'}</p>
-                <p className="text-sm text-muted-foreground">{t.totalRequests}: {requests.length}</p>
-              </div>
-              {deputies.map(dep => {
-                const count = requests.filter(r => r.assigned_to === dep.user_id).length;
+            {/* Global KPIs */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <KPICard icon={FileText} label={t.totalRequests} value={globalKPIs.total} color="hsl(207, 78%, 46%)" delay={0} />
+              <KPICard icon={CheckCircle2} label={t.processedRequests} value={globalKPIs.processed} color="hsl(146, 63%, 38%)" delay={0.1} />
+              <KPICard icon={Eye} label={t.responseRate} value={globalKPIs.responseRate} suffix="%" color="hsl(268, 61%, 52%)" delay={0.2} />
+              <KPICard icon={UserCheck} label={t.verifiedMembers} value={globalKPIs.verifiedCount} color="hsl(38, 92%, 46%)" delay={0.3} />
+            </div>
+
+            {/* Deputy Cards */}
+            <div className="space-y-4">
+              {deputies.map((dep, idx) => {
+                const stats = getDeputyStats(dep.user_id);
+                const isExpanded = expandedDeputy === dep.user_id;
+
                 return (
-                  <div
+                  <motion.div
                     key={dep.user_id}
-                    onClick={() => setSelectedDeputy(dep.user_id)}
-                    className={`card-premium p-4 cursor-pointer transition-all ${selectedDeputy === dep.user_id ? 'ring-2 ring-primary' : ''}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: idx * 0.1 }}
+                    className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <p className="font-bold text-foreground">{dep.full_name || '—'}</p>
-                    <p className="text-xs text-muted-foreground">{getRoleLabel(dep.role)}</p>
-                    <p className="text-sm text-primary font-semibold mt-1">{count} {lang === 'ar' ? 'طلب' : 'demande(s)'}</p>
-                  </div>
+                    {/* Deputy Header */}
+                    <button
+                      onClick={() => setExpandedDeputy(isExpanded ? null : dep.user_id)}
+                      className="w-full p-5 flex items-center justify-between text-start"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg shadow-md">
+                          {(dep.full_name || '?')[0]}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-foreground">{dep.full_name || '—'}</h3>
+                          <p className="text-xs text-muted-foreground">{getRoleLabel(dep.role)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="hidden sm:flex items-center gap-3">
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+                            {stats.total} {t.totalRequests}
+                          </span>
+                          {stats.responseRate > 0 && (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent/10 text-accent">
+                              {stats.responseRate}% {t.responseRate}
+                            </span>
+                          )}
+                        </div>
+                        <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                        </motion.div>
+                      </div>
+                    </button>
+
+                    {/* Expanded Content */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.4, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-5 pb-6 border-t border-border pt-5">
+                            {stats.total === 0 ? (
+                              <p className="text-center text-muted-foreground py-8">{t.noRequestsForDeputy}</p>
+                            ) : (
+                              <>
+                                {/* Mini Stats Row */}
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: 0.1 }}
+                                  className="flex flex-wrap justify-center gap-2 mb-6"
+                                >
+                                  <MiniStat label={t.status_submitted} value={stats.byStatus.submitted} color={STATUS_COLORS.submitted} />
+                                  <MiniStat label={t.status_viewed} value={stats.byStatus.viewed} color={STATUS_COLORS.viewed} />
+                                  <MiniStat label={t.status_in_progress} value={stats.byStatus.in_progress} color={STATUS_COLORS.in_progress} />
+                                  <MiniStat label={t.status_accepted} value={stats.byStatus.accepted} color={STATUS_COLORS.accepted} />
+                                  <MiniStat label={t.status_cancelled} value={stats.byStatus.cancelled} color={STATUS_COLORS.cancelled} />
+                                </motion.div>
+
+                                {/* Rate Cards */}
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: 0.15 }}
+                                  className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6"
+                                >
+                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                    <Eye className="w-5 h-5 mx-auto mb-2 text-primary" />
+                                    <p className="text-2xl font-bold text-foreground">{stats.responseRate}%</p>
+                                    <p className="text-xs text-muted-foreground">{t.viewedRate}</p>
+                                  </div>
+                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                    <Clock className="w-5 h-5 mx-auto mb-2 text-primary" />
+                                    <p className="text-2xl font-bold text-foreground">{formatResponseTime(stats.avgResponseHours)}</p>
+                                    <p className="text-xs text-muted-foreground">{t.avgResponseTime}</p>
+                                  </div>
+                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                    <Activity className="w-5 h-5 mx-auto mb-2 text-accent" />
+                                    <p className="text-foreground">
+                                      <span className="text-xl font-bold text-accent">{stats.acceptanceRate}%</span>
+                                      <span className="text-muted-foreground mx-1">/</span>
+                                      <span className="text-xl font-bold text-destructive">{stats.cancellationRate}%</span>
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">{t.acceptanceRate} / {t.cancellationRate}</p>
+                                  </div>
+                                </motion.div>
+
+                                {/* Charts Row */}
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                                  {/* Bar Chart */}
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="rounded-xl border border-border bg-background p-4"
+                                  >
+                                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                      <BarChart3 className="w-4 h-4 text-primary" />
+                                      {t.requestsByStatus}
+                                    </h4>
+                                    <ResponsiveContainer width="100%" height={180}>
+                                      <BarChart data={stats.statusChartData}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                                        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }} />
+                                        <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                                          {stats.statusChartData.map((entry, i) => (
+                                            <Cell key={i} fill={STATUS_COLORS[entry.status] || 'hsl(var(--muted-foreground))'} />
+                                          ))}
+                                        </Bar>
+                                      </BarChart>
+                                    </ResponsiveContainer>
+                                  </motion.div>
+
+                                  {/* Donut Chart */}
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.25 }}
+                                    className="rounded-xl border border-border bg-background p-4"
+                                  >
+                                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                      <PieIcon className="w-4 h-4 text-primary" />
+                                      {t.requestsByCategory}
+                                    </h4>
+                                    <ResponsiveContainer width="100%" height={180}>
+                                      <PieChart>
+                                        <Pie data={stats.categoryChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={65} paddingAngle={3}>
+                                          {stats.categoryChartData.map((_, i) => (
+                                            <Cell key={i} fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]} />
+                                          ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }} />
+                                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                                      </PieChart>
+                                    </ResponsiveContainer>
+                                  </motion.div>
+
+                                  {/* Area Chart */}
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 15 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                    className="rounded-xl border border-border bg-background p-4"
+                                  >
+                                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                                      <TrendingUp className="w-4 h-4 text-primary" />
+                                      {t.requestsOverTime}
+                                    </h4>
+                                    <ResponsiveContainer width="100%" height={180}>
+                                      <AreaChart data={stats.timelineData}>
+                                        <defs>
+                                          <linearGradient id={`gradient-${dep.user_id}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="hsl(207, 78%, 46%)" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="hsl(207, 78%, 46%)" stopOpacity={0} />
+                                          </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                        <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={6} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                                        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }} />
+                                        <Area type="monotone" dataKey="count" stroke="hsl(207, 78%, 46%)" fill={`url(#gradient-${dep.user_id})`} strokeWidth={2} />
+                                      </AreaChart>
+                                    </ResponsiveContainer>
+                                  </motion.div>
+                                </div>
+
+                                {/* Recent Requests Table */}
+                                {stats.recent5.length > 0 && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.35 }}
+                                    className="rounded-xl border border-border overflow-hidden"
+                                  >
+                                    <div className="px-4 py-3 bg-muted/30 border-b border-border">
+                                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                        <FileText className="w-4 h-4 text-primary" />
+                                        {t.recentRequests}
+                                      </h4>
+                                    </div>
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead className="text-xs">{t.trackingNumberLabel}</TableHead>
+                                          <TableHead className="text-xs">{t.subjectLabel}</TableHead>
+                                          <TableHead className="text-xs">{t.stepCategory}</TableHead>
+                                          <TableHead className="text-xs">{t.currentStatus}</TableHead>
+                                          <TableHead className="text-xs">{t.dateLabel}</TableHead>
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {stats.recent5.map(req => (
+                                          <TableRow key={req.id}>
+                                            <TableCell className="font-mono text-xs font-bold text-primary">{req.tracking_number}</TableCell>
+                                            <TableCell className="text-xs">{req.subject}</TableCell>
+                                            <TableCell className="text-xs">{t[`cat_${req.category}`] || req.category}</TableCell>
+                                            <TableCell>
+                                              <span
+                                                className="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
+                                                style={{
+                                                  color: STATUS_COLORS[req.status] || 'hsl(var(--muted-foreground))',
+                                                  borderColor: `${STATUS_COLORS[req.status] || 'hsl(var(--border))'}40`,
+                                                  background: `${STATUS_COLORS[req.status] || 'hsl(var(--muted))'}15`,
+                                                }}
+                                              >
+                                                {t[`status_${req.status}`] || req.status}
+                                              </span>
+                                            </TableCell>
+                                            <TableCell className="text-xs text-muted-foreground">
+                                              {new Date(req.created_at).toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR')}
+                                            </TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </motion.div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
                 );
               })}
             </div>
-
-            {/* Charts */}
-            {deputyRequests.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  {/* Bar chart - by status */}
-                  <div className="card-premium p-6">
-                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5 text-primary" />
-                      {t.requestsByStatus}
-                    </h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={statusChartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
-                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                          {statusChartData.map((entry, i) => (
-                            <Cell key={i} fill={STATUS_COLORS[entry.status] || '#6b7280'} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Pie chart - by category */}
-                  <div className="card-premium p-6">
-                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                      <PieIcon className="w-5 h-5 text-primary" />
-                      {t.requestsByCategory}
-                    </h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie data={categoryChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                          {categoryChartData.map((_, i) => (
-                            <Cell key={i} fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Files table */}
-                <div className="card-premium overflow-hidden">
-                  <div className="p-4 border-b border-border">
-                    <h3 className="text-lg font-bold text-foreground">{t.filesTable}</h3>
-                  </div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t.trackingNumberLabel}</TableHead>
-                        <TableHead>{t.subjectLabel}</TableHead>
-                        <TableHead>{t.stepCategory}</TableHead>
-                        <TableHead>{t.currentStatus}</TableHead>
-                        <TableHead>{t.dateLabel}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {deputyRequests.map(req => (
-                        <TableRow key={req.id}>
-                          <TableCell className="font-mono text-sm font-bold text-primary">{req.tracking_number}</TableCell>
-                          <TableCell>{req.subject}</TableCell>
-                          <TableCell className="text-xs">{t[`cat_${req.category}`] || req.category}</TableCell>
-                          <TableCell>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${
-                              req.status === 'submitted' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                              req.status === 'received' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                              req.status === 'processing' ? 'bg-purple-100 text-purple-800 border-purple-200' :
-                              req.status === 'resolved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                              req.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-200' :
-                              'bg-muted text-muted-foreground'
-                            }`}>
-                              {t[`status_${req.status}`] || req.status}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-xs">{new Date(req.created_at).toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR')}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </>
-            ) : (
-              <div className="card-premium p-8 text-center">
-                <p className="text-muted-foreground">{t.noRequests}</p>
-              </div>
-            )}
           </>
         )}
       </main>

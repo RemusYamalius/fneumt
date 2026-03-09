@@ -843,7 +843,7 @@ const SupervisorDashboard = () => {
                                     initial={{ opacity: 0, y: 15 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.25 }}
-                                    className="rounded-xl border border-border bg-background p-4"
+                                    className="rounded-xl border border-purple-200/50 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/60 to-pink-50/30 dark:from-purple-950/20 dark:to-pink-950/10 p-4"
                                   >
                                     <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                                       <PieIcon className="w-4 h-4 text-primary" />

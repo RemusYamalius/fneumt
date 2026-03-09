@@ -176,25 +176,35 @@ const SupervisorDashboard = () => {
       }
     }
 
-    const deputyIds = allDeputyRoles.map(r => r.user_id);
+    // Inject placeholder entries for missing deputy_local_* roles
+    const DEPUTY_LOCAL_ROLES = ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'] as const;
+    if (role === 'local_coordinator') {
+      const existingRoles = new Set(allDeputyRoles.map(r => r.role));
+      DEPUTY_LOCAL_ROLES.forEach(depRole => {
+        if (!existingRoles.has(depRole)) {
+          allDeputyRoles.push({ user_id: `placeholder_${depRole}`, role: depRole, promoted_by: null });
+        }
+      });
+    }
 
-    if (deputyIds.length > 0) {
+    const realDeputyIds = allDeputyRoles.filter(r => !r.user_id.startsWith('placeholder_')).map(r => r.user_id);
+
+    if (realDeputyIds.length > 0) {
       const [profilesRes, requestsRes, allProfilesRes] = await Promise.all([
-        supabase.from('profiles').select('user_id, full_name').in('user_id', deputyIds),
-        supabase.from('requests').select('id, tracking_number, category, status, created_at, subject, assigned_to').in('assigned_to', deputyIds).order('created_at', { ascending: false }),
+        supabase.from('profiles').select('user_id, full_name').in('user_id', realDeputyIds),
+        supabase.from('requests').select('id, tracking_number, category, status, created_at, subject, assigned_to').in('assigned_to', realDeputyIds).order('created_at', { ascending: false }),
         supabase.from('profiles').select('user_id, is_member, membership_verified'),
       ]);
 
       const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p.full_name]));
       setDeputies(allDeputyRoles.map(r => ({
         user_id: r.user_id,
-        full_name: profileMap.get(r.user_id) || null,
+        full_name: r.user_id.startsWith('placeholder_') ? null : (profileMap.get(r.user_id) || null),
         role: r.role,
       })));
       setRequests(requestsRes.data || []);
       setProfiles(allProfilesRes.data || []);
 
-      // Fetch status history for response time calculations
       const requestIds = (requestsRes.data || []).map(r => r.id);
       if (requestIds.length > 0) {
         const { data: historyData } = await supabase
@@ -204,7 +214,12 @@ const SupervisorDashboard = () => {
         setStatusHistory(historyData || []);
       }
     } else {
-      setDeputies([]);
+      // Still set deputies with placeholders
+      setDeputies(allDeputyRoles.map(r => ({
+        user_id: r.user_id,
+        full_name: null,
+        role: r.role,
+      })));
       setRequests([]);
     }
     setLoadingData(false);

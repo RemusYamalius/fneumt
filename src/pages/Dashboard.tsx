@@ -283,11 +283,7 @@ const Dashboard = () => {
           </div>
         </div>
         {/* Sub-bar: role & scope */}
-        <div className="bg-white/10 border-t border-white/10">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-1.5">
-            <p className="text-xs text-white/80 text-center truncate">{roleLabel}</p>
-          </div>
-        </div>
+        <SubBarShimmer roleLabel={roleLabel} dir={dir} />
       </header>
 
       {/* Welcome */}

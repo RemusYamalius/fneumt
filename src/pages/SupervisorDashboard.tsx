@@ -556,6 +556,9 @@ const SupervisorDashboard = () => {
                       }`}
                     >
                       {t[labelKey as keyof typeof t]}
+                      <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] leading-none ${
+                        filterLevel === level ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-background text-muted-foreground'
+                      }`}>{filterCounts.levelCounts[level]}</span>
                     </button>
                   );
                 })}

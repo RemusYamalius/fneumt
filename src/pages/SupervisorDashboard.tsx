@@ -127,7 +127,7 @@ const KPICard = ({ icon: Icon, label, value, suffix, color, delay }: {
     initial={{ opacity: 0, y: 30, scale: 0.95 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ duration: 0.5, delay, ease: 'easeOut' }}
-    className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
+    className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card to-accent/5 p-5 shadow-sm hover:shadow-md transition-shadow"
   >
     <div className="flex items-center gap-3 mb-3">
       <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>

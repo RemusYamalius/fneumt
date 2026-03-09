@@ -1,58 +1,43 @@
 
 
-## التغييرات المطلوبة
+# إظهار بطاقات جميع النواب الثلاثة (ابتدائي، إعدادي، ثانوي)
 
-ثلاث تعديلات رئيسية على صفحة "طلب جديد":
+## المشكلة
+حالياً لا يظهر سوى النائب المعيّن فعلاً. النائبان الآخران (اللذان لم يُعيَّنا بعد) لا يظهران.
 
----
+## الحل
+تعديل `fetchData` في `SupervisorDashboard.tsx` لإضافة بطاقات وهمية (placeholder) للأدوار الثلاثة غير الممثلة:
 
-### 1. ترتيب البطاقات RTL
+### التغيير في `src/pages/SupervisorDashboard.tsx`
 
-في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
+**بعد جلب النواب الحقيقيين (سطر 179):**
+- إضافة منطق يتحقق من وجود الأدوار الثلاثة: `deputy_local_primary`, `deputy_local_middle`, `deputy_local_high`
+- لكل دور غير موجود، يُضاف عنصر placeholder بـ `user_id: placeholder_deputy_local_*` واسم `null`
 
----
-
-### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
-
-عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
-- **الموضوع** (إلزامي) — `Input`
-- **الوصف** (اختياري) — `Textarea`
-
-تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
-
-تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
-
----
-
-### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
-
-- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
-- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
-  1. المصالح المركزية للوزارة
-  2. الأكاديمية الجهوية
-  3. المديرية الإقليمية
-  4. المؤسسة مقر العمل
-
-- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
-- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
-
-**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
-
----
-
-### الملفات المعنية
-
-| الملف | التعديل |
-|---|---|
-| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
-| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
-| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
-
-### تدفق الخطوات الجديد:
-```text
-1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
-2. مستوى حل المشكل (4 اختيارات)
-3. المرفقات
-4. المراجعة
+```typescript
+const DEPUTY_LOCAL_ROLES = ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'];
+if (role === 'local_coordinator') {
+  const existingRoles = new Set(allDeputyRoles.map(r => r.role));
+  DEPUTY_LOCAL_ROLES.forEach(depRole => {
+    if (!existingRoles.has(depRole)) {
+      allDeputyRoles.push({ user_id: `placeholder_${depRole}`, role: depRole, promoted_by: null });
+    }
+  });
+}
 ```
+
+**تعديل استعلامات البيانات:**
+- فلترة الـ placeholders عند إرسال الاستعلامات لقاعدة البيانات (`realDeputyIds` فقط)
+- في حالة عدم وجود نواب حقيقيين، لا يزال يتم تعيين deputies بالـ placeholders
+
+**تعديل عرض رأس البطاقة:**
+- إذا كان `full_name` فارغاً والـ `user_id` يبدأ بـ `placeholder_`: إظهار نص "في انتظار التعيين" بدلاً من الاسم
+- إظهار شارة "غير معيّن" بلون رمادي
+
+**إزالة شرط `deputies.length === 0`:**
+- بما أن الـ placeholders ستضمن وجود 3 عناصر دائماً للمنسق المحلي، لن تظهر رسالة "لا يوجد نواب"
+
+### إضافة ترجمات في `src/lib/i18n.tsx`
+- `awaitingAssignment`: "في انتظار التعيين" / "En attente d'affectation"
+- `notAssigned`: "غير معيّن" / "Non affecté"
 

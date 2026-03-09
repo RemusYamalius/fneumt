@@ -1,58 +1,42 @@
 
 
-## التغييرات المطلوبة
+## Plan: Fix Table Alignment & Add Colored Backgrounds to Supervisor Dashboard
 
-ثلاث تعديلات رئيسية على صفحة "طلب جديد":
+### Problem 1: Table Column Misalignment
+The "Recent Requests" table headers don't align with their data columns. The issue is that the table inside a rounded container with RTL direction causes misalignment. Fix by adding explicit `text-start` alignment to `TableHead` and `TableCell`, and ensuring consistent column widths.
 
----
+### Problem 2: Add Colored Backgrounds (like reference image)
+The reference image shows a dashboard with colored card backgrounds (soft blues, purples, grays). Currently all sections use plain `bg-card` or `bg-background`. Will add subtle gradient/colored backgrounds to:
+- KPI cards
+- Filter section
+- Deputy cards (header area)
+- Charts section
+- Rate cards
+- Mini stats row
+- Recent requests table wrapper
 
-### 1. ترتيب البطاقات RTL
+### Changes
 
-في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
+**File: `src/pages/SupervisorDashboard.tsx`**
 
----
+1. **Fix table**: Add `text-start` to all `TableHead` and `TableCell` elements, set `dir="rtl"` on the table wrapper to ensure proper RTL alignment, and add `whitespace-nowrap` to prevent column wrapping issues.
 
-### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
+2. **KPI cards** (line ~130): Add soft colored background tints matching each card's accent color instead of plain `bg-card`.
 
-عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
-- **الموضوع** (إلزامي) — `Input`
-- **الوصف** (اختياري) — `Textarea`
+3. **Filter section** (line ~597): Add a subtle colored background container (`bg-gradient-to-br from-slate-100/80 to-blue-50/50` or similar muted tint).
 
-تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
+4. **Deputy cards** (line ~671): Add a subtle gradient background to the card itself.
 
-تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
+5. **Charts row** (lines 816-891): Add colored background tints to each chart card (e.g., soft blue, soft purple, soft teal).
 
----
+6. **Rate cards** (lines 792-811): Replace `bg-muted/30` with soft colored backgrounds.
 
-### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
+7. **Mini stats** (line ~147): Add subtle colored pill backgrounds.
 
-- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
-- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
-  1. المصالح المركزية للوزارة
-  2. الأكاديمية الجهوية
-  3. المديرية الإقليمية
-  4. المؤسسة مقر العمل
+8. **Recent requests table** (line ~900): Add colored header row background.
 
-- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
-- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
-
-**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
-
----
-
-### الملفات المعنية
-
-| الملف | التعديل |
-|---|---|
-| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
-| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
-| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
-
-### تدفق الخطوات الجديد:
-```text
-1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
-2. مستوى حل المشكل (4 اختيارات)
-3. المرفقات
-4. المراجعة
-```
+### Summary of visual changes
+- Soft pastel/gradient backgrounds on all dashboard sections
+- Properly aligned RTL table with fixed column headers
+- Consistent with the budget dashboard reference aesthetic (colored cards over a tinted background)
 

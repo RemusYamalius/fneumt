@@ -18,6 +18,8 @@ interface Deputy {
   full_name: string | null;
   role: string;
   teamSize?: number;
+  academy?: string | null;
+  directorate?: string | null;
 }
 
 interface RequestData {

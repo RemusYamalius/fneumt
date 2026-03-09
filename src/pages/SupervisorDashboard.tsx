@@ -504,6 +504,11 @@ const SupervisorDashboard = () => {
                           </h3>
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-xs text-muted-foreground">{getRoleLabel(dep.role)}</p>
+                            {!isPlaceholder && dep.directorate && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">
+                                {dep.directorate}
+                              </span>
+                            )}
                             {isPlaceholder && (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">{t.notAssigned}</span>
                             )}

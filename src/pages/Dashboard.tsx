@@ -10,10 +10,9 @@ import { ar, fr } from 'date-fns/locale';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 const Dashboard = () => {
-  const { t, toggleLang, dir, lang } = useI18n();
-  const { user, profile, role, loading, signOut } = useAuth();
+  const { t, dir, lang } = useI18n();
+  const { user, profile, role, loading } = useAuth();
   const navigate = useNavigate();
-  const { unreadCount } = useRealtimeNotifications(user?.id);
   const [pendingCount, setPendingCount] = useState(0);
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);

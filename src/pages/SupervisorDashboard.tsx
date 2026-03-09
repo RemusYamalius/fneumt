@@ -186,7 +186,7 @@ const SupervisorDashboard = () => {
       ]);
 
       const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p.full_name]));
-      setDeputies((rolesData || []).map(r => ({
+      setDeputies(allDeputyRoles.map(r => ({
         user_id: r.user_id,
         full_name: profileMap.get(r.user_id) || null,
         role: r.role,

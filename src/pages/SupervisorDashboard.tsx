@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon, TrendingUp, Clock, CheckCircle2, XCircle, Eye, FileText, Activity, UserCheck, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon, TrendingUp, Clock, CheckCircle2, XCircle, Eye, FileText, Activity, UserCheck, ChevronDown, UsersRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,6 +17,7 @@ interface Deputy {
   user_id: string;
   full_name: string | null;
   role: string;
+  teamSize?: number;
 }
 
 interface RequestData {
@@ -55,6 +56,29 @@ const CATEGORY_COLORS = [
   'hsl(0, 78%, 48%)', 'hsl(268, 61%, 52%)', 'hsl(340, 65%, 47%)',
   'hsl(180, 60%, 40%)', 'hsl(30, 90%, 50%)',
 ];
+
+// Subordinate role mapping
+const TRIO_ROLES: Record<string, string[]> = {
+  local_coordinator: ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'],
+  provincial_manager: ['deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high'],
+  regional_supervisor: ['deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],
+};
+
+// Area-based subordinate discovery config
+const AREA_CONFIG: Record<string, { subordinates: string[]; matchFields: ('academy' | 'directorate')[] }> = {
+  local_coordinator: {
+    subordinates: ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'],
+    matchFields: ['academy', 'directorate'],
+  },
+  provincial_manager: {
+    subordinates: ['deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high'],
+    matchFields: ['academy', 'directorate'],
+  },
+  regional_supervisor: {
+    subordinates: ['deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],
+    matchFields: ['academy'],
+  },
+};
 
 /* ── Animated counter ── */
 const AnimatedNumber = ({ value, suffix = '' }: { value: number; suffix?: string }) => {
@@ -122,65 +146,75 @@ const SupervisorDashboard = () => {
   }, [loading, user, navigate]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !role) return;
     fetchData();
-  }, [user]);
+  }, [user, role]);
 
   const fetchData = async () => {
-    if (!user) return;
+    if (!user || !role) return;
     setLoadingData(true);
 
-    // Strategy 1: deputies linked via promoted_by
-    const { data: rolesData } = await supabase
-      .from('user_roles')
-      .select('user_id, role, promoted_by')
-      .eq('promoted_by', user.id);
+    let allDeputyRoles: { user_id: string; role: string; promoted_by: string | null }[] = [];
 
-    let allDeputyRoles = [...(rolesData || [])];
+    if (role === 'admin') {
+      // Admin sees all regional_supervisors
+      const { data } = await supabase
+        .from('user_roles')
+        .select('user_id, role, promoted_by')
+        .eq('role', 'regional_supervisor');
+      allDeputyRoles = data || [];
+    } else {
+      // Strategy 1: subordinates linked via promoted_by
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role, promoted_by')
+        .eq('promoted_by', user.id);
+      allDeputyRoles = [...(rolesData || [])];
 
-    // Strategy 2: for local_coordinator, also find deputy_local_* in same area
-    if (role === 'local_coordinator') {
-      const { data: myProfile } = await supabase
-        .from('profiles')
-        .select('academy, directorate')
-        .eq('user_id', user.id)
-        .single();
-
-      if (myProfile?.academy && myProfile?.directorate) {
-        // Get all profiles in same area
-        const { data: areaProfiles } = await supabase
+      // Strategy 2: area-based lookup for trio-supervisor roles
+      const areaConfig = AREA_CONFIG[role];
+      if (areaConfig) {
+        const { data: myProfile } = await supabase
           .from('profiles')
-          .select('user_id')
-          .eq('academy', myProfile.academy)
-          .eq('directorate', myProfile.directorate)
-          .neq('user_id', user.id);
+          .select('academy, directorate')
+          .eq('user_id', user.id)
+          .single();
 
-        const areaUserIds = (areaProfiles || []).map(p => p.user_id);
+        if (myProfile) {
+          let query = supabase.from('profiles').select('user_id').neq('user_id', user.id);
+          if (areaConfig.matchFields.includes('academy') && myProfile.academy) {
+            query = query.eq('academy', myProfile.academy);
+          }
+          if (areaConfig.matchFields.includes('directorate') && myProfile.directorate) {
+            query = query.eq('directorate', myProfile.directorate);
+          }
+          const { data: areaProfiles } = await query;
+          const areaUserIds = (areaProfiles || []).map(p => p.user_id);
 
-        if (areaUserIds.length > 0) {
-          const { data: areaRoles } = await supabase
-            .from('user_roles')
-            .select('user_id, role, promoted_by')
-            .in('user_id', areaUserIds)
-            .in('role', ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high']);
+          if (areaUserIds.length > 0) {
+            const { data: areaRoles } = await supabase
+              .from('user_roles')
+              .select('user_id, role, promoted_by')
+              .in('user_id', areaUserIds)
+              .in('role', areaConfig.subordinates);
 
-          // Merge and deduplicate
-          const existingIds = new Set(allDeputyRoles.map(r => r.user_id));
-          (areaRoles || []).forEach(r => {
-            if (!existingIds.has(r.user_id)) {
-              allDeputyRoles.push(r);
-              existingIds.add(r.user_id);
-            }
-          });
+            const existingIds = new Set(allDeputyRoles.map(r => r.user_id));
+            (areaRoles || []).forEach(r => {
+              if (!existingIds.has(r.user_id)) {
+                allDeputyRoles.push(r);
+                existingIds.add(r.user_id);
+              }
+            });
+          }
         }
       }
     }
 
-    // Inject placeholder entries for missing deputy_local_* roles
-    const DEPUTY_LOCAL_ROLES = ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'] as const;
-    if (role === 'local_coordinator') {
+    // Inject placeholders for trio-roles (local_coordinator, provincial_manager, regional_supervisor)
+    const expectedRoles = TRIO_ROLES[role || ''];
+    if (expectedRoles) {
       const existingRoles = new Set(allDeputyRoles.map(r => r.role));
-      DEPUTY_LOCAL_ROLES.forEach(depRole => {
+      expectedRoles.forEach(depRole => {
         if (!existingRoles.has(depRole)) {
           allDeputyRoles.push({ user_id: `placeholder_${depRole}`, role: depRole, promoted_by: null });
         }
@@ -190,17 +224,28 @@ const SupervisorDashboard = () => {
     const realDeputyIds = allDeputyRoles.filter(r => !r.user_id.startsWith('placeholder_')).map(r => r.user_id);
 
     if (realDeputyIds.length > 0) {
-      const [profilesRes, requestsRes, allProfilesRes] = await Promise.all([
+      const [profilesRes, requestsRes, allProfilesRes, teamCountsRes] = await Promise.all([
         supabase.from('profiles').select('user_id, full_name').in('user_id', realDeputyIds),
         supabase.from('requests').select('id, tracking_number, category, status, created_at, subject, assigned_to').in('assigned_to', realDeputyIds).order('created_at', { ascending: false }),
         supabase.from('profiles').select('user_id, is_member, membership_verified'),
+        supabase.from('user_roles').select('promoted_by').in('promoted_by', realDeputyIds),
       ]);
 
       const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p.full_name]));
+
+      // Count team members per deputy
+      const teamCounts = new Map<string, number>();
+      (teamCountsRes.data || []).forEach(r => {
+        if (r.promoted_by) {
+          teamCounts.set(r.promoted_by, (teamCounts.get(r.promoted_by) || 0) + 1);
+        }
+      });
+
       setDeputies(allDeputyRoles.map(r => ({
         user_id: r.user_id,
         full_name: r.user_id.startsWith('placeholder_') ? null : (profileMap.get(r.user_id) || null),
         role: r.role,
+        teamSize: r.user_id.startsWith('placeholder_') ? 0 : (teamCounts.get(r.user_id) || 0),
       })));
       setRequests(requestsRes.data || []);
       setProfiles(allProfilesRes.data || []);
@@ -214,11 +259,11 @@ const SupervisorDashboard = () => {
         setStatusHistory(historyData || []);
       }
     } else {
-      // Still set deputies with placeholders
       setDeputies(allDeputyRoles.map(r => ({
         user_id: r.user_id,
         full_name: null,
         role: r.role,
+        teamSize: 0,
       })));
       setRequests([]);
     }
@@ -232,8 +277,9 @@ const SupervisorDashboard = () => {
     const viewed = requests.filter(r => ['viewed', 'in_progress', 'accepted', 'cancelled'].includes(r.status)).length;
     const responseRate = total > 0 ? Math.round((viewed / total) * 100) : 0;
     const verifiedCount = profiles.filter(p => p.membership_verified === true).length;
-    return { total, processed, responseRate, verifiedCount };
-  }, [requests, profiles]);
+    const totalSubordinates = deputies.filter(d => !d.user_id.startsWith('placeholder_')).length;
+    return { total, processed, responseRate, verifiedCount, totalSubordinates };
+  }, [requests, profiles, deputies]);
 
   /* ── Per-deputy stats ── */
   const getDeputyStats = (deputyId: string) => {
@@ -307,6 +353,10 @@ const SupervisorDashboard = () => {
     return `${hours.toFixed(1)} ${t.hours}`;
   };
 
+  // Check if subordinate role handles requests directly
+  const isDirectRequestHandler = (depRole: string) =>
+    ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(depRole);
+
   if (loading || !user) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -366,10 +416,10 @@ const SupervisorDashboard = () => {
           <>
             {/* Global KPIs */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <KPICard icon={FileText} label={t.totalRequests} value={globalKPIs.total} color="hsl(207, 78%, 46%)" delay={0} />
-              <KPICard icon={CheckCircle2} label={t.processedRequests} value={globalKPIs.processed} color="hsl(146, 63%, 38%)" delay={0.1} />
-              <KPICard icon={Eye} label={t.responseRate} value={globalKPIs.responseRate} suffix="%" color="hsl(268, 61%, 52%)" delay={0.2} />
-              <KPICard icon={UserCheck} label={t.verifiedMembers} value={globalKPIs.verifiedCount} color="hsl(38, 92%, 46%)" delay={0.3} />
+              <KPICard icon={UsersRound} label={t.totalSubordinates} value={globalKPIs.totalSubordinates} color="hsl(207, 78%, 46%)" delay={0} />
+              <KPICard icon={FileText} label={t.totalRequests} value={globalKPIs.total} color="hsl(146, 63%, 38%)" delay={0.1} />
+              <KPICard icon={CheckCircle2} label={t.processedRequests} value={globalKPIs.processed} color="hsl(268, 61%, 52%)" delay={0.2} />
+              <KPICard icon={Eye} label={t.responseRate} value={globalKPIs.responseRate} suffix="%" color="hsl(38, 92%, 46%)" delay={0.3} />
             </div>
 
             {/* Deputy Cards */}
@@ -377,6 +427,8 @@ const SupervisorDashboard = () => {
               {deputies.map((dep, idx) => {
                 const stats = getDeputyStats(dep.user_id);
                 const isExpanded = expandedDeputy === dep.user_id;
+                const isPlaceholder = dep.user_id.startsWith('placeholder_');
+                const handlesRequests = isDirectRequestHandler(dep.role);
 
                 return (
                   <motion.div
@@ -388,45 +440,62 @@ const SupervisorDashboard = () => {
                   >
                     {/* Deputy Header */}
                     <button
-                      onClick={() => setExpandedDeputy(isExpanded ? null : dep.user_id)}
-                      className="w-full p-5 flex items-center justify-between text-start"
+                      onClick={() => !isPlaceholder && setExpandedDeputy(isExpanded ? null : dep.user_id)}
+                      className={`w-full p-5 flex items-center justify-between text-start ${isPlaceholder ? 'cursor-default' : ''}`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md ${dep.user_id.startsWith('placeholder_') ? 'bg-muted-foreground/30' : 'bg-gradient-to-br from-primary to-secondary'}`}>
-                          {dep.user_id.startsWith('placeholder_') ? '?' : (dep.full_name || '?')[0]}
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md ${isPlaceholder ? 'bg-muted-foreground/30' : 'bg-gradient-to-br from-primary to-secondary'}`}>
+                          {isPlaceholder ? '?' : (dep.full_name || '?')[0]}
                         </div>
                         <div>
                           <h3 className="text-lg font-bold text-foreground">
-                            {dep.user_id.startsWith('placeholder_') ? t.awaitingAssignment : (dep.full_name || '—')}
+                            {isPlaceholder ? t.awaitingAssignment : (dep.full_name || '—')}
                           </h3>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-xs text-muted-foreground">{getRoleLabel(dep.role)}</p>
-                            {dep.user_id.startsWith('placeholder_') && (
+                            {isPlaceholder && (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">{t.notAssigned}</span>
+                            )}
+                            {!isPlaceholder && (dep.teamSize ?? 0) > 0 && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary flex items-center gap-1">
+                                <UsersRound className="w-3 h-3" />
+                                {dep.teamSize} {t.teamMembers}
+                              </span>
                             )}
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex items-center gap-3">
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                            {stats.total} {t.totalRequests}
-                          </span>
-                          {stats.responseRate > 0 && (
-                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent/10 text-accent">
-                              {stats.responseRate}% {t.responseRate}
-                            </span>
-                          )}
-                        </div>
-                        <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                        </motion.div>
+                        {!isPlaceholder && (
+                          <div className="hidden sm:flex items-center gap-3">
+                            {handlesRequests && (
+                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
+                                {stats.total} {t.totalRequests}
+                              </span>
+                            )}
+                            {!handlesRequests && (dep.teamSize ?? 0) > 0 && (
+                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent/10 text-accent">
+                                {dep.teamSize} {t.appointedLabel}
+                              </span>
+                            )}
+                            {handlesRequests && stats.responseRate > 0 && (
+                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent/10 text-accent">
+                                {stats.responseRate}% {t.responseRate}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {!isPlaceholder && (
+                          <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                          </motion.div>
+                        )}
                       </div>
                     </button>
 
                     {/* Expanded Content */}
                     <AnimatePresence>
-                      {isExpanded && (
+                      {isExpanded && !isPlaceholder && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -435,9 +504,32 @@ const SupervisorDashboard = () => {
                           className="overflow-hidden"
                         >
                           <div className="px-5 pb-6 border-t border-border pt-5">
-                            {stats.total === 0 ? (
+                            {/* For non-request-handlers, show team info */}
+                            {!handlesRequests && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mb-6"
+                              >
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                    <UsersRound className="w-5 h-5 mx-auto mb-2 text-primary" />
+                                    <p className="text-2xl font-bold text-foreground">{dep.teamSize || 0}</p>
+                                    <p className="text-xs text-muted-foreground">{t.appointedSubordinates}</p>
+                                  </div>
+                                  <div className="rounded-xl bg-muted/30 border border-border p-4 text-center">
+                                    <FileText className="w-5 h-5 mx-auto mb-2 text-primary" />
+                                    <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                                    <p className="text-xs text-muted-foreground">{t.directRequests}</p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+
+                            {/* For request handlers, show full analytics */}
+                            {handlesRequests && stats.total === 0 ? (
                               <p className="text-center text-muted-foreground py-8">{t.noRequestsForDeputy}</p>
-                            ) : (
+                            ) : handlesRequests ? (
                               <>
                                 {/* Mini Stats Row */}
                                 <motion.div
@@ -614,6 +706,11 @@ const SupervisorDashboard = () => {
                                   </motion.div>
                                 )}
                               </>
+                            ) : null}
+
+                            {/* For non-request-handlers with 0 direct requests, show info message */}
+                            {!handlesRequests && stats.total === 0 && (dep.teamSize ?? 0) === 0 && (
+                              <p className="text-center text-muted-foreground py-4">{t.noActivityYet}</p>
                             )}
                           </div>
                         </motion.div>

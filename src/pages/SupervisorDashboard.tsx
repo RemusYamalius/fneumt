@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon, TrendingUp, Clock, CheckCircle2, XCircle, Eye, FileText, Activity, UserCheck, ChevronDown, UsersRound } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon, TrendingUp, Clock, CheckCircle2, XCircle, Eye, FileText, Activity, UserCheck, ChevronDown, UsersRound, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -158,6 +158,34 @@ const SupervisorDashboard = () => {
   const [profiles, setProfiles] = useState<ProfileData[]>([]);
   const [expandedDeputy, setExpandedDeputy] = useState<string | null>(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [filterLevel, setFilterLevel] = useState<'all' | 'regional' | 'provincial' | 'local'>('all');
+  const [filterCorps, setFilterCorps] = useState<'all' | 'primary' | 'middle' | 'high'>('all');
+
+  const filteredDeputies = useMemo(() => {
+    return deputies.filter(dep => {
+      // Level filter
+      if (filterLevel !== 'all') {
+        const levelMap: Record<string, string[]> = {
+          regional: ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],
+          provincial: ['provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high'],
+          local: ['local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'],
+        };
+        if (!levelMap[filterLevel]?.includes(dep.role)) return false;
+      }
+      // Corps filter
+      if (filterCorps !== 'all') {
+        const corpsMap: Record<string, string[]> = {
+          primary: ['deputy_regional_primary', 'deputy_provincial_primary', 'deputy_local_primary'],
+          middle: ['deputy_regional_middle', 'deputy_provincial_middle', 'deputy_local_middle'],
+          high: ['deputy_regional_high', 'deputy_provincial_high', 'deputy_local_high'],
+        };
+        // Non-corps roles (supervisor, manager, coordinator) show in all corps filters
+        const allCorpsRoles = ['regional_supervisor', 'provincial_manager', 'local_coordinator'];
+        if (!corpsMap[filterCorps]?.includes(dep.role) && !allCorpsRoles.includes(dep.role)) return false;
+      }
+      return true;
+    });
+  }, [deputies, filterLevel, filterCorps]);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -495,9 +523,64 @@ const SupervisorDashboard = () => {
               <KPICard icon={Eye} label={t.responseRate} value={globalKPIs.responseRate} suffix="%" color="hsl(38, 92%, 46%)" delay={0.3} />
             </div>
 
+            {/* Filters */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              className="flex flex-wrap items-center gap-3 mb-6"
+            >
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Filter className="w-4 h-4" />
+                <span className="font-medium">{t.filterByLevel}:</span>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {(['all', 'regional', 'provincial', 'local'] as const).map(level => {
+                  const labelKey = level === 'all' ? 'filterLevelAll' : `filter${level.charAt(0).toUpperCase() + level.slice(1)}`;
+                  return (
+                    <button
+                      key={level}
+                      onClick={() => setFilterLevel(level)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        filterLevel === level
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {t[labelKey as keyof typeof t]}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-medium">{t.filterByCorps}:</span>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {(['all', 'primary', 'middle', 'high'] as const).map(corps => {
+                  const labelKey = corps === 'all' ? 'filterCorpsAll' : `filter${corps.charAt(0).toUpperCase() + corps.slice(1)}`;
+                  return (
+                    <button
+                      key={corps}
+                      onClick={() => setFilterCorps(corps)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        filterCorps === corps
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {t[labelKey as keyof typeof t]}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+
             {/* Deputy Cards */}
             <div className="space-y-4">
-              {deputies.map((dep, idx) => {
+              {filteredDeputies.map((dep, idx) => {
                 const stats = getDeputyStats(dep.user_id);
                 const isExpanded = expandedDeputy === dep.user_id;
                 const isPlaceholder = dep.user_id.startsWith('placeholder_');

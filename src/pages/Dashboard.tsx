@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, Bell, Globe, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter } from 'lucide-react';
+import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';

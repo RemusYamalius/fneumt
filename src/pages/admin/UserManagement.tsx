@@ -129,6 +129,18 @@ const UserManagement = () => {
     <AuthenticatedLayout>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
+        {/* Back button */}
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/dashboard')}
+            className="rounded-full bg-gradient-to-r from-[hsl(207,78%,28%)] to-[hsl(207,78%,38%)] text-white hover:from-[hsl(207,78%,24%)] hover:to-[hsl(207,78%,34%)] hover:text-white px-5 py-2 gap-2 shadow-md"
+          >
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            {dir === 'rtl' ? 'العودة للوحة التحكم' : 'Retour au tableau de bord'}
+          </Button>
+        </div>
+
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
             <Users className="w-6 h-6 text-primary" />

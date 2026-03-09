@@ -237,6 +237,12 @@ const SupervisorDashboard = () => {
       });
     }
 
+    // Inject placeholder for single-subordinate roles (deputy_regional_*, deputy_provincial_*)
+    const singleSubRole = SINGLE_SUBORDINATE[role || ''];
+    if (singleSubRole && allDeputyRoles.length === 0) {
+      allDeputyRoles.push({ user_id: `placeholder_${singleSubRole}`, role: singleSubRole, promoted_by: null });
+    }
+
     const realDeputyIds = allDeputyRoles.filter(r => !r.user_id.startsWith('placeholder_')).map(r => r.user_id);
 
     if (realDeputyIds.length > 0) {

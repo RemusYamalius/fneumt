@@ -78,6 +78,22 @@ const AREA_CONFIG: Record<string, { subordinates: string[]; matchFields: ('acade
     subordinates: ['deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],
     matchFields: ['academy'],
   },
+  deputy_regional_primary: { subordinates: ['provincial_manager'], matchFields: ['academy'] },
+  deputy_regional_middle: { subordinates: ['provincial_manager'], matchFields: ['academy'] },
+  deputy_regional_high: { subordinates: ['provincial_manager'], matchFields: ['academy'] },
+  deputy_provincial_primary: { subordinates: ['local_coordinator'], matchFields: ['academy', 'directorate'] },
+  deputy_provincial_middle: { subordinates: ['local_coordinator'], matchFields: ['academy', 'directorate'] },
+  deputy_provincial_high: { subordinates: ['local_coordinator'], matchFields: ['academy', 'directorate'] },
+};
+
+// Single subordinate roles (non-trio deputies that expect one subordinate type)
+const SINGLE_SUBORDINATE: Record<string, string> = {
+  deputy_regional_primary: 'provincial_manager',
+  deputy_regional_middle: 'provincial_manager',
+  deputy_regional_high: 'provincial_manager',
+  deputy_provincial_primary: 'local_coordinator',
+  deputy_provincial_middle: 'local_coordinator',
+  deputy_provincial_high: 'local_coordinator',
 };
 
 /* ── Animated counter ── */

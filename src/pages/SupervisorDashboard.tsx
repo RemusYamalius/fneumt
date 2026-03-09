@@ -559,19 +559,22 @@ const SupervisorDashboard = () => {
                 <span className="font-medium">{t.filterByCorps}:</span>
               </div>
               <div className="flex gap-1.5 flex-wrap">
-                {(['all', 'primary', 'middle', 'high'] as const).map(corps => (
-                  <button
-                    key={corps}
-                    onClick={() => setFilterCorps(corps)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                      filterCorps === corps
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
-                    {t[`filter${corps.charAt(0).toUpperCase() + corps.slice(1)}` as keyof typeof t]}
-                  </button>
-                ))}
+                {(['all', 'primary', 'middle', 'high'] as const).map(corps => {
+                  const labelKey = corps === 'all' ? 'filterCorpsAll' : `filter${corps.charAt(0).toUpperCase() + corps.slice(1)}`;
+                  return (
+                    <button
+                      key={corps}
+                      onClick={() => setFilterCorps(corps)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        filterCorps === corps
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {t[labelKey as keyof typeof t]}
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
 

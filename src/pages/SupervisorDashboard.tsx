@@ -130,12 +130,53 @@ const SupervisorDashboard = () => {
     if (!user) return;
     setLoadingData(true);
 
+    // Strategy 1: deputies linked via promoted_by
     const { data: rolesData } = await supabase
       .from('user_roles')
       .select('user_id, role, promoted_by')
       .eq('promoted_by', user.id);
 
-    const deputyIds = (rolesData || []).map(r => r.user_id);
+    let allDeputyRoles = [...(rolesData || [])];
+
+    // Strategy 2: for local_coordinator, also find deputy_local_* in same area
+    if (role === 'local_coordinator') {
+      const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('academy, directorate')
+        .eq('user_id', user.id)
+        .single();
+
+      if (myProfile?.academy && myProfile?.directorate) {
+        // Get all profiles in same area
+        const { data: areaProfiles } = await supabase
+          .from('profiles')
+          .select('user_id')
+          .eq('academy', myProfile.academy)
+          .eq('directorate', myProfile.directorate)
+          .neq('user_id', user.id);
+
+        const areaUserIds = (areaProfiles || []).map(p => p.user_id);
+
+        if (areaUserIds.length > 0) {
+          const { data: areaRoles } = await supabase
+            .from('user_roles')
+            .select('user_id, role, promoted_by')
+            .in('user_id', areaUserIds)
+            .in('role', ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high']);
+
+          // Merge and deduplicate
+          const existingIds = new Set(allDeputyRoles.map(r => r.user_id));
+          (areaRoles || []).forEach(r => {
+            if (!existingIds.has(r.user_id)) {
+              allDeputyRoles.push(r);
+              existingIds.add(r.user_id);
+            }
+          });
+        }
+      }
+    }
+
+    const deputyIds = allDeputyRoles.map(r => r.user_id);
 
     if (deputyIds.length > 0) {
       const [profilesRes, requestsRes, allProfilesRes] = await Promise.all([

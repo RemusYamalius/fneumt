@@ -480,6 +480,23 @@ const SupervisorDashboard = () => {
     <AuthenticatedLayout>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        {/* Back button */}
+        <motion.div
+          initial={{ opacity: 0, x: dir === 'rtl' ? 20 : -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/dashboard')}
+            className="rounded-full bg-gradient-to-r from-[hsl(207,78%,28%)] to-[hsl(207,78%,38%)] text-white hover:from-[hsl(207,78%,24%)] hover:to-[hsl(207,78%,34%)] hover:text-white px-5 py-2 gap-2 shadow-md"
+          >
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            {dir === 'rtl' ? 'العودة للوحة التحكم' : 'Retour au tableau de bord'}
+          </Button>
+        </motion.div>
+
         {/* Title */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <motion.div

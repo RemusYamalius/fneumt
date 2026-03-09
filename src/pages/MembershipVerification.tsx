@@ -282,7 +282,7 @@ const MembershipVerification = () => {
           </div>
         )}
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

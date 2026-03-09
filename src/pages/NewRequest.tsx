@@ -508,7 +508,7 @@ const NewRequest = () => {
           )}
         </div>
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

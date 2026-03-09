@@ -473,7 +473,7 @@ const IncomingRequests = () => {
           </div>
         )}
       </div>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

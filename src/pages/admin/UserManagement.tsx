@@ -234,7 +234,7 @@ const UserManagement = () => {
           </div>
         )}
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

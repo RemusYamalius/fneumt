@@ -882,7 +882,7 @@ const SupervisorDashboard = () => {
           </>
         )}
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

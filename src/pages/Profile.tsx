@@ -310,7 +310,7 @@ const Profile = () => {
           </Button>
         </div>
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

@@ -205,6 +205,8 @@ const translations: Record<Lang, Record<string, string>> = {
     supervisorDashboardDesc: 'تتبع أداء النواب المعيّنين',
     deputies: 'النواب',
     noDeputies: 'لا يوجد نواب معيّنون',
+    awaitingAssignment: 'في انتظار التعيين',
+    notAssigned: 'غير معيّن',
     requestsByStatus: 'الطلبات حسب الحالة',
     requestsByCategory: 'الطلبات حسب الفئة',
     filesTable: 'جدول الملفات',

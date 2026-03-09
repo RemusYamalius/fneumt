@@ -229,45 +229,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      {/* Top Bar */}
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AnimatedLogo size="w-12 h-12 sm:w-16 sm:h-16" />
-            <p className="font-bold text-sm sm:text-base leading-tight">{t.platformName}</p>
-          </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="flex items-center"><VerifiedBadge status={badgeStatus} size={22} /></span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t[`badge_${badgeStatus}`]}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <button onClick={toggleLang} className="p-2 rounded-full hover:bg-white/10 transition-colors">
-              <Globe className="w-5 h-5" />
-            </button>
-            <button className="p-2 rounded-full hover:bg-white/10 transition-colors relative">
-              <Bell className="w-5 h-5" />
-              {pendingCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {pendingCount > 99 ? '99+' : pendingCount}
-                </span>
-              )}
-            </button>
-            <button onClick={handleSignOut} className="p-2 rounded-full hover:bg-white/10 transition-colors">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        {/* Sub-bar: role & scope */}
-        <SubBarShimmer roleLabel={roleLabel} dir={dir} />
-      </header>
-
+    <AuthenticatedLayout>
       {/* Welcome */}
       <main className="max-w-5xl mx-auto px-6 py-8">
         <motion.h1
@@ -328,7 +290,7 @@ const Dashboard = () => {
           dir={dir}
         />
       </main>
-    </div>
+    </AuthenticatedLayout>
   );
 };
 

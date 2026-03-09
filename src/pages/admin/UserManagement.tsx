@@ -126,22 +126,7 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AnimatedLogo size="w-20 h-20" />
-            <div>
-              <p className="font-bold text-sm">{t.platformName}</p>
-              <p className="text-xs text-white/70">{t.userManagement}</p>
-            </div>
-          </div>
-          <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => navigate('/dashboard')}>
-            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-            {t.backToDashboard}
-          </Button>
-        </div>
-      </header>
+    <AuthenticatedLayout>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">

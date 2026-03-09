@@ -149,13 +149,7 @@ const Profile = () => {
   const selectTriggerClasses = "bg-muted/50 border-border/60 focus:border-primary focus:bg-background transition-colors";
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      <header className="gradient-primary text-white shadow-lg">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-3">
-          <AnimatedLogo size="w-20 h-20" />
-          <p className="font-bold text-sm">{t.platformName}</p>
-        </div>
-      </header>
+    <AuthenticatedLayout>
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         <button

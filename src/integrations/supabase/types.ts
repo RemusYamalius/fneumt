@@ -294,6 +294,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_area_coordinator: {
+        Args: { _coordinator_id: string; _deputy_user_id: string }
+        Returns: boolean
+      }
       is_assigned_officer: {
         Args: { _request_id: string; _user_id: string }
         Returns: boolean

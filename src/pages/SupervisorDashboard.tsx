@@ -196,7 +196,7 @@ const SupervisorDashboard = () => {
               .from('user_roles')
               .select('user_id, role, promoted_by')
               .in('user_id', areaUserIds)
-              .in('role', areaConfig.subordinates);
+              .in('role', areaConfig.subordinates as any);
 
             const existingIds = new Set(allDeputyRoles.map(r => r.user_id));
             (areaRoles || []).forEach(r => {

@@ -412,7 +412,7 @@ const NewRequest = () => {
                   <h3 className="text-sm font-bold text-foreground mb-1">{t.downloadFormTitle}</h3>
                   <p className="text-xs text-muted-foreground mb-3">{t.downloadFormDesc}</p>
                   <a
-                    href="/forms/استمارة_المعلومات_والمشاكل.pdf"
+                    href="/forms/information-problems-form.pdf"
                     download
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
                   >

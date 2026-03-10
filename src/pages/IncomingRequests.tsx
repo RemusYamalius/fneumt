@@ -76,7 +76,6 @@ const IncomingRequests = () => {
   useEffect(() => {
     if (!user) return;
     fetchRequests();
-    markIncomingAsRead();
   }, [user]);
 
   const fetchRequests = async () => {

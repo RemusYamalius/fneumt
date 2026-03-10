@@ -36,14 +36,17 @@ export const useRealtimeNotifications = (userId: string | undefined) => {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'notifications',
           filter: `user_id=eq.${userId}`,
         },
-        () => {
-          play();
-          setUnreadCount(prev => prev + 1);
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            play();
+          }
+          // Refetch on any change (INSERT, UPDATE, DELETE)
+          fetchUnreadCount();
         }
       )
       .subscribe();

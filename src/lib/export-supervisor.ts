@@ -187,7 +187,7 @@ export async function exportToPDF(data: ExportData, lang: ExportLang) {
     ];
   });
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: afterKPI + 4,
     head: deputyHeaders,
     body: deputyRows,

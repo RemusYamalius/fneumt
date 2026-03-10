@@ -1,53 +1,58 @@
 
 
-## Plan: Fix PDF Export, Notification Badge, and Add Downloadable Form
+## التغييرات المطلوبة
 
-### 1. Fix PDF Export (Bug)
+ثلاث تعديلات رئيسية على صفحة "طلب جديد":
 
-**Root cause:** In `jspdf-autotable` v5.x, `autoTable(doc, options)` returns `void`, not a table object. The current code does `const kpiTable = autoTable(...)` then `(kpiTable as any).finalY` which is `undefined.finalY` → crash. The error is silently swallowed by `try/finally` without `catch`.
+---
 
-Additionally, v5 uses a **named export** `{ autoTable }` not a default export.
+### 1. ترتيب البطاقات RTL
 
-**Fix in `src/lib/export-supervisor.ts`:**
-- Change import to `import { autoTable } from 'jspdf-autotable'`
-- Remove the return value capture; use `(doc as any).lastAutoTable.finalY` instead
-- Add `catch` block in SupervisorDashboard to log errors
+في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
 
-**Fix in `src/pages/SupervisorDashboard.tsx`:**
-- Add `.catch(console.error)` or proper error handling in the PDF button's try block
+---
 
-### 2. Fix Notification Badge (Bell Icon)
+### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
 
-**Problem:** The bell badge shows unread notification count, but notifications are never marked as read. When the user opens IncomingRequests, the badge should clear.
+عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
+- **الموضوع** (إلزامي) — `Input`
+- **الوصف** (اختياري) — `Textarea`
 
-**Fix in `src/pages/IncomingRequests.tsx`:**
-- On mount (when `user` is available), mark all notifications with `link = '/incoming-requests'` as `is_read = true`
-- The `useRealtimeNotifications` hook already exposes `refetch` — pass it down or call it after marking read
+تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
 
-**Fix in `src/hooks/useRealtimeNotifications.ts`:**
-- Export a `markAllRead` function that updates all unread notifications for the user and refetches the count
+تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
 
-**Fix in `src/components/AuthenticatedLayout.tsx`:**
-- Pass `refetch` from `useRealtimeNotifications` via context or make the hook return a `markAllRead` method that IncomingRequests can call
+---
 
-Simplest approach: Add a `markAsRead` function to the hook, and call it from `IncomingRequests` on mount via importing supabase directly.
+### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
 
-### 3. Add Downloadable Form Template to Attachments Step
+- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
+- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
+  1. المصالح المركزية للوزارة
+  2. الأكاديمية الجهوية
+  3. المديرية الإقليمية
+  4. المؤسسة مقر العمل
 
-**What:** Copy the uploaded PDF (`إستمارة_المعلومات_و_المشاكل.pdf`) to `public/forms/` and add a download link in Step 3 (Attachments) of `NewRequest.tsx`.
+- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
+- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
 
-**UI:** Below the upload area, add a styled card with a download icon and bilingual text:
-- AR: "تحميل استمارة المعلومات والمشاكل"
-- FR: "Télécharger le formulaire d'informations et de problèmes"
+**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
 
-The card will link to `/forms/إستمارة_المعلومات_و_المشاكل.pdf` with `download` attribute. Add a note reminding users to fill it out, include their info and signature, then re-attach it.
+---
 
-**Files changed:**
-- `src/lib/export-supervisor.ts` — fix import and finalY access
-- `src/pages/SupervisorDashboard.tsx` — add error logging in PDF catch
-- `src/hooks/useRealtimeNotifications.ts` — add `markAsRead` function
-- `src/pages/IncomingRequests.tsx` — call markAsRead on mount
-- `src/pages/NewRequest.tsx` — add download template card in step 3
-- `src/lib/i18n.tsx` — add translation keys for the form download
-- Copy PDF to `public/forms/`
+### الملفات المعنية
+
+| الملف | التعديل |
+|---|---|
+| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
+| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
+| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
+
+### تدفق الخطوات الجديد:
+```text
+1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
+2. مستوى حل المشكل (4 اختيارات)
+3. المرفقات
+4. المراجعة
+```
 

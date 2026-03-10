@@ -543,6 +543,8 @@ const SupervisorDashboard = () => {
                     getDeputyStats,
                     getRoleLabel,
                   }, exportLang);
+                } catch (err) {
+                  console.error('PDF export error:', err);
                 } finally { setExporting(false); }
               }}
               className="gap-1.5 text-xs"

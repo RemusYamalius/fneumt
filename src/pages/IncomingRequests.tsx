@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 
 type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'cancelled';
@@ -58,6 +59,7 @@ const IncomingRequests = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { markIncomingAsRead } = useRealtimeNotifications(user?.id);
   const [requests, setRequests] = useState<IncomingRequest[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<IncomingRequest | null>(null);
@@ -74,6 +76,7 @@ const IncomingRequests = () => {
   useEffect(() => {
     if (!user) return;
     fetchRequests();
+    markIncomingAsRead();
   }, [user]);
 
   const fetchRequests = async () => {

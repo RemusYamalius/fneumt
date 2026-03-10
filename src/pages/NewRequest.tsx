@@ -1,7 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock, Building2, Coins, MapPin, Wrench, AlertTriangle, ClipboardList, Search, MoreHorizontal, Landmark, GraduationCap, Building, School, Download } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock,
+  Building2, Coins, MapPin, Wrench, AlertTriangle, ClipboardList, Search,
+  MoreHorizontal, Landmark, GraduationCap, Building, School, Download, Send, Zap
+} from 'lucide-react';
+import { motion, AnimatePresence, useAnimationFrame } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,29 +18,148 @@ import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 type RequestCategory = 'rank_promotion' | 'grade_promotion' | 'schedules' | 'infrastructure' | 'financial_compensation' | 'zone_compensation' | 'equipment' | 'grievances' | 'assignments' | 'inspection_score' | 'other';
 type ResolutionLevel = 'ministry' | 'academy' | 'directorate' | 'institution';
 
-const CATEGORIES: { key: RequestCategory; icon: typeof FileText; gradient: string; iconBg: string }[] = [
-  { key: 'rank_promotion', icon: Award, gradient: 'from-blue-500/20 to-indigo-500/20', iconBg: 'bg-blue-500' },
-  { key: 'grade_promotion', icon: Star, gradient: 'from-violet-500/20 to-purple-500/20', iconBg: 'bg-violet-500' },
-  { key: 'schedules', icon: Clock, gradient: 'from-emerald-500/20 to-teal-500/20', iconBg: 'bg-emerald-500' },
-  { key: 'infrastructure', icon: Building2, gradient: 'from-amber-500/20 to-orange-500/20', iconBg: 'bg-amber-500' },
-  { key: 'financial_compensation', icon: Coins, gradient: 'from-yellow-500/20 to-amber-500/20', iconBg: 'bg-yellow-600' },
-  { key: 'zone_compensation', icon: MapPin, gradient: 'from-rose-500/20 to-pink-500/20', iconBg: 'bg-rose-500' },
-  { key: 'equipment', icon: Wrench, gradient: 'from-cyan-500/20 to-blue-500/20', iconBg: 'bg-cyan-600' },
-  { key: 'grievances', icon: AlertTriangle, gradient: 'from-red-500/20 to-rose-500/20', iconBg: 'bg-red-500' },
-  { key: 'assignments', icon: ClipboardList, gradient: 'from-sky-500/20 to-indigo-500/20', iconBg: 'bg-sky-500' },
-  { key: 'inspection_score', icon: Search, gradient: 'from-fuchsia-500/20 to-purple-500/20', iconBg: 'bg-fuchsia-500' },
-  { key: 'other', icon: MoreHorizontal, gradient: 'from-slate-500/20 to-gray-500/20', iconBg: 'bg-slate-500' },
+const CATEGORIES: { key: RequestCategory; icon: typeof FileText; color: string }[] = [
+  { key: 'rank_promotion', icon: Award, color: 'hsl(220 80% 60%)' },
+  { key: 'grade_promotion', icon: Star, color: 'hsl(270 70% 60%)' },
+  { key: 'schedules', icon: Clock, color: 'hsl(160 70% 45%)' },
+  { key: 'infrastructure', icon: Building2, color: 'hsl(35 90% 55%)' },
+  { key: 'financial_compensation', icon: Coins, color: 'hsl(45 90% 50%)' },
+  { key: 'zone_compensation', icon: MapPin, color: 'hsl(340 70% 55%)' },
+  { key: 'equipment', icon: Wrench, color: 'hsl(190 80% 45%)' },
+  { key: 'grievances', icon: AlertTriangle, color: 'hsl(0 70% 55%)' },
+  { key: 'assignments', icon: ClipboardList, color: 'hsl(200 75% 50%)' },
+  { key: 'inspection_score', icon: Search, color: 'hsl(290 65% 55%)' },
+  { key: 'other', icon: MoreHorizontal, color: 'hsl(210 15% 55%)' },
 ];
 
-const RESOLUTION_LEVELS: { key: ResolutionLevel; icon: typeof Landmark; gradient: string; iconBg: string }[] = [
-  { key: 'ministry', icon: Landmark, gradient: 'from-indigo-500/20 to-blue-600/20', iconBg: 'bg-indigo-600' },
-  { key: 'academy', icon: GraduationCap, gradient: 'from-emerald-500/20 to-green-600/20', iconBg: 'bg-emerald-600' },
-  { key: 'directorate', icon: Building, gradient: 'from-amber-500/20 to-orange-600/20', iconBg: 'bg-amber-600' },
-  { key: 'institution', icon: School, gradient: 'from-rose-500/20 to-pink-600/20', iconBg: 'bg-rose-600' },
+const RESOLUTION_LEVELS: { key: ResolutionLevel; icon: typeof Landmark; color: string }[] = [
+  { key: 'ministry', icon: Landmark, color: 'hsl(230 75% 55%)' },
+  { key: 'academy', icon: GraduationCap, color: 'hsl(155 65% 42%)' },
+  { key: 'directorate', icon: Building, color: 'hsl(30 85% 50%)' },
+  { key: 'institution', icon: School, color: 'hsl(345 70% 50%)' },
 ];
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+/* ── Orbital Hub component ── */
+const OrbitalHub = ({
+  items,
+  selectedKey,
+  onSelect,
+  centerLabel,
+  labelFn,
+  isSmall,
+}: {
+  items: { key: string; icon: typeof FileText; color: string }[];
+  selectedKey: string | null;
+  onSelect: (key: string) => void;
+  centerLabel: string;
+  labelFn: (key: string) => string;
+  isSmall?: boolean;
+}) => {
+  const [rotation, setRotation] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Responsive radius
+  const baseRadius = isSmall ? 100 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 120 : window.innerWidth < 1024 ? 150 : 180);
+  const itemSize = isSmall ? 48 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 56 : 68);
+
+  useAnimationFrame((time, delta) => {
+    if (!isHovered) {
+      setRotation(prev => (prev + (delta * 0.012)) % 360);
+    }
+  });
+
+  const angleStep = (2 * Math.PI) / items.length;
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative flex items-center justify-center"
+      style={{ width: (baseRadius * 2) + itemSize + 20, height: (baseRadius * 2) + itemSize + 20 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => { setIsHovered(false); setHoveredItem(null); }}
+    >
+      {/* Orbit ring */}
+      <div
+        className="absolute rounded-full orbital-ring"
+        style={{
+          width: baseRadius * 2,
+          height: baseRadius * 2,
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+        }}
+      />
+
+      {/* Center hub */}
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 orbital-center ${isSmall ? 'w-20 h-20' : 'w-28 h-28 sm:w-32 sm:h-32'} rounded-full flex items-center justify-center`}>
+        <div className="orbital-center-glow absolute inset-0 rounded-full" />
+        <span className={`relative z-10 font-black text-center leading-tight ${isSmall ? 'text-[0.6rem]' : 'text-xs sm:text-sm'}`} style={{ color: 'hsl(190 100% 70%)' }}>
+          {centerLabel}
+        </span>
+      </div>
+
+      {/* Orbiting items */}
+      {items.map((item, i) => {
+        const angle = angleStep * i + (rotation * Math.PI) / 180;
+        const x = Math.cos(angle) * baseRadius;
+        const y = Math.sin(angle) * baseRadius;
+        const Icon = item.icon;
+        const isSelected = selectedKey === item.key;
+        const isItemHovered = hoveredItem === item.key;
+
+        return (
+          <motion.button
+            key={item.key}
+            className="absolute orbital-item"
+            style={{
+              width: itemSize,
+              height: itemSize,
+              left: `calc(50% + ${x}px - ${itemSize / 2}px)`,
+              top: `calc(50% + ${y}px - ${itemSize / 2}px)`,
+              zIndex: isItemHovered || isSelected ? 20 : 5,
+            }}
+            animate={{
+              scale: isItemHovered ? 1.35 : isSelected ? 1.2 : 1,
+            }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            onMouseEnter={() => setHoveredItem(item.key)}
+            onMouseLeave={() => setHoveredItem(null)}
+            onClick={() => onSelect(item.key)}
+          >
+            <div
+              className={`w-full h-full rounded-full flex items-center justify-center transition-all duration-300 ${isSelected ? 'orbital-item-selected' : 'orbital-item-default'}`}
+              style={{
+                borderColor: isSelected || isItemHovered ? item.color : 'hsl(210 20% 25%)',
+                boxShadow: isSelected ? `0 0 20px ${item.color}, 0 0 40px ${item.color}40` : isItemHovered ? `0 0 15px ${item.color}80` : 'none',
+              }}
+            >
+              <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 65%)' }} />
+            </div>
+            {/* Label tooltip */}
+            <AnimatePresence>
+              {(isItemHovered || isSelected) && !isSmall && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.8 }}
+                  className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label"
+                  style={{ color: item.color }}
+                >
+                  {labelFn(item.key)}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+};
 
 const NewRequest = () => {
   const { t, dir } = useI18n();
@@ -62,14 +185,8 @@ const NewRequest = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from('profiles')
-      .select('academy, directorate, corps')
-      .eq('user_id', user.id)
-      .single()
-      .then(({ data }) => {
-        setProfileComplete(!!(data?.academy && data?.directorate && data?.corps));
-      });
+    supabase.from('profiles').select('academy, directorate, corps').eq('user_id', user.id).single()
+      .then(({ data }) => setProfileComplete(!!(data?.academy && data?.directorate && data?.corps)));
   }, [user]);
 
   if (loading || !user) return (
@@ -77,9 +194,6 @@ const NewRequest = () => {
       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
-
-  // Steps: 1=Category, 2=Resolution Level, 3=Attachments, 4=Review, 5=Success
-  const stepLabels = [t.stepCategory, t.stepResolutionLevel, t.stepAttachments, t.stepReview];
 
   const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 
@@ -104,50 +218,30 @@ const NewRequest = () => {
 
   const handleSubmit = async () => {
     if (!category || !user) return;
-    // For non-other categories, use category label as subject
     const finalSubject = category === 'other' ? subject.trim() : (t[`cat_${category}`] || category);
     const finalDescription = category === 'other' ? (description.trim() || null) : null;
-
     if (!finalSubject) return;
     setSubmitting(true);
     try {
-      const { data: request, error: reqError } = await supabase
-        .from('requests')
-        .insert({
-          category,
-          subject: finalSubject,
-          description: finalDescription,
-          user_id: user.id,
-          resolution_level: resolutionLevel || null,
-        } as any)
-        .select('id, tracking_number')
-        .single();
-
+      const { data: request, error: reqError } = await supabase.from('requests').insert({
+        category, subject: finalSubject, description: finalDescription,
+        user_id: user.id, resolution_level: resolutionLevel || null,
+      } as any).select('id, tracking_number').single();
       if (reqError || !request) throw reqError;
-
       for (const file of files) {
         const filePath = `${user.id}/${request.id}/${file.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from('attachments')
-          .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage.from('attachments').upload(filePath, file);
         if (uploadError) { console.error('Upload error:', uploadError); continue; }
         await supabase.from('attachments').insert({
-          request_id: request.id,
-          file_name: file.name,
-          file_path: filePath,
-          file_size: file.size,
-          mime_type: file.type || null,
-          uploaded_by: user.id,
+          request_id: request.id, file_name: file.name, file_path: filePath,
+          file_size: file.size, mime_type: file.type || null, uploaded_by: user.id,
         });
       }
-
       setTrackingNumber(request.tracking_number);
       setStep(5);
     } catch (err: any) {
       toast({ title: t.submitError, description: err?.message, variant: 'destructive' });
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
   const copyTracking = () => {
@@ -158,375 +252,464 @@ const NewRequest = () => {
     }
   };
 
-  const canNext = () => {
-    if (step === 1) {
-      if (!category) return false;
-      if (category === 'other') return subject.trim().length > 0;
-      return true;
+  const categoryLabel = (key: string) => t[`cat_${key}`] || key;
+  const levelLabel = (key: string) => t[`level_${key}`] || key;
+
+  const slideDirection = dir === 'rtl' ? 1 : -1;
+
+  // Step progress
+  const stepLabels = [t.stepCategory, t.stepResolutionLevel, t.stepAttachments, t.stepReview];
+
+  const handleCategorySelect = (key: string) => {
+    setCategory(key as RequestCategory);
+    if (key !== 'other') {
+      setTimeout(() => setStep(2), 400);
     }
-    if (step === 2) return !!resolutionLevel;
-    return true;
   };
 
-  // Calculate max reachable step based on completed data
-  const step1Valid = category ? (category === 'other' ? subject.trim().length > 0 : true) : false;
-  const step2Valid = !!resolutionLevel;
-  const maxReachableStep = !step1Valid ? 1 : !step2Valid ? 2 : 4;
-
-  const categoryLabel = (key: RequestCategory) => t[`cat_${key}`] || key;
-  const levelLabel = (key: ResolutionLevel) => t[`level_${key}`] || key;
+  const handleResolutionSelect = (key: string) => {
+    setResolutionLevel(key as ResolutionLevel);
+    setTimeout(() => setStep(3), 400);
+  };
 
   // Success screen
   if (step === 5) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-6" dir={dir}>
-        <div className="max-w-md w-full bg-card rounded-2xl border border-border p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center">
-            <Check className="w-8 h-8 text-accent" />
-          </div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">{t.requestSubmitted}</h2>
-          <p className="text-muted-foreground mb-6">{t.trackingNumberLabel}</p>
-          <div className="flex items-center justify-center gap-2 bg-muted rounded-xl p-4 mb-6">
-            <span className="text-xl font-mono font-bold text-primary">{trackingNumber}</span>
-            <button onClick={copyTracking} className="p-2 rounded-lg hover:bg-primary/10 transition-colors">
-              {copied ? <Check className="w-5 h-5 text-accent" /> : <Copy className="w-5 h-5 text-muted-foreground" />}
+      <div className="min-h-screen futuristic-bg flex items-center justify-center px-6" dir={dir}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200 }}
+          className="max-w-md w-full futuristic-card p-8 text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3, type: 'spring' }}
+            className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center success-orb"
+          >
+            <Check className="w-10 h-10" style={{ color: 'hsl(160 80% 55%)' }} />
+          </motion.div>
+          <h2 className="text-2xl font-black mb-2" style={{ color: 'hsl(0 0% 95%)' }}>{t.requestSubmitted}</h2>
+          <p className="text-sm mb-6" style={{ color: 'hsl(210 15% 60%)' }}>{t.trackingNumberLabel}</p>
+          <div className="flex items-center justify-center gap-2 rounded-xl p-4 mb-6" style={{ background: 'hsl(210 30% 12%)', border: '1px solid hsl(190 80% 40% / 0.3)' }}>
+            <span className="text-xl font-mono font-black" style={{ color: 'hsl(190 100% 65%)' }}>{trackingNumber}</span>
+            <button onClick={copyTracking} className="p-2 rounded-lg transition-colors hover:bg-white/5">
+              {copied ? <Check className="w-5 h-5" style={{ color: 'hsl(160 80% 55%)' }} /> : <Copy className="w-5 h-5" style={{ color: 'hsl(210 15% 55%)' }} />}
             </button>
           </div>
           <div className="flex gap-3">
-            <Button onClick={() => navigate('/dashboard')} variant="outline" className="flex-1">{t.backToDashboard}</Button>
-            <Button onClick={() => navigate('/track')} className="flex-1">{t.trackFiles}</Button>
+            <Button onClick={() => navigate('/dashboard')} variant="outline" className="flex-1 futuristic-btn-outline">{t.backToDashboard}</Button>
+            <Button onClick={() => navigate('/track')} className="flex-1 futuristic-btn-primary">{t.trackFiles}</Button>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
     <AuthenticatedLayout>
-
-      {/* Steps indicator */}
-      <div className="max-w-3xl mx-auto px-6 py-6">
-        {step >= 2 && step <= 4 && (
-          <div className="flex justify-end mb-4">
+      <div className="futuristic-bg min-h-[calc(100vh-4rem)]" dir={dir}>
+        {/* Top bar */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2">
+          <div className="flex items-center justify-between mb-6">
             <button
-              type="button"
-              onClick={() => navigate('/dashboard')}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-[hsl(207,75%,17%)] to-[hsl(207,62%,40%)] text-white font-medium text-sm shadow-lg hover:shadow-xl hover:opacity-90 transition-all duration-300"
+              onClick={() => step === 1 ? navigate('/dashboard') : setStep(s => s - 1)}
+              className="futuristic-back-btn"
             >
               {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-              {t.backToDashboard}
+              <span>{step === 1 ? t.backToDashboard : t.previous}</span>
             </button>
-          </div>
-        )}
-        <div className="flex items-center justify-between mb-8">
-          {stepLabels.map((label, i) => {
-            const stepNum = i + 1;
-            const isCompleted = stepNum < step;
-            const isCurrent = stepNum === step;
-            // Can click if: step is completed, OR step is reachable (all prior steps valid)
-            const canNavigate = stepNum !== step && (
-              isCompleted || 
-              (stepNum <= maxReachableStep)
-            );
-            return (
-            <div key={i} className="flex items-center gap-2 flex-1">
-              <button
-                type="button"
-                onClick={() => canNavigate && setStep(stepNum)}
-                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-sm ${
-                  isCompleted
-                    ? 'bg-primary text-primary-foreground shadow-md cursor-pointer hover:ring-4 hover:ring-primary/20'
-                    : isCurrent
-                      ? 'bg-primary text-primary-foreground ring-4 ring-primary/20 shadow-lg'
-                      : canNavigate
-                        ? 'bg-card border-2 border-border text-muted-foreground cursor-pointer hover:border-primary/50'
-                        : 'bg-card border-2 border-border text-muted-foreground opacity-50 cursor-not-allowed'
-                }`}
-                disabled={!canNavigate}
-              >
-                {isCompleted ? <Check className="w-4 h-4" /> : stepNum}
-              </button>
-              <button
-                type="button"
-                onClick={() => canNavigate && setStep(stepNum)}
-                disabled={!canNavigate}
-                className={`text-xs hidden sm:block font-medium transition-colors ${
-                  stepNum <= step ? 'text-primary' : canNavigate ? 'text-muted-foreground hover:text-primary cursor-pointer' : 'text-muted-foreground opacity-50 cursor-not-allowed'
-                }`}
-              >{label}</button>
-              {i < 3 && <div className={`flex-1 h-0.5 mx-2 rounded-full transition-colors ${isCompleted ? 'bg-primary' : 'bg-border'}`} />}
-            </div>);
-          })}
 
+            {/* Step indicator */}
+            <div className="flex items-center gap-1 sm:gap-2">
+              {stepLabels.map((label, i) => {
+                const stepNum = i + 1;
+                const isActive = stepNum === step;
+                const isDone = stepNum < step;
+                return (
+                  <div key={i} className="flex items-center gap-1 sm:gap-2">
+                    <button
+                      onClick={() => {
+                        if (isDone) setStep(stepNum);
+                      }}
+                      className={`futuristic-step-dot ${isActive ? 'active' : isDone ? 'done' : ''}`}
+                      disabled={!isDone && !isActive}
+                    >
+                      {isDone ? <Check className="w-3 h-3" /> : <span className="text-[0.65rem] font-bold">{stepNum}</span>}
+                    </button>
+                    <span className={`hidden sm:block text-[0.7rem] font-bold ${isActive ? 'futuristic-text-cyan' : isDone ? 'futuristic-text-cyan-dim' : 'futuristic-text-muted'}`}>{label}</span>
+                    {i < 3 && <div className={`w-4 sm:w-8 h-px ${isDone ? 'bg-[hsl(190_80%_45%)]' : 'bg-[hsl(210_20%_20%)]'}`} />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        {/* Step 1: Category */}
-        {step === 1 && (
-          <div>
-            <h2 className="text-xl font-bold text-foreground mb-6">{t.selectCategory}</h2>
-            {profileComplete === false && (
-              <div className="mb-6 p-6 rounded-2xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-center">
-                <p className="text-lg font-semibold text-foreground mb-2">{t.profileIncomplete}</p>
-                <p className="text-sm text-muted-foreground mb-4">{t.profileIncompleteDesc}</p>
-                <Button onClick={() => navigate('/profile')}>{t.completeProfile}</Button>
-              </div>
-            )}
-            <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 ${profileComplete === false ? 'opacity-50 pointer-events-none' : ''}`}>
-              {CATEGORIES.map(({ key, icon: Icon, gradient, iconBg }, index) => (
-                <motion.button
-                  key={key}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05, duration: 0.3 }}
-                  whileHover={{ scale: 1.04, y: -4 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setCategory(key)}
-                  className={`relative p-5 rounded-2xl border-2 text-center transition-all duration-200 overflow-hidden ${category === key ? 'border-primary shadow-xl ring-2 ring-primary/20' : 'border-border bg-card hover:border-primary/30 hover:shadow-lg'}`}
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-60`} />
-                  <div className="relative z-10">
-                    <div className={`w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center ${category === key ? 'bg-primary' : iconBg} shadow-lg`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <p className={`text-sm font-semibold ${category === key ? 'text-primary' : 'text-foreground'}`}>{categoryLabel(key)}</p>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-
-            {/* "Other" category inline fields */}
-            <AnimatePresence>
-              {category === 'other' && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-6 p-6 rounded-2xl border-2 border-slate-300 dark:border-slate-600 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-900/40 dark:to-gray-900/40 space-y-4"
-                >
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">{t.subjectLabel} *</label>
-                    <Input
-                      value={subject}
-                      onChange={e => setSubject(e.target.value)}
-                      placeholder={t.subjectPlaceholder}
-                      className="border-slate-300 dark:border-slate-600 focus-visible:ring-slate-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">{t.descriptionLabel}</label>
-                    <Textarea
-                      value={description}
-                      onChange={e => setDescription(e.target.value)}
-                      placeholder={t.descriptionPlaceholder}
-                      rows={4}
-                      className="border-slate-300 dark:border-slate-600 focus-visible:ring-slate-400"
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
-
-        {/* Step 2: Resolution Level */}
-        {step === 2 && (
-          <div>
-            <h2 className="text-xl font-bold text-foreground mb-6">{t.selectResolutionLevel}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {RESOLUTION_LEVELS.map(({ key, icon: Icon, gradient, iconBg }, index) => (
-                <motion.button
-                  key={key}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.08, duration: 0.3 }}
-                  whileHover={{ scale: 1.03, y: -3 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setResolutionLevel(key)}
-                  className={`relative p-6 rounded-2xl border-2 text-center transition-all duration-200 overflow-hidden ${resolutionLevel === key ? 'border-primary shadow-xl ring-2 ring-primary/20' : 'border-border bg-card hover:border-primary/30 hover:shadow-lg'}`}
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-60`} />
-                  <div className="relative z-10 flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${resolutionLevel === key ? 'bg-primary' : iconBg} shadow-lg shrink-0`}>
-                      <Icon className="w-7 h-7 text-white" />
-                    </div>
-                    <p className={`text-base font-semibold ${resolutionLevel === key ? 'text-primary' : 'text-foreground'}`}>{levelLabel(key)}</p>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Attachments */}
-        {step === 3 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <h2 className="text-xl font-bold text-foreground mb-6">{t.stepAttachments}</h2>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={e => e.preventDefault()}
-              onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
-              className="relative overflow-hidden border-2 border-dashed border-primary/30 rounded-2xl p-12 text-center cursor-pointer hover:border-primary/60 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-primary/5 to-accent/5"
-            >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Upload className="w-8 h-8 text-primary" />
-              </div>
-              <p className="text-foreground font-medium mb-1">{t.dropFiles}</p>
-              <p className="text-xs text-muted-foreground">{t.maxFiles} — {t.onlyPdfImages || 'PDF / صور فقط'}</p>
-              <input ref={fileInputRef} type="file" multiple accept="application/pdf,image/*" className="hidden" onChange={e => handleFiles(e.target.files)} />
-            </div>
-            {files.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {files.map((file, i) => (
+        {/* Content area */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-12">
+          <AnimatePresence mode="wait">
+            {/* ──────── STEP 1: Category orbital ──────── */}
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: slideDirection * 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: slideDirection * -100 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="flex flex-col items-center"
+              >
+                {profileComplete === false && (
                   <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="flex items-center justify-between bg-card border border-border rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-shadow"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full max-w-lg mb-8 p-5 rounded-2xl futuristic-warning-card text-center"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-primary" />
+                    <p className="text-base font-bold mb-1" style={{ color: 'hsl(45 100% 65%)' }}>{t.profileIncomplete}</p>
+                    <p className="text-xs mb-3" style={{ color: 'hsl(45 60% 50%)' }}>{t.profileIncompleteDesc}</p>
+                    <Button onClick={() => navigate('/profile')} className="futuristic-btn-primary">{t.completeProfile}</Button>
+                  </motion.div>
+                )}
+
+                <div className={profileComplete === false ? 'opacity-30 pointer-events-none' : ''}>
+                  <OrbitalHub
+                    items={CATEGORIES}
+                    selectedKey={category}
+                    onSelect={handleCategorySelect}
+                    centerLabel={t.selectCategory}
+                    labelFn={categoryLabel}
+                  />
+                </div>
+
+                {/* "Other" fields */}
+                <AnimatePresence>
+                  {category === 'other' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="w-full max-w-lg mt-6 futuristic-card p-6 space-y-4"
+                    >
+                      <div>
+                        <label className="block text-xs font-bold mb-2 futuristic-text-cyan">{t.subjectLabel} *</label>
+                        <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder={t.subjectPlaceholder} className="futuristic-input" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        <label className="block text-xs font-bold mb-2 futuristic-text-cyan">{t.descriptionLabel}</label>
+                        <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t.descriptionPlaceholder} rows={3} className="futuristic-input" />
                       </div>
-                    </div>
-                    <button onClick={() => removeFile(i)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-destructive/10 transition-colors">
-                      <X className="w-4 h-4 text-destructive" />
-                    </button>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
-            {/* Downloadable form template */}
-            <div className="mt-6 p-5 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <FileText className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-bold text-foreground mb-1">{t.downloadFormTitle}</h3>
-                  <p className="text-xs text-muted-foreground mb-3">{t.downloadFormDesc}</p>
-                  <a
-                    href="/forms/information-problems-form.pdf"
-                    download
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
-                  >
-                    <Download className="w-4 h-4" />
-                    {t.downloadFormButton}
-                  </a>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Step 4: Review */}
-        {step === 4 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <h2 className="text-xl font-bold text-foreground mb-6">{t.stepReview}</h2>
-            <div className="bg-card rounded-2xl border-2 border-border p-6 space-y-1 shadow-sm">
-              {/* Category */}
-              {(() => {
-                const catData = CATEGORIES.find(c => c.key === category);
-                const CatIcon = catData?.icon || FileText;
-                const catIconBg = catData?.iconBg || 'bg-primary';
-                return (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-transparent">
-                    <div className={`w-10 h-10 rounded-xl ${catIconBg} flex items-center justify-center shrink-0 mt-0.5 shadow-md`}>
-                      <CatIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-medium text-muted-foreground">{t.selectCategory}</span>
-                      <p className="font-semibold text-foreground">{category ? categoryLabel(category) : ''}</p>
-                    </div>
-                  </motion.div>
-                );
-              })()}
-
-              {category === 'other' && (
-                <>
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="flex items-start gap-4 p-4 rounded-xl">
-                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                      <FileText className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-medium text-muted-foreground">{t.subjectLabel}</span>
-                      <p className="font-medium text-foreground">{subject}</p>
-                    </div>
-                  </motion.div>
-                  {description && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-start gap-4 p-4 rounded-xl">
-                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                        <FileText className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <span className="text-xs font-medium text-muted-foreground">{t.descriptionLabel}</span>
-                        <p className="text-foreground">{description}</p>
-                      </div>
+                      <Button
+                        onClick={() => { if (subject.trim()) setStep(2); }}
+                        disabled={!subject.trim()}
+                        className="w-full futuristic-btn-primary"
+                      >
+                        {t.next}
+                        {dir === 'rtl' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                      </Button>
                     </motion.div>
                   )}
-                </>
-              )}
+                </AnimatePresence>
+              </motion.div>
+            )}
 
-              {resolutionLevel && (() => {
-                const lvlData = RESOLUTION_LEVELS.find(l => l.key === resolutionLevel);
-                const LvlIcon = lvlData?.icon || Landmark;
-                const lvlIconBg = lvlData?.iconBg || 'bg-accent';
-                return (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-accent/5 to-transparent">
-                    <div className={`w-10 h-10 rounded-xl ${lvlIconBg} flex items-center justify-center shrink-0 mt-0.5 shadow-md`}>
-                      <LvlIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-medium text-muted-foreground">{t.selectResolutionLevel}</span>
-                      <p className="font-semibold text-foreground">{levelLabel(resolutionLevel)}</p>
-                    </div>
-                  </motion.div>
-                );
-              })()}
-
-              {files.length > 0 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-4 rounded-xl">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                      <Upload className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">{t.stepAttachments} ({files.length})</span>
-                  </div>
-                  <ul className="space-y-2 ps-13">
-                    {files.map((f, i) => (
-                      <li key={i} className="text-sm text-foreground flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
-                        <FileText className="w-4 h-4 text-primary shrink-0" /> {f.name}
-                      </li>
-                    ))}
-                  </ul>
+            {/* ──────── STEP 2: Resolution Level ──────── */}
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: slideDirection * 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: slideDirection * -100 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16"
+              >
+                {/* Mini orbital preview */}
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 0.7 }}
+                  className="hidden lg:block"
+                >
+                  <OrbitalHub
+                    items={CATEGORIES}
+                    selectedKey={category}
+                    onSelect={() => {}}
+                    centerLabel={t.selectCategory}
+                    labelFn={categoryLabel}
+                    isSmall
+                  />
                 </motion.div>
-              )}
-            </div>
-          </motion.div>
-        )}
 
-        {/* Navigation */}
-        <div className="flex justify-between mt-8">
-          <Button variant="outline" onClick={() => step === 1 ? navigate('/dashboard') : setStep(s => s - 1)}>
-            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-            {step === 1 ? t.backToDashboard : t.previous}
-          </Button>
-          {step < 4 ? (
-            <Button onClick={() => setStep(s => s + 1)} disabled={!canNext()}>
-              {t.next}
-              {dir === 'rtl' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-            </Button>
-          ) : (
-            <Button onClick={handleSubmit} disabled={submitting || !step1Valid || !step2Valid}>
-              {submitting ? <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> : t.submitRequest}
-            </Button>
-          )}
+                {/* Resolution levels - vertical connected nodes */}
+                <div className="flex flex-col items-center gap-0">
+                  <h2 className="text-lg font-black mb-8 futuristic-text-cyan">{t.selectResolutionLevel}</h2>
+                  <div className="relative">
+                    {/* Vertical connector line */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px" style={{ background: 'linear-gradient(180deg, hsl(190 80% 45% / 0.6), hsl(270 60% 50% / 0.3))' }} />
+
+                    <div className="flex flex-col gap-4 relative z-10">
+                      {RESOLUTION_LEVELS.map(({ key, icon: Icon, color }, i) => {
+                        const isSelected = resolutionLevel === key;
+                        return (
+                          <motion.button
+                            key={key}
+                            initial={{ opacity: 0, x: slideDirection * 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.1, duration: 0.4 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => handleResolutionSelect(key)}
+                            className={`futuristic-level-card ${isSelected ? 'selected' : ''}`}
+                            style={{
+                              borderColor: isSelected ? color : 'hsl(210 20% 22%)',
+                              boxShadow: isSelected ? `0 0 24px ${color}40, inset 0 0 12px ${color}15` : 'none',
+                            }}
+                          >
+                            {/* Node dot on connector */}
+                            <div className="absolute left-1/2 -translate-x-1/2 -top-2 w-4 h-4 rounded-full" style={{
+                              background: isSelected ? color : 'hsl(210 20% 18%)',
+                              border: `2px solid ${isSelected ? color : 'hsl(210 20% 30%)'}`,
+                              boxShadow: isSelected ? `0 0 10px ${color}` : 'none',
+                            }} />
+                            <div className="flex items-center gap-4 px-6 py-5">
+                              <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{
+                                background: `${color}20`,
+                                border: `1px solid ${color}50`,
+                              }}>
+                                <Icon className="w-6 h-6" style={{ color }} />
+                              </div>
+                              <span className="text-sm font-bold" style={{ color: isSelected ? color : 'hsl(210 15% 75%)' }}>
+                                {levelLabel(key)}
+                              </span>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ──────── STEP 3: Attachments ──────── */}
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: slideDirection * 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: slideDirection * -100 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="max-w-2xl mx-auto"
+              >
+                <h2 className="text-lg font-black mb-6 futuristic-text-cyan text-center">{t.stepAttachments}</h2>
+
+                {/* Upload zone */}
+                <motion.div
+                  whileHover={{ scale: 1.01 }}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
+                  className="futuristic-upload-zone cursor-pointer"
+                >
+                  <motion.div
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+                  >
+                    <Upload className="w-10 h-10 mx-auto mb-3" style={{ color: 'hsl(190 80% 55%)' }} />
+                  </motion.div>
+                  <p className="font-bold text-sm" style={{ color: 'hsl(0 0% 85%)' }}>{t.dropFiles}</p>
+                  <p className="text-xs mt-1" style={{ color: 'hsl(210 15% 50%)' }}>{t.maxFiles} — {t.onlyPdfImages || 'PDF / صور فقط'}</p>
+                  <input ref={fileInputRef} type="file" multiple accept="application/pdf,image/*" className="hidden" onChange={e => handleFiles(e.target.files)} />
+                </motion.div>
+
+                {/* File list */}
+                {files.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {files.map((file, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: slideDirection * 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="futuristic-file-item"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'hsl(190 80% 45% / 0.15)', border: '1px solid hsl(190 80% 45% / 0.3)' }}>
+                            <FileText className="w-4 h-4" style={{ color: 'hsl(190 80% 55%)' }} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold" style={{ color: 'hsl(0 0% 85%)' }}>{file.name}</p>
+                            <p className="text-[0.65rem]" style={{ color: 'hsl(210 15% 50%)' }}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                          </div>
+                        </div>
+                        <button onClick={() => removeFile(i)} className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                          <X className="w-4 h-4" style={{ color: 'hsl(0 70% 55%)' }} />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Form template download */}
+                <div className="mt-6 futuristic-card p-5">
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'hsl(270 60% 50% / 0.15)', border: '1px solid hsl(270 60% 50% / 0.3)' }}>
+                      <FileText className="w-5 h-5" style={{ color: 'hsl(270 60% 60%)' }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-bold mb-1" style={{ color: 'hsl(0 0% 88%)' }}>{t.downloadFormTitle}</h3>
+                      <p className="text-xs mb-3" style={{ color: 'hsl(210 15% 50%)' }}>{t.downloadFormDesc}</p>
+                      <a href="/forms/information-problems-form.pdf" download className="futuristic-btn-sm inline-flex items-center gap-2">
+                        <Download className="w-3.5 h-3.5" />
+                        {t.downloadFormButton}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Next button */}
+                <div className="flex justify-center mt-8">
+                  <Button onClick={() => setStep(4)} className="futuristic-btn-primary px-10">
+                    {t.next}
+                    {dir === 'rtl' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ──────── STEP 4: Review ──────── */}
+            {step === 4 && (
+              <motion.div
+                key="step4"
+                initial={{ opacity: 0, x: slideDirection * 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: slideDirection * -100 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="max-w-2xl mx-auto"
+              >
+                <h2 className="text-lg font-black mb-6 futuristic-text-cyan text-center">{t.stepReview}</h2>
+
+                {/* Connected review nodes */}
+                <div className="relative">
+                  {/* Vertical glow line */}
+                  <div className="absolute start-6 top-0 bottom-0 w-px" style={{ background: 'linear-gradient(180deg, hsl(190 80% 45% / 0.5), hsl(270 60% 50% / 0.3), hsl(160 70% 45% / 0.5))' }} />
+
+                  <div className="space-y-4 relative z-10">
+                    {/* Category node */}
+                    {(() => {
+                      const catData = CATEGORIES.find(c => c.key === category);
+                      const CatIcon = catData?.icon || FileText;
+                      const catColor = catData?.color || 'hsl(190 80% 55%)';
+                      return (
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="futuristic-review-node">
+                          <div className="absolute start-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full" style={{ background: catColor, boxShadow: `0 0 10px ${catColor}` }} />
+                          <div className="ms-10 futuristic-review-card" style={{ borderColor: `${catColor}30` }}>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${catColor}15`, border: `1px solid ${catColor}40` }}>
+                                <CatIcon className="w-5 h-5" style={{ color: catColor }} />
+                              </div>
+                              <div>
+                                <span className="text-[0.65rem] font-bold block" style={{ color: 'hsl(210 15% 50%)' }}>{t.selectCategory}</span>
+                                <span className="text-sm font-bold" style={{ color: catColor }}>{category ? categoryLabel(category) : ''}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })()}
+
+                    {/* Subject & description for "other" */}
+                    {category === 'other' && (
+                      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="futuristic-review-node">
+                        <div className="absolute start-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full" style={{ background: 'hsl(210 15% 45%)', boxShadow: '0 0 8px hsl(210 15% 45%)' }} />
+                        <div className="ms-10 futuristic-review-card">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'hsl(210 20% 15%)', border: '1px solid hsl(210 20% 25%)' }}>
+                              <FileText className="w-5 h-5" style={{ color: 'hsl(210 15% 60%)' }} />
+                            </div>
+                            <div>
+                              <span className="text-[0.65rem] font-bold block" style={{ color: 'hsl(210 15% 50%)' }}>{t.subjectLabel}</span>
+                              <span className="text-sm font-medium" style={{ color: 'hsl(0 0% 85%)' }}>{subject}</span>
+                              {description && <p className="text-xs mt-1" style={{ color: 'hsl(210 15% 55%)' }}>{description}</p>}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Resolution level node */}
+                    {resolutionLevel && (() => {
+                      const lvlData = RESOLUTION_LEVELS.find(l => l.key === resolutionLevel);
+                      const LvlIcon = lvlData?.icon || Landmark;
+                      const lvlColor = lvlData?.color || 'hsl(270 60% 55%)';
+                      return (
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="futuristic-review-node">
+                          <div className="absolute start-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full" style={{ background: lvlColor, boxShadow: `0 0 10px ${lvlColor}` }} />
+                          <div className="ms-10 futuristic-review-card" style={{ borderColor: `${lvlColor}30` }}>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${lvlColor}15`, border: `1px solid ${lvlColor}40` }}>
+                                <LvlIcon className="w-5 h-5" style={{ color: lvlColor }} />
+                              </div>
+                              <div>
+                                <span className="text-[0.65rem] font-bold block" style={{ color: 'hsl(210 15% 50%)' }}>{t.selectResolutionLevel}</span>
+                                <span className="text-sm font-bold" style={{ color: lvlColor }}>{levelLabel(resolutionLevel)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })()}
+
+                    {/* Attachments node */}
+                    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="futuristic-review-node">
+                      <div className="absolute start-0 top-5 w-3 h-3 rounded-full" style={{ background: 'hsl(160 70% 45%)', boxShadow: '0 0 10px hsl(160 70% 45%)' }} />
+                      <div className="ms-10 futuristic-review-card">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'hsl(160 70% 45% / 0.15)', border: '1px solid hsl(160 70% 45% / 0.3)' }}>
+                            <Upload className="w-5 h-5" style={{ color: 'hsl(160 70% 50%)' }} />
+                          </div>
+                          <span className="text-[0.65rem] font-bold" style={{ color: 'hsl(210 15% 50%)' }}>{t.stepAttachments} ({files.length})</span>
+                        </div>
+                        {files.length > 0 && (
+                          <ul className="space-y-1.5 ms-13">
+                            {files.map((f, i) => (
+                              <li key={i} className="text-xs flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'hsl(210 20% 13%)', color: 'hsl(0 0% 80%)' }}>
+                                <FileText className="w-3 h-3 shrink-0" style={{ color: 'hsl(190 80% 55%)' }} /> {f.name}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
+
+                {/* Submit button */}
+                <motion.div
+                  className="flex justify-center mt-10"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <motion.button
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="futuristic-submit-btn"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {submitting ? (
+                      <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'hsl(190 80% 55%)', borderTopColor: 'transparent' }} />
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        <span>{t.submitRequest}</span>
+                      </>
+                    )}
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </AuthenticatedLayout>

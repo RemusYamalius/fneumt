@@ -401,6 +401,27 @@ const NewRequest = () => {
                 ))}
               </div>
             )}
+
+            {/* Downloadable form template */}
+            <div className="mt-6 p-5 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <FileText className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-foreground mb-1">{t.downloadFormTitle}</h3>
+                  <p className="text-xs text-muted-foreground mb-3">{t.downloadFormDesc}</p>
+                  <a
+                    href="/forms/استمارة_المعلومات_والمشاكل.pdf"
+                    download
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
+                  >
+                    <Download className="w-4 h-4" />
+                    {t.downloadFormButton}
+                  </a>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 

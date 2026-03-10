@@ -31,7 +31,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
   const { t, toggleLang, dir } = useI18n();
   const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
-  const { unreadCount } = useRealtimeNotifications(user?.id);
+  const { unreadCount } = useRealtimeNotifications(user?.id, role);
 
   const handleSignOut = async () => {
     await signOut();

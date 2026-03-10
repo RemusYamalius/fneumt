@@ -1,60 +1,91 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationSound } from './useNotificationSound';
+import type { AppRole } from '@/lib/role-hierarchy';
 
-export const useRealtimeNotifications = (userId: string | undefined) => {
+const INBOX_ROLES: AppRole[] = ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'];
+
+export const useRealtimeNotifications = (userId: string | undefined, role?: AppRole | null) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { play } = useNotificationSound();
+  const isInboxRole = role ? INBOX_ROLES.includes(role) : false;
 
   const fetchUnreadCount = useCallback(async () => {
     if (!userId) return;
-    const { count } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('is_read', false);
-    setUnreadCount(count || 0);
-  }, [userId]);
 
-  const markIncomingAsRead = useCallback(async () => {
-    if (!userId) return;
-    await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('user_id', userId)
-      .eq('is_read', false)
-      .eq('link', '/incoming-requests');
-    fetchUnreadCount();
-  }, [userId, fetchUnreadCount]);
+    if (isInboxRole) {
+      // Count requests assigned to this user that are still 'submitted'
+      const { count } = await supabase
+        .from('requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('assigned_to', userId)
+        .eq('status', 'submitted');
+      setUnreadCount(count || 0);
+    } else {
+      // For other roles, count unread notifications
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+      setUnreadCount(count || 0);
+    }
+  }, [userId, isInboxRole]);
 
   useEffect(() => {
     if (!userId) return;
     fetchUnreadCount();
 
-    const channel = supabase
-      .channel('notifications-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            play();
+    if (isInboxRole) {
+      // Subscribe to requests table changes for inbox roles
+      const channel = supabase
+        .channel('requests-badge-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'requests',
+            filter: `assigned_to=eq.${userId}`,
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              play();
+            }
+            fetchUnreadCount();
           }
-          // Refetch on any change (INSERT, UPDATE, DELETE)
-          fetchUnreadCount();
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, fetchUnreadCount, play]);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      // Subscribe to notifications table for other roles
+      const channel = supabase
+        .channel('notifications-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              play();
+            }
+            fetchUnreadCount();
+          }
+        )
+        .subscribe();
 
-  return { unreadCount, refetch: fetchUnreadCount, markIncomingAsRead };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [userId, isInboxRole, fetchUnreadCount, play]);
+
+  return { unreadCount, refetch: fetchUnreadCount };
 };

@@ -64,8 +64,8 @@ const OrbitalHub = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Responsive radius
-  const baseRadius = isSmall ? 100 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 120 : window.innerWidth < 1024 ? 150 : 180);
-  const itemSize = isSmall ? 48 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 56 : 68);
+  const baseRadius = isSmall ? 100 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 130 : window.innerWidth < 1024 ? 160 : 220);
+  const itemSize = isSmall ? 48 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 56 : window.innerWidth < 1024 ? 68 : 76);
 
   useAnimationFrame((time, delta) => {
     if (!isHovered) {

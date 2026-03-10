@@ -174,6 +174,93 @@ const OrbitalHub = ({
   );
 };
 
+/* ── Floating Particles background ── */
+const FloatingParticles = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 35 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 20 + 15,
+      delay: Math.random() * 10,
+      color: i % 3 === 0 ? 'hsl(190 80% 55%)' : i % 3 === 1 ? 'hsl(220 70% 60%)' : 'hsl(270 60% 55%)',
+      opacity: Math.random() * 0.4 + 0.1,
+    })), []
+  );
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+      {particles.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            width: p.size,
+            height: p.size,
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            background: p.color,
+            opacity: p.opacity,
+            boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
+          }}
+          animate={{
+            x: [0, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 60, 0],
+            y: [0, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 60, 0],
+            opacity: [p.opacity, p.opacity * 1.5, p.opacity * 0.5, p.opacity],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* ── Particle Explosion on Success ── */
+const ParticleExplosion = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 50 }, (_, i) => {
+      const angle = (i / 50) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+      const distance = Math.random() * 300 + 100;
+      const colors = ['hsl(190 80% 55%)', 'hsl(160 70% 50%)', 'hsl(270 60% 55%)', 'hsl(45 90% 55%)', 'hsl(220 80% 60%)'];
+      return {
+        id: i,
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        size: Math.random() * 6 + 2,
+        color: colors[i % colors.length],
+        duration: Math.random() * 1.5 + 0.8,
+        delay: Math.random() * 0.3,
+      };
+    }), []
+  );
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center" style={{ zIndex: 50 }}>
+      {particles.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            width: p.size,
+            height: p.size,
+            background: p.color,
+            boxShadow: `0 0 ${p.size * 2}px ${p.color}`,
+          }}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+          animate={{ x: p.x, y: p.y, opacity: 0, scale: 0.2 }}
+          transition={{ duration: p.duration, delay: p.delay, ease: 'easeOut' }}
+        />
+      ))}
+    </div>
+  );
+};
+
 const NewRequest = () => {
   const { t, dir } = useI18n();
   const { user, loading } = useAuth();

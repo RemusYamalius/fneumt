@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import logoFne from '@/assets/logo-fne.png';
 
@@ -142,7 +142,7 @@ export async function exportToPDF(data: ExportData, lang: ExportLang) {
     [t.responseRate, `${data.kpis.responseRate}%`],
   ];
 
-  (doc as any).autoTable({
+  const kpiTable = autoTable(doc, {
     startY: 71,
     head: [],
     body: kpiData,
@@ -161,7 +161,7 @@ export async function exportToPDF(data: ExportData, lang: ExportLang) {
   });
 
   // Deputies Section
-  const afterKPI = (doc as any).lastAutoTable.finalY + 10;
+  const afterKPI = (kpiTable as any).finalY + 10;
   doc.setFontSize(13);
   doc.setTextColor(30, 64, 110);
   doc.text(t.deputiesSection, isRTL ? 195 : 15, afterKPI, { align: isRTL ? 'right' : 'left' });
@@ -187,7 +187,7 @@ export async function exportToPDF(data: ExportData, lang: ExportLang) {
     ];
   });
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: afterKPI + 4,
     head: deputyHeaders,
     body: deputyRows,

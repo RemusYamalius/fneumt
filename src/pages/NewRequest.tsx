@@ -140,14 +140,27 @@ const OrbitalHub = ({
             >
               <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 65%)' }} />
             </div>
-            {/* Label tooltip */}
+            {/* Persistent label */}
+            {!isSmall && (
+              <div
+                className="absolute top-full mt-1 left-1/2 -translate-x-1/2 orbital-label-persistent"
+                style={{
+                  color: isItemHovered || isSelected ? item.color : 'hsl(210 15% 50%)',
+                  fontSize: isItemHovered || isSelected ? '0.62rem' : '0.55rem',
+                  fontWeight: isItemHovered || isSelected ? 800 : 600,
+                }}
+              >
+                {labelFn(item.key)}
+              </div>
+            )}
+            {/* Hover tooltip with background */}
             <AnimatePresence>
               {(isItemHovered || isSelected) && !isSmall && (
                 <motion.div
                   initial={{ opacity: 0, y: 8, scale: 0.8 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.8 }}
-                  className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label"
+                  className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label"
                   style={{ color: item.color }}
                 >
                   {labelFn(item.key)}

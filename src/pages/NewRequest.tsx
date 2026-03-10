@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock,
@@ -64,8 +64,8 @@ const OrbitalHub = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Responsive radius
-  const baseRadius = isSmall ? 100 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 120 : window.innerWidth < 1024 ? 150 : 180);
-  const itemSize = isSmall ? 48 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 56 : 68);
+  const baseRadius = isSmall ? 100 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 130 : window.innerWidth < 1024 ? 160 : 220);
+  const itemSize = isSmall ? 48 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 56 : window.innerWidth < 1024 ? 68 : 76);
 
   useAnimationFrame((time, delta) => {
     if (!isHovered) {
@@ -140,14 +140,27 @@ const OrbitalHub = ({
             >
               <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 65%)' }} />
             </div>
-            {/* Label tooltip */}
+            {/* Persistent label */}
+            {!isSmall && (
+              <div
+                className="absolute top-full mt-1 left-1/2 -translate-x-1/2 orbital-label-persistent"
+                style={{
+                  color: isItemHovered || isSelected ? item.color : 'hsl(210 15% 50%)',
+                  fontSize: isItemHovered || isSelected ? '0.62rem' : '0.55rem',
+                  fontWeight: isItemHovered || isSelected ? 800 : 600,
+                }}
+              >
+                {labelFn(item.key)}
+              </div>
+            )}
+            {/* Hover tooltip with background */}
             <AnimatePresence>
               {(isItemHovered || isSelected) && !isSmall && (
                 <motion.div
                   initial={{ opacity: 0, y: 8, scale: 0.8 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.8 }}
-                  className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label"
+                  className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label"
                   style={{ color: item.color }}
                 >
                   {labelFn(item.key)}
@@ -157,6 +170,93 @@ const OrbitalHub = ({
           </motion.button>
         );
       })}
+    </div>
+  );
+};
+
+/* ── Floating Particles background ── */
+const FloatingParticles = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 35 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 20 + 15,
+      delay: Math.random() * 10,
+      color: i % 3 === 0 ? 'hsl(190 80% 55%)' : i % 3 === 1 ? 'hsl(220 70% 60%)' : 'hsl(270 60% 55%)',
+      opacity: Math.random() * 0.4 + 0.1,
+    })), []
+  );
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+      {particles.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            width: p.size,
+            height: p.size,
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            background: p.color,
+            opacity: p.opacity,
+            boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
+          }}
+          animate={{
+            x: [0, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 60, 0],
+            y: [0, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 60, 0],
+            opacity: [p.opacity, p.opacity * 1.5, p.opacity * 0.5, p.opacity],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* ── Particle Explosion on Success ── */
+const ParticleExplosion = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 50 }, (_, i) => {
+      const angle = (i / 50) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+      const distance = Math.random() * 300 + 100;
+      const colors = ['hsl(190 80% 55%)', 'hsl(160 70% 50%)', 'hsl(270 60% 55%)', 'hsl(45 90% 55%)', 'hsl(220 80% 60%)'];
+      return {
+        id: i,
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        size: Math.random() * 6 + 2,
+        color: colors[i % colors.length],
+        duration: Math.random() * 1.5 + 0.8,
+        delay: Math.random() * 0.3,
+      };
+    }), []
+  );
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center" style={{ zIndex: 50 }}>
+      {particles.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            width: p.size,
+            height: p.size,
+            background: p.color,
+            boxShadow: `0 0 ${p.size * 2}px ${p.color}`,
+          }}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+          animate={{ x: p.x, y: p.y, opacity: 0, scale: 0.2 }}
+          transition={{ duration: p.duration, delay: p.delay, ease: 'easeOut' }}
+        />
+      ))}
     </div>
   );
 };
@@ -275,12 +375,14 @@ const NewRequest = () => {
   // Success screen
   if (step === 5) {
     return (
-      <div className="min-h-screen futuristic-bg flex items-center justify-center px-6" dir={dir}>
+      <div className="min-h-screen futuristic-bg flex items-center justify-center px-6 relative overflow-hidden" dir={dir}>
+        <FloatingParticles />
+        <ParticleExplosion />
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
-          className="max-w-md w-full futuristic-card p-8 text-center"
+          className="max-w-md w-full futuristic-card p-8 text-center relative z-10"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -309,7 +411,8 @@ const NewRequest = () => {
 
   return (
     <AuthenticatedLayout>
-      <div className="futuristic-bg min-h-[calc(100vh-4rem)]" dir={dir}>
+      <div className="futuristic-bg min-h-[calc(100vh-4rem)] relative overflow-hidden" dir={dir}>
+        <FloatingParticles />
         {/* Top bar */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2">
           <div className="flex items-center justify-between mb-6">

@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import logoFne from '@/assets/logo-fne.png';
 
@@ -85,139 +86,113 @@ interface ExportData {
   getRoleLabel: (role: string) => string;
 }
 
-const loadLogoAsBase64 = (): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return reject('No canvas context');
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = reject;
-    img.src = logoFne;
-  });
-};
-
+/* ── Build a hidden HTML report, render it via html2canvas, then convert to PDF ── */
 export async function exportToPDF(data: ExportData, lang: ExportLang) {
   const t = labels[lang];
   const isRTL = lang === 'ar';
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  
-  // Load and add logo
-  try {
-    const logoBase64 = await loadLogoAsBase64();
-    const logoSize = 28;
-    const logoX = (210 - logoSize) / 2;
-    doc.addImage(logoBase64, 'PNG', logoX, 8, logoSize, logoSize);
-  } catch (e) {
-    console.warn('Logo load failed', e);
-  }
-
-  // Title
-  doc.setFontSize(18);
-  doc.setTextColor(30, 64, 110);
-  doc.text(t.title, 105, 44, { align: 'center' });
-
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  doc.text(t.subtitle, 105, 51, { align: 'center' });
-
-  doc.setFontSize(9);
-  doc.text(`${t.date}: ${new Date().toLocaleDateString(lang === 'ar' ? 'ar-MA' : 'fr-FR')}`, 105, 57, { align: 'center' });
-
-  // KPI Section
-  doc.setFontSize(13);
-  doc.setTextColor(30, 64, 110);
-  doc.text(t.kpiSection, isRTL ? 195 : 15, 67, { align: isRTL ? 'right' : 'left' });
-
-  const kpiData = [
-    [t.totalSubordinates, String(data.kpis.totalSubordinates)],
-    [t.totalRequests, String(data.kpis.total)],
-    [t.processedRequests, String(data.kpis.processed)],
-    [t.responseRate, `${data.kpis.responseRate}%`],
-  ];
-
-  autoTable(doc, {
-    startY: 71,
-    head: [],
-    body: kpiData,
-    theme: 'grid',
-    styles: { 
-      fontSize: 10, 
-      cellPadding: 4,
-      halign: isRTL ? 'right' : 'left',
-    },
-    columnStyles: {
-      0: { fontStyle: 'bold', cellWidth: 90 },
-      1: { cellWidth: 90, halign: 'center' },
-    },
-    margin: { left: 15, right: 15 },
-    tableWidth: 180,
-  });
-
-  // Deputies Section
-  const afterKPI = (doc as any).lastAutoTable.finalY + 10;
-  doc.setFontSize(13);
-  doc.setTextColor(30, 64, 110);
-  doc.text(t.deputiesSection, isRTL ? 195 : 15, afterKPI, { align: isRTL ? 'right' : 'left' });
-
   const realDeputies = data.deputies.filter(d => !d.user_id.startsWith('placeholder_'));
+  const dateStr = new Date().toLocaleDateString(isRTL ? 'ar-MA' : 'fr-FR');
 
-  const deputyHeaders = [
-    [t.name, t.role, t.directorate, t.submitted, t.viewed, t.in_progress, t.accepted, t.cancelled, t.respRate],
-  ];
+  // Build HTML string
+  const html = `
+<div id="__pdf_report" dir="${isRTL ? 'rtl' : 'ltr'}" style="
+  width:794px; padding:40px; background:#fff; color:#1a1a1a;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif; font-size:13px; line-height:1.6;
+">
+  <!-- Header -->
+  <div style="text-align:center; margin-bottom:24px;">
+    <img src="${logoFne}" style="width:70px; height:70px; margin-bottom:8px;" crossorigin="anonymous" />
+    <h1 style="margin:0; font-size:22px; color:#1e406e;">${t.title}</h1>
+    <p style="margin:4px 0 0; font-size:12px; color:#666;">${t.subtitle}</p>
+    <p style="margin:4px 0 0; font-size:11px; color:#999;">${t.date}: ${dateStr}</p>
+  </div>
 
-  const deputyRows = realDeputies.map(dep => {
-    const stats = data.getDeputyStats(dep.user_id);
-    return [
-      dep.full_name || '—',
-      data.getRoleLabel(dep.role),
-      dep.directorate || '—',
-      String(stats.byStatus.submitted || 0),
-      String(stats.byStatus.viewed || 0),
-      String(stats.byStatus.in_progress || 0),
-      String(stats.byStatus.accepted || 0),
-      String(stats.byStatus.cancelled || 0),
-      `${stats.responseRate}%`,
-    ];
-  });
+  <!-- KPIs -->
+  <h2 style="font-size:15px; color:#1e406e; border-bottom:2px solid #1e406e; padding-bottom:4px; margin:20px 0 10px;">${t.kpiSection}</h2>
+  <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+    <tr><td style="padding:8px 12px; border:1px solid #ddd; font-weight:bold; width:50%; background:#f8f9fa;">${t.totalSubordinates}</td><td style="padding:8px 12px; border:1px solid #ddd; text-align:center;">${data.kpis.totalSubordinates}</td></tr>
+    <tr><td style="padding:8px 12px; border:1px solid #ddd; font-weight:bold; background:#f8f9fa;">${t.totalRequests}</td><td style="padding:8px 12px; border:1px solid #ddd; text-align:center;">${data.kpis.total}</td></tr>
+    <tr><td style="padding:8px 12px; border:1px solid #ddd; font-weight:bold; background:#f8f9fa;">${t.processedRequests}</td><td style="padding:8px 12px; border:1px solid #ddd; text-align:center;">${data.kpis.processed}</td></tr>
+    <tr><td style="padding:8px 12px; border:1px solid #ddd; font-weight:bold; background:#f8f9fa;">${t.responseRate}</td><td style="padding:8px 12px; border:1px solid #ddd; text-align:center;">${data.kpis.responseRate}%</td></tr>
+  </table>
 
-  autoTable(doc, {
-    startY: afterKPI + 4,
-    head: deputyHeaders,
-    body: deputyRows,
-    theme: 'striped',
-    styles: { 
-      fontSize: 8, 
-      cellPadding: 3,
-      halign: isRTL ? 'right' : 'left',
-    },
-    headStyles: {
-      fillColor: [30, 64, 110],
-      textColor: 255,
-      fontSize: 8,
-      fontStyle: 'bold',
-      halign: 'center',
-    },
-    margin: { left: 10, right: 10 },
-    tableWidth: 190,
-  });
+  <!-- Deputies -->
+  <h2 style="font-size:15px; color:#1e406e; border-bottom:2px solid #1e406e; padding-bottom:4px; margin:20px 0 10px;">${t.deputiesSection}</h2>
+  <table style="width:100%; border-collapse:collapse; font-size:11px;">
+    <thead>
+      <tr style="background:#1e406e; color:#fff;">
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:${isRTL ? 'right' : 'left'};">${t.name}</th>
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:center;">${t.role}</th>
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:center;">${t.directorate}</th>
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:center;">${t.submitted}</th>
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:center;">${t.viewed}</th>
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:center;">${t.in_progress}</th>
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:center;">${t.accepted}</th>
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:center;">${t.cancelled}</th>
+        <th style="padding:8px 6px; border:1px solid #1e406e; text-align:center;">${t.respRate}</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${realDeputies.map((dep, i) => {
+        const stats = data.getDeputyStats(dep.user_id);
+        const bg = i % 2 === 0 ? '#fff' : '#f8f9fa';
+        return `<tr style="background:${bg};">
+          <td style="padding:6px; border:1px solid #ddd;">${dep.full_name || '—'}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${data.getRoleLabel(dep.role)}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${dep.directorate || '—'}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.byStatus.submitted || 0}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.byStatus.viewed || 0}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.byStatus.in_progress || 0}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.byStatus.accepted || 0}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.byStatus.cancelled || 0}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.responseRate}%</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>
+</div>`;
 
-  // Footer with page number
-  const pageCount = (doc as any).internal.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(`${t.page} ${i}/${pageCount}`, 105, 290, { align: 'center' });
+  // Inject into DOM, render, then remove
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.innerHTML = html;
+  document.body.appendChild(container);
+
+  const element = container.querySelector('#__pdf_report') as HTMLElement;
+
+  try {
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = 190;
+    const pdfPageHeight = 277;
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 10;
+
+    pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, imgHeight);
+    heightLeft -= pdfPageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight + 10;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, imgHeight);
+      heightLeft -= pdfPageHeight;
+    }
+
+    pdf.save(`supervision-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+  } finally {
+    document.body.removeChild(container);
   }
-
-  doc.save(`supervision-report-${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
 export function exportToExcel(data: ExportData, lang: ExportLang) {

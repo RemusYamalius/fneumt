@@ -16,6 +16,17 @@ export const useRealtimeNotifications = (userId: string | undefined) => {
     setUnreadCount(count || 0);
   }, [userId]);
 
+  const markIncomingAsRead = useCallback(async () => {
+    if (!userId) return;
+    await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+      .eq('link', '/incoming-requests');
+    fetchUnreadCount();
+  }, [userId, fetchUnreadCount]);
+
   useEffect(() => {
     if (!userId) return;
     fetchUnreadCount();
@@ -42,5 +53,5 @@ export const useRealtimeNotifications = (userId: string | undefined) => {
     };
   }, [userId, fetchUnreadCount, play]);
 
-  return { unreadCount, refetch: fetchUnreadCount };
+  return { unreadCount, refetch: fetchUnreadCount, markIncomingAsRead };
 };

@@ -259,6 +259,9 @@ const translations: Record<Lang, Record<string, string>> = {
     badge_black: 'قيد التحقق',
     badge_blue: 'منخرط مفعّل',
     badge_gold: 'مسؤول نقابي',
+    downloadFormTitle: 'استمارة المعلومات والمشاكل',
+    downloadFormDesc: 'قم بتحميل الاستمارة، اطبعها، املأها بمعلوماتك ووقّعها، ثم أرفقها مع طلبك.',
+    downloadFormButton: 'تحميل الاستمارة',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT',

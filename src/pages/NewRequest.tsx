@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock, Building2, Coins, MapPin, Wrench, AlertTriangle, ClipboardList, Search, MoreHorizontal, Landmark, GraduationCap, Building, School } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock, Building2, Coins, MapPin, Wrench, AlertTriangle, ClipboardList, Search, MoreHorizontal, Landmark, GraduationCap, Building, School, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';

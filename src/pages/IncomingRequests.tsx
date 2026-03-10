@@ -59,7 +59,7 @@ const IncomingRequests = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { markIncomingAsRead } = useRealtimeNotifications(user?.id);
+  const { refetch: refetchBadge } = useRealtimeNotifications(user?.id);
   const [requests, setRequests] = useState<IncomingRequest[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<IncomingRequest | null>(null);

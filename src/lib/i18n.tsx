@@ -518,6 +518,9 @@ const translations: Record<Lang, Record<string, string>> = {
     badge_black: 'En cours de vérification',
     badge_blue: 'Adhérent vérifié',
     badge_gold: 'Responsable syndical',
+    downloadFormTitle: "Formulaire d'informations et de problèmes",
+    downloadFormDesc: "Téléchargez le formulaire, imprimez-le, remplissez-le avec vos informations et signez-le, puis joignez-le à votre demande.",
+    downloadFormButton: 'Télécharger le formulaire',
   },
 };
 

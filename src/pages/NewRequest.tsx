@@ -375,12 +375,14 @@ const NewRequest = () => {
   // Success screen
   if (step === 5) {
     return (
-      <div className="min-h-screen futuristic-bg flex items-center justify-center px-6" dir={dir}>
+      <div className="min-h-screen futuristic-bg flex items-center justify-center px-6 relative overflow-hidden" dir={dir}>
+        <FloatingParticles />
+        <ParticleExplosion />
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 200 }}
-          className="max-w-md w-full futuristic-card p-8 text-center"
+          className="max-w-md w-full futuristic-card p-8 text-center relative z-10"
         >
           <motion.div
             initial={{ scale: 0 }}

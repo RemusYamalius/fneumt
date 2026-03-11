@@ -325,8 +325,8 @@ const Profile = () => {
               onClick={() => handleChange('is_member', false)}
               className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
                 !form.is_member
-                  ? 'border-[hsl(0_70%_45%)] bg-[hsl(0_70%_45%/0.15)] text-[hsl(0_80%_65%)]'
-                  : 'border-[hsl(210_20%_22%)] bg-[hsl(215_30%_10%)] text-[hsl(210_15%_50%)]'
+                ? 'border-[hsl(0_70%_45%)] bg-[hsl(0_70%_45%/0.08)] text-[hsl(0_70%_35%)]'
+                  : 'border-[hsl(210_15%_88%)] bg-[hsl(210_15%_97%)] text-[hsl(210_15%_45%)]'
               }`}
             >
               {t.isNotMember}

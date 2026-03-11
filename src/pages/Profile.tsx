@@ -31,8 +31,8 @@ const FloatingParticles = () => {
       size: Math.random() * 3 + 1,
       duration: Math.random() * 20 + 15,
       delay: Math.random() * 10,
-      color: i % 3 === 0 ? 'hsl(190 80% 55%)' : i % 3 === 1 ? 'hsl(220 70% 60%)' : 'hsl(270 60% 55%)',
-      opacity: Math.random() * 0.4 + 0.1,
+      color: i % 3 === 0 ? 'hsl(190 80% 80%)' : i % 3 === 1 ? 'hsl(220 70% 82%)' : 'hsl(270 60% 82%)',
+      opacity: Math.random() * 0.25 + 0.05,
     })), []
   );
 
@@ -315,8 +315,8 @@ const Profile = () => {
               onClick={() => handleChange('is_member', true)}
               className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
                 form.is_member
-                  ? 'border-[hsl(190_80%_45%)] bg-[hsl(190_80%_45%/0.15)] text-[hsl(190_100%_65%)]'
-                  : 'border-[hsl(210_20%_22%)] bg-[hsl(215_30%_10%)] text-[hsl(210_15%_50%)]'
+                ? 'border-[hsl(190_80%_45%)] bg-[hsl(190_80%_45%/0.08)] text-[hsl(190_80%_30%)]'
+                  : 'border-[hsl(210_15%_88%)] bg-[hsl(210_15%_97%)] text-[hsl(210_15%_45%)]'
               }`}
             >
               {t.isMember}
@@ -325,8 +325,8 @@ const Profile = () => {
               onClick={() => handleChange('is_member', false)}
               className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
                 !form.is_member
-                  ? 'border-[hsl(0_70%_45%)] bg-[hsl(0_70%_45%/0.15)] text-[hsl(0_80%_65%)]'
-                  : 'border-[hsl(210_20%_22%)] bg-[hsl(215_30%_10%)] text-[hsl(210_15%_50%)]'
+                ? 'border-[hsl(0_70%_45%)] bg-[hsl(0_70%_45%/0.08)] text-[hsl(0_70%_35%)]'
+                  : 'border-[hsl(210_15%_88%)] bg-[hsl(210_15%_97%)] text-[hsl(210_15%_45%)]'
               }`}
             >
               {t.isNotMember}
@@ -379,7 +379,7 @@ const Profile = () => {
 
   return (
     <AuthenticatedLayout>
-      <div className="min-h-screen futuristic-bg" dir={dir}>
+      <div className="min-h-screen profile-white-bg" dir={dir}>
         <FloatingParticles />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 py-6">
@@ -394,7 +394,7 @@ const Profile = () => {
 
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-black" style={{ color: 'hsl(0 0% 95%)' }}>{t.profile}</h1>
+            <h1 className="text-2xl font-black" style={{ color: 'hsl(210 20% 15%)' }}>{t.profile}</h1>
             <div className="flex gap-3">
               <button
                 onClick={() => setViewMode(!viewMode)}
@@ -408,7 +408,7 @@ const Profile = () => {
 
           {/* Progress */}
           <div className="flex items-center gap-2 mb-8">
-            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'hsl(215 30% 12%)' }}>
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'hsl(210 15% 92%)' }}>
               <motion.div
                 className="h-full rounded-full"
                 style={{ background: 'linear-gradient(90deg, hsl(190 80% 45%), hsl(160 70% 45%))' }}
@@ -416,7 +416,7 @@ const Profile = () => {
                 transition={{ duration: 0.5 }}
               />
             </div>
-            <span className="text-xs font-bold" style={{ color: 'hsl(190 100% 65%)' }}>
+            <span className="text-xs font-bold" style={{ color: 'hsl(190 80% 35%)' }}>
               {filledCount}/{cards.length}
             </span>
           </div>
@@ -438,14 +438,14 @@ const Profile = () => {
                     return (
                       <div key={card.key} className="profile-summary-row">
                         <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                          style={{ background: 'hsl(190 80% 45% / 0.12)', border: '1px solid hsl(190 80% 45% / 0.2)' }}>
-                          <Icon className="w-4 h-4" style={{ color: 'hsl(190 100% 65%)' }} />
+                          style={{ background: 'hsl(190 80% 45% / 0.08)', border: '1px solid hsl(190 80% 45% / 0.15)' }}>
+                          <Icon className="w-4 h-4" style={{ color: 'hsl(190 80% 35%)' }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold" style={{ color: 'hsl(210 15% 50%)' }}>
+                          <div className="text-xs font-bold" style={{ color: 'hsl(210 15% 40%)' }}>
                             {card.label} <span style={{ color: 'hsl(0 80% 55%)' }}>*</span>
                           </div>
-                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'hsl(0 0% 90%)' : 'hsl(0 80% 55% / 0.6)' }}>
+                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'hsl(210 20% 20%)' : 'hsl(0 80% 55% / 0.6)' }}>
                             {value || '—'}
                           </div>
                         </div>
@@ -496,7 +496,7 @@ const Profile = () => {
               >
                 {/* Card counter */}
                 <div className="text-center mb-4">
-                  <span className="text-sm font-bold" style={{ color: 'hsl(190 100% 65%)' }}>
+                  <span className="text-sm font-bold" style={{ color: 'hsl(190 80% 35%)' }}>
                     {activeIndex + 1} {t.profileCardOf} {cards.length}
                   </span>
                 </div>
@@ -520,15 +520,15 @@ const Profile = () => {
                             {/* Icon */}
                             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
                               style={{
-                                background: isActive ? 'hsl(190 80% 45% / 0.15)' : 'rgba(255 255 255 / 0.06)',
-                                border: `1.5px solid ${isActive ? 'hsl(190 80% 45% / 0.4)' : 'rgba(255 255 255 / 0.1)'}`,
+                                background: isActive ? 'hsl(190 80% 45% / 0.1)' : 'hsl(210 15% 95%)',
+                                border: `1.5px solid ${isActive ? 'hsl(190 80% 45% / 0.4)' : 'hsl(210 15% 88%)'}`,
                               }}>
-                              <Icon className="w-6 h-6" style={{ color: isActive ? 'hsl(190 100% 65%)' : 'hsl(210 15% 55%)' }} />
+                              <Icon className="w-6 h-6" style={{ color: isActive ? 'hsl(190 80% 35%)' : 'hsl(210 15% 55%)' }} />
                             </div>
 
                             {/* Label */}
                             <div className="text-center mb-4">
-                              <span className="text-sm font-black" style={{ color: isActive ? 'hsl(0 0% 95%)' : 'hsl(210 15% 55%)' }}>
+                              <span className="text-sm font-black" style={{ color: isActive ? 'hsl(210 20% 15%)' : 'hsl(210 15% 55%)' }}>
                                 {card.label}
                               </span>
                               <span className="text-sm font-black" style={{ color: 'hsl(0 80% 55%)' }}> *</span>
@@ -551,11 +551,11 @@ const Profile = () => {
                     onClick={scrollPrev}
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
                     style={{
-                      background: 'rgba(255 255 255 / 0.08)',
-                      border: '1.5px solid rgba(255 255 255 / 0.15)',
+                      background: 'hsl(210 15% 97%)',
+                      border: '1.5px solid hsl(210 15% 88%)',
                     }}
                   >
-                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(190 100% 65%)' }} />
+                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(190 80% 35%)' }} />
                   </button>
 
                   {/* Dots */}
@@ -570,7 +570,7 @@ const Profile = () => {
                             ? 'hsl(190 80% 45%)'
                             : isFieldFilled(cards[i].key)
                               ? 'hsl(160 70% 45%)'
-                              : 'hsl(210 20% 22%)',
+                              : 'hsl(210 15% 85%)',
                           boxShadow: i === activeIndex ? '0 0 8px hsl(190 80% 45% / 0.5)' : 'none',
                           transform: i === activeIndex ? 'scale(1.3)' : 'scale(1)',
                         }}
@@ -582,11 +582,11 @@ const Profile = () => {
                     onClick={scrollNext}
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
                     style={{
-                      background: 'rgba(255 255 255 / 0.08)',
-                      border: '1.5px solid rgba(255 255 255 / 0.15)',
+                      background: 'hsl(210 15% 97%)',
+                      border: '1.5px solid hsl(210 15% 88%)',
                     }}
                   >
-                    <NavNext className="w-5 h-5" style={{ color: 'hsl(190 100% 65%)' }} />
+                    <NavNext className="w-5 h-5" style={{ color: 'hsl(190 80% 35%)' }} />
                   </button>
                 </div>
 

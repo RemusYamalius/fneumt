@@ -190,10 +190,9 @@ const Profile = () => {
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) {
-      playClick();
       emblaApi.scrollPrev();
     }
-  }, [emblaApi, playClick]);
+  }, [emblaApi]);
 
   const getFieldValue = (key: string): string => {
     if (key === 'email') return user?.email || '';

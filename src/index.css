@@ -1280,12 +1280,12 @@
 }
 
 .profile-summary-card {
-  background: rgba(255 255 255 / 0.7);
+  background: rgba(255 255 255 / 0.6);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid hsl(210 15% 88%);
+  border: 1px solid hsl(220 25% 88%);
   border-radius: 1.25rem;
-  box-shadow: 0 4px 20px -6px hsl(210 20% 50% / 0.08);
+  box-shadow: 0 4px 24px -6px hsl(220 30% 60% / 0.1);
 }
 
 .profile-summary-row {

@@ -1020,8 +1020,9 @@
 }
 
 .futuristic-review-card {
-  background: linear-gradient(145deg, hsl(215 30% 11%) 0%, hsl(220 35% 8%) 100%);
-  border: 1px solid hsl(210 20% 18%);
+  background: rgba(255 255 255 / 0.08);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255 255 255 / 0.12);
   border-radius: 1rem;
   padding: 1rem 1.25rem;
   transition: border-color 0.3s ease;

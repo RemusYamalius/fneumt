@@ -520,10 +520,10 @@ const Profile = () => {
                             {/* Icon */}
                             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
                               style={{
-                                background: isActive ? 'hsl(190 80% 45% / 0.15)' : 'rgba(255 255 255 / 0.06)',
-                                border: `1.5px solid ${isActive ? 'hsl(190 80% 45% / 0.4)' : 'rgba(255 255 255 / 0.1)'}`,
+                                background: isActive ? 'hsl(190 80% 45% / 0.1)' : 'hsl(210 15% 95%)',
+                                border: `1.5px solid ${isActive ? 'hsl(190 80% 45% / 0.4)' : 'hsl(210 15% 88%)'}`,
                               }}>
-                              <Icon className="w-6 h-6" style={{ color: isActive ? 'hsl(190 100% 65%)' : 'hsl(210 15% 55%)' }} />
+                              <Icon className="w-6 h-6" style={{ color: isActive ? 'hsl(190 80% 35%)' : 'hsl(210 15% 55%)' }} />
                             </div>
 
                             {/* Label */}

@@ -63,25 +63,7 @@ const TrackRequest = () => {
     setSearching(false);
   };
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
-    setSearching(true);
-    setNotFound(false);
-    setResult(null);
-
-    const { data, error } = await supabase
-      .from('requests')
-      .select('tracking_number, category, subject, status, created_at')
-      .eq('tracking_number', query.trim())
-      .maybeSingle();
-
-    if (error || !data) {
-      setNotFound(true);
-    } else {
-      setResult(data as RequestResult);
-    }
-    setSearching(false);
-  };
+  const handleSearch = () => doSearch(query);
 
   const categoryLabel = (key: string) => t[`cat_${key}`] || key;
   const statusLabel = (key: string) => t[`status_${key}`] || key;

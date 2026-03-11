@@ -551,11 +551,11 @@ const Profile = () => {
                     onClick={scrollPrev}
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
                     style={{
-                      background: 'rgba(255 255 255 / 0.08)',
-                      border: '1.5px solid rgba(255 255 255 / 0.15)',
+                      background: 'hsl(210 15% 97%)',
+                      border: '1.5px solid hsl(210 15% 88%)',
                     }}
                   >
-                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(190 100% 65%)' }} />
+                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(190 80% 35%)' }} />
                   </button>
 
                   {/* Dots */}

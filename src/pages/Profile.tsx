@@ -31,8 +31,8 @@ const FloatingParticles = () => {
       size: Math.random() * 3 + 1,
       duration: Math.random() * 20 + 15,
       delay: Math.random() * 10,
-      color: i % 3 === 0 ? 'hsl(190 80% 80%)' : i % 3 === 1 ? 'hsl(220 70% 82%)' : 'hsl(270 60% 82%)',
-      opacity: Math.random() * 0.25 + 0.05,
+      color: 'rgba(255 255 255 / 0.6)',
+      opacity: Math.random() * 0.15 + 0.05,
     })), []
   );
 

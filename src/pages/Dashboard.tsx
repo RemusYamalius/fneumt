@@ -402,9 +402,17 @@ const RequestsSection = ({ t, lang, loadingRequests, myRequests, dir, userId }: 
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
               >
-                <Link
-                  to={`/track?q=${req.tracking_number}`}
-                  className="group block rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"
+                <div
+                  onClick={async () => {
+                    await supabase
+                      .from('notifications')
+                      .update({ is_read: true })
+                      .eq('user_id', userId)
+                      .eq('is_read', false)
+                      .like('message', `%${req.tracking_number}%`);
+                    navigate(`/track?q=${req.tracking_number}`);
+                  }}
+                  className="group block rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -412,7 +420,6 @@ const RequestsSection = ({ t, lang, loadingRequests, myRequests, dir, userId }: 
                         <span className="font-mono text-sm font-bold text-primary tracking-wide">{req.tracking_number}</span>
                         <button
                           onClick={(e) => {
-                            e.preventDefault();
                             e.stopPropagation();
                             navigator.clipboard.writeText(req.tracking_number);
                           }}
@@ -433,7 +440,7 @@ const RequestsSection = ({ t, lang, loadingRequests, myRequests, dir, userId }: 
                       <span className={`text-[10px] font-semibold ${sc.color}`}>{statusLabel}</span>
                     </div>
                   </div>
-                </Link>
+                </div>
               </motion.div>
             );
           })}

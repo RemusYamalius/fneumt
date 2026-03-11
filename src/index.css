@@ -1255,9 +1255,34 @@
 }
 
 .profile-card-glass.active {
-  background: linear-gradient(135deg, rgba(255 255 255 / 0.12) 0%, rgba(0 180 200 / 0.18) 100%);
-  border-color: rgba(0 200 220 / 0.4);
-  box-shadow: inset 0 1px 0 rgba(255 255 255 / 0.12), 0 8px 32px rgba(0 0 0 / 0.3), 0 0 20px rgba(0 180 200 / 0.12);
+  background: linear-gradient(135deg, rgba(255 255 255 / 0.14) 0%, rgba(0 180 200 / 0.2) 100%);
+  border-color: rgba(0 220 240 / 0.5);
+  box-shadow: 
+    inset 0 1px 0 rgba(255 255 255 / 0.12),
+    0 8px 32px rgba(0 0 0 / 0.3),
+    0 0 20px rgba(0 200 220 / 0.25),
+    0 0 40px rgba(0 200 220 / 0.12),
+    0 0 60px rgba(0 200 220 / 0.06);
+  animation: cyanPulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes cyanPulseGlow {
+  0%, 100% {
+    box-shadow: 
+      inset 0 1px 0 rgba(255 255 255 / 0.12),
+      0 8px 32px rgba(0 0 0 / 0.3),
+      0 0 20px rgba(0 200 220 / 0.25),
+      0 0 40px rgba(0 200 220 / 0.12),
+      0 0 60px rgba(0 200 220 / 0.06);
+  }
+  50% {
+    box-shadow: 
+      inset 0 1px 0 rgba(255 255 255 / 0.15),
+      0 8px 32px rgba(0 0 0 / 0.3),
+      0 0 25px rgba(0 200 220 / 0.35),
+      0 0 50px rgba(0 200 220 / 0.18),
+      0 0 80px rgba(0 200 220 / 0.08);
+  }
 }
 
 .profile-card-glass.completed {

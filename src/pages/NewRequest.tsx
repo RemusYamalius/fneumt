@@ -62,26 +62,67 @@ const OrbitalHub = ({
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragStartAngle = useRef(0);
+  const rotationAtDragStart = useRef(0);
 
   // Responsive radius
   const baseRadius = isSmall ? 100 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 130 : window.innerWidth < 1024 ? 160 : 220);
   const itemSize = isSmall ? 48 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 56 : window.innerWidth < 1024 ? 68 : 76);
 
   useAnimationFrame((time, delta) => {
-    if (!isHovered) {
+    if (!isHovered && !isDragging.current) {
       setRotation(prev => (prev + (delta * 0.012)) % 360);
     }
   });
+
+  const getAngleFromCenter = useCallback((clientX: number, clientY: number) => {
+    const el = containerRef.current;
+    if (!el) return 0;
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+  }, []);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Don't drag if clicking an orbital item button
+    if ((e.target as HTMLElement).closest('.orbital-item')) return;
+    isDragging.current = true;
+    dragStartAngle.current = getAngleFromCenter(e.clientX, e.clientY);
+    rotationAtDragStart.current = rotation;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }, [getAngleFromCenter, rotation]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    const currentAngle = getAngleFromCenter(e.clientX, e.clientY);
+    const delta = currentAngle - dragStartAngle.current;
+    setRotation((rotationAtDragStart.current + delta) % 360);
+  }, [getAngleFromCenter]);
+
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false;
+  }, []);
 
   const angleStep = (2 * Math.PI) / items.length;
 
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center justify-center"
-      style={{ width: (baseRadius * 2) + itemSize + 60, height: (baseRadius * 2) + itemSize + 60, overflow: 'visible' }}
+      className="relative flex items-center justify-center touch-none"
+      style={{
+        width: (baseRadius * 2) + itemSize + 60,
+        height: (baseRadius * 2) + itemSize + 60,
+        overflow: 'visible',
+        cursor: isDragging.current ? 'grabbing' : 'grab',
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => { setIsHovered(false); setHoveredItem(null); }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       {/* Orbit ring */}
       <div

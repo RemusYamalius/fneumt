@@ -576,13 +576,14 @@ const Profile = () => {
 
                   <button
                     onClick={scrollNext}
-                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
                     style={{
-                      background: 'hsl(210 15% 97%)',
-                      border: '1.5px solid hsl(210 15% 88%)',
+                      background: 'linear-gradient(135deg, hsl(207 62% 92%) 0%, hsl(190 60% 90%) 100%)',
+                      border: '1.5px solid hsl(207 62% 80%)',
+                      boxShadow: '0 4px 12px hsl(207 62% 50% / 0.1)',
                     }}
                   >
-                    <NavNext className="w-5 h-5" style={{ color: 'hsl(190 80% 35%)' }} />
+                    <NavNext className="w-5 h-5" style={{ color: 'hsl(207 62% 40%)' }} />
                   </button>
                 </div>
 

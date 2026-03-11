@@ -141,12 +141,12 @@ const OrbitalHub = ({
               <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 65%)' }} />
             </div>
             {/* Persistent label */}
-            {!isSmall && (
+            {(!isSmall || isSelected) && (
               <div
                 className="absolute top-full mt-1 left-1/2 -translate-x-1/2 orbital-label-persistent"
                 style={{
                   color: isItemHovered || isSelected ? item.color : 'hsl(210 15% 50%)',
-                  fontSize: isItemHovered || isSelected ? '0.62rem' : '0.55rem',
+                  fontSize: isSmall ? '0.5rem' : (isItemHovered || isSelected ? '0.62rem' : '0.55rem'),
                   fontWeight: isItemHovered || isSelected ? 800 : 600,
                 }}
               >

@@ -519,7 +519,7 @@ const NewRequest = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: slideDirection * -100 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16"
+                className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-28"
               >
                 {/* Mini orbital preview */}
                 <motion.div

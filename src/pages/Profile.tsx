@@ -379,7 +379,7 @@ const Profile = () => {
 
   return (
     <AuthenticatedLayout>
-      <div className="min-h-screen futuristic-bg" dir={dir}>
+      <div className="min-h-screen profile-white-bg" dir={dir}>
         <FloatingParticles />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 py-6">

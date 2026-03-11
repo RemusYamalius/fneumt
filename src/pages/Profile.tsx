@@ -416,7 +416,7 @@ const Profile = () => {
                 transition={{ duration: 0.5 }}
               />
             </div>
-            <span className="text-xs font-bold" style={{ color: 'hsl(190 100% 65%)' }}>
+            <span className="text-xs font-bold" style={{ color: 'hsl(190 80% 35%)' }}>
               {filledCount}/{cards.length}
             </span>
           </div>

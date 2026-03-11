@@ -303,9 +303,11 @@ interface RequestsSectionProps {
   loadingRequests: boolean;
   myRequests: any[];
   dir: string;
+  userId: string;
 }
 
-const RequestsSection = ({ t, lang, loadingRequests, myRequests, dir }: RequestsSectionProps) => {
+const RequestsSection = ({ t, lang, loadingRequests, myRequests, dir, userId }: RequestsSectionProps) => {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 

@@ -160,26 +160,21 @@ const OrbitalHub = ({
         );
       })}
 
-      {/* Phase 2: outer-orbit label for selected item only */}
+      {/* Phase 2: static label above the wheel for selected item */}
       {isSmall && selectedKey && (() => {
-        const selectedIndex = items.findIndex(it => it.key === selectedKey);
-        if (selectedIndex === -1) return null;
-        const selectedItem = items[selectedIndex];
-        const angle = angleStep * selectedIndex + (rotation * Math.PI) / 180;
-        const outerDistance = baseRadius + itemSize / 2 + 14;
-        const labelX = Math.cos(angle) * outerDistance;
-        const labelY = Math.sin(angle) * outerDistance;
+        const selectedItem = items.find(it => it.key === selectedKey);
+        if (!selectedItem) return null;
         return (
           <div
-            className="absolute whitespace-nowrap orbital-label-persistent pointer-events-none"
+            className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none text-center px-3 py-1 rounded-lg"
             style={{
-              left: `calc(50% + ${labelX}px)`,
-              top: `calc(50% + ${labelY}px)`,
-              transform: 'translate(-50%, -50%)',
               color: selectedItem.color,
-              fontSize: '0.6rem',
+              fontSize: '0.85rem',
               fontWeight: 800,
-              textShadow: `0 0 10px ${selectedItem.color}80`,
+              textShadow: `0 0 12px ${selectedItem.color}60`,
+              background: 'rgba(255 255 255 / 0.08)',
+              backdropFilter: 'blur(12px)',
+              border: `1px solid ${selectedItem.color}30`,
               zIndex: 40,
             }}
           >

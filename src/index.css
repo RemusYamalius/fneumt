@@ -1032,10 +1032,11 @@
 .futuristic-btn-primary {
   background: linear-gradient(135deg, hsl(190 80% 38%) 0%, hsl(210 70% 40%) 100%) !important;
   color: hsl(0 0% 100%) !important;
-  border: 1px solid hsl(190 80% 45% / 0.3) !important;
+  border: 1px solid rgba(255 255 255 / 0.2) !important;
   font-weight: 800 !important;
   border-radius: 0.85rem !important;
   box-shadow: 0 10px 30px -10px hsl(190 80% 45% / 0.4);
+  backdrop-filter: blur(8px);
   transition: all 0.3s ease;
 }
 

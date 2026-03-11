@@ -528,7 +528,7 @@ const Profile = () => {
 
                             {/* Label */}
                             <div className="text-center mb-4">
-                              <span className="text-sm font-black" style={{ color: isActive ? 'hsl(0 0% 95%)' : 'hsl(210 15% 55%)' }}>
+                              <span className="text-sm font-black" style={{ color: isActive ? 'hsl(210 20% 15%)' : 'hsl(210 15% 55%)' }}>
                                 {card.label}
                               </span>
                               <span className="text-sm font-black" style={{ color: 'hsl(0 80% 55%)' }}> *</span>

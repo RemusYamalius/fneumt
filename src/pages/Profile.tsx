@@ -426,14 +426,14 @@ const Profile = () => {
                     return (
                       <div key={card.key} className="profile-summary-row">
                         <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                          style={{ background: 'hsl(190 80% 45% / 0.08)', border: '1px solid hsl(190 80% 45% / 0.15)' }}>
-                          <Icon className="w-4 h-4" style={{ color: 'hsl(190 80% 35%)' }} />
+                          style={{ background: 'rgba(255 255 255 / 0.08)', border: '1px solid rgba(255 255 255 / 0.2)' }}>
+                          <Icon className="w-4 h-4" style={{ color: 'rgba(255 255 255 / 0.7)' }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold" style={{ color: 'hsl(210 15% 40%)' }}>
-                            {card.label} <span style={{ color: 'hsl(0 80% 55%)' }}>*</span>
+                          <div className="text-xs font-bold" style={{ color: 'rgba(255 255 255 / 0.6)' }}>
+                            {card.label} <span style={{ color: 'rgba(255 150 150 / 0.8)' }}>*</span>
                           </div>
-                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'hsl(210 20% 20%)' : 'hsl(0 80% 55% / 0.6)' }}>
+                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'rgba(255 255 255 / 0.9)' : 'rgba(255 150 150 / 0.5)' }}>
                             {value || '—'}
                           </div>
                         </div>

@@ -325,7 +325,7 @@ const Profile = () => {
                 onChange={e => handleChange('membership_card_number', e.target.value)}
                 placeholder={t.membershipCardPlaceholder}
                 dir="ltr"
-                className="futuristic-input"
+                className="profile-input"
               />
             </motion.div>
           )}

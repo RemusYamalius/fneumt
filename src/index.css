@@ -913,13 +913,15 @@
 }
 
 .orbital-item-default {
-  background: hsl(215 30% 10%);
-  border: 1.5px solid hsl(210 20% 22%);
+  background: rgba(255 255 255 / 0.08);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255 255 255 / 0.12);
   transition: all 0.3s ease;
 }
 
 .orbital-item-selected {
-  background: hsl(215 30% 12%);
+  background: rgba(255 255 255 / 0.15);
+  backdrop-filter: blur(16px);
   border: 2px solid;
 }
 

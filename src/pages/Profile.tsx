@@ -488,18 +488,27 @@ const Profile = () => {
                 </div>
 
                 {/* Carousel */}
-                <div className="overflow-hidden" ref={emblaRef}>
+                <div className="overflow-hidden" ref={emblaRef} style={{ perspective: '1200px' }}>
                   <div className="flex gap-4" style={{ direction: dir === 'rtl' ? 'rtl' : 'ltr' }}>
                     {cards.map((card, index) => {
                       const Icon = card.icon;
                       const isActive = index === activeIndex;
                       const filled = isFieldFilled(card.key);
+                      const offset = index - activeIndex;
+                      const rotateY = isActive ? 0 : offset > 0 ? -8 : 8;
+                      const scale3d = isActive ? 1 : 0.92;
+                      const opacity3d = isActive ? 1 : 0.7;
 
                       return (
                         <div
                           key={card.key}
-                          className="flex-shrink-0"
-                          style={{ width: 'min(85vw, 340px)' }}
+                          className="flex-shrink-0 transition-all duration-500"
+                          style={{
+                            width: 'min(85vw, 340px)',
+                            transform: `perspective(1200px) rotateY(${rotateY}deg) scale(${scale3d})`,
+                            opacity: opacity3d,
+                            transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.5s ease',
+                          }}
                           onClick={() => scrollTo(index)}
                         >
                           <div className={`profile-card-glass relative p-6 min-h-[220px] flex flex-col ${isActive ? 'active' : ''} ${filled && !isActive ? 'completed' : ''}`}>

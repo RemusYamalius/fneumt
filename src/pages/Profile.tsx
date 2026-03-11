@@ -299,21 +299,23 @@ const Profile = () => {
           <div className="flex gap-3">
             <button
               onClick={() => handleChange('is_member', true)}
-              className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
-                form.is_member
-                ? 'border-[hsl(190_80%_45%)] bg-[hsl(190_80%_45%/0.08)] text-[hsl(190_80%_30%)]'
-                  : 'border-[hsl(210_15%_88%)] bg-[hsl(210_15%_97%)] text-[hsl(210_15%_45%)]'
-              }`}
+              className="flex-1 px-4 py-3 rounded-xl font-medium text-sm transition-all"
+              style={{
+                background: form.is_member ? 'rgba(255 255 255 / 0.15)' : 'rgba(255 255 255 / 0.05)',
+                border: `1.5px solid ${form.is_member ? 'rgba(255 255 255 / 0.4)' : 'rgba(255 255 255 / 0.15)'}`,
+                color: 'rgba(255 255 255 / 0.85)',
+              }}
             >
               {t.isMember}
             </button>
             <button
               onClick={() => handleChange('is_member', false)}
-              className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
-                !form.is_member
-                ? 'border-[hsl(0_70%_45%)] bg-[hsl(0_70%_45%/0.08)] text-[hsl(0_70%_35%)]'
-                  : 'border-[hsl(210_15%_88%)] bg-[hsl(210_15%_97%)] text-[hsl(210_15%_45%)]'
-              }`}
+              className="flex-1 px-4 py-3 rounded-xl font-medium text-sm transition-all"
+              style={{
+                background: !form.is_member ? 'rgba(255 255 255 / 0.15)' : 'rgba(255 255 255 / 0.05)',
+                border: `1.5px solid ${!form.is_member ? 'rgba(255 200 200 / 0.4)' : 'rgba(255 255 255 / 0.15)'}`,
+                color: 'rgba(255 255 255 / 0.85)',
+              }}
             >
               {t.isNotMember}
             </button>

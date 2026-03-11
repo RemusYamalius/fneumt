@@ -49,7 +49,7 @@ const translations: Record<Lang, Record<string, string>> = {
     loginSubtitle: 'أدخل بياناتك للمتابعة',
     signupSubtitle: 'أنشئ حسابك الجديد',
     phoneLabel: 'الهاتف',
-    employeeNumberLabel: 'رقم التأجير',
+    employeeNumberLabel: 'N°PPR',
     zoneLabel: 'المنطقة',
     directorateLabel: 'المديرية الإقليمية',
     academyLabel: 'الأكاديمية الجهوية',

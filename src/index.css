@@ -872,7 +872,7 @@
    ══════════════════════════════════════════════ */
 
 .futuristic-bg {
-  background: linear-gradient(165deg, hsl(215 60% 12%) 0%, hsl(220 55% 8%) 50%, hsl(210 50% 10%) 100%);
+  background: linear-gradient(165deg, hsl(195 75% 22%) 0%, hsl(205 70% 18%) 40%, hsl(215 65% 15%) 100%);
   position: relative;
 }
 
@@ -881,9 +881,9 @@
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 15%, hsl(190 80% 50% / 0.12), transparent),
-    radial-gradient(ellipse 60% 60% at 80% 80%, hsl(220 80% 50% / 0.10), transparent),
-    radial-gradient(ellipse 40% 40% at 50% 50%, hsl(200 90% 45% / 0.08), transparent);
+    radial-gradient(ellipse 80% 60% at 20% 15%, hsl(185 80% 45% / 0.18), transparent),
+    radial-gradient(ellipse 60% 60% at 80% 80%, hsl(210 75% 45% / 0.15), transparent),
+    radial-gradient(ellipse 50% 50% at 50% 40%, hsl(195 85% 40% / 0.12), transparent);
   pointer-events: none;
   z-index: 0;
 }
@@ -897,8 +897,9 @@
 }
 
 .orbital-center {
-  background: radial-gradient(circle, hsl(215 35% 12%) 0%, hsl(220 40% 8%) 100%);
-  border: 1.5px solid hsl(190 80% 45% / 0.25);
+  background: rgba(255 255 255 / 0.06);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255 255 255 / 0.15);
 }
 
 .orbital-center-glow {
@@ -912,13 +913,15 @@
 }
 
 .orbital-item-default {
-  background: hsl(215 30% 10%);
-  border: 1.5px solid hsl(210 20% 22%);
+  background: rgba(255 255 255 / 0.08);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255 255 255 / 0.12);
   transition: all 0.3s ease;
 }
 
 .orbital-item-selected {
-  background: hsl(215 30% 12%);
+  background: rgba(255 255 255 / 0.15);
+  backdrop-filter: blur(16px);
   border: 2px solid;
 }
 
@@ -945,10 +948,11 @@
 
 /* ── Cards & panels ── */
 .futuristic-card {
-  background: linear-gradient(145deg, hsl(215 30% 11%) 0%, hsl(220 35% 8%) 100%);
-  border: 1px solid hsl(210 20% 18%);
+  background: rgba(255 255 255 / 0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255 255 255 / 0.15);
   border-radius: 1.25rem;
-  box-shadow: 0 20px 50px -20px hsl(0 0% 0% / 0.5);
+  box-shadow: 0 20px 50px -20px hsl(0 0% 0% / 0.3);
 }
 
 .futuristic-warning-card {
@@ -959,29 +963,31 @@
 /* ── Level cards ── */
 .futuristic-level-card {
   position: relative;
-  background: linear-gradient(145deg, hsl(215 30% 11%) 0%, hsl(220 35% 9%) 100%);
-  border: 1.5px solid hsl(210 20% 22%);
+  background: rgba(255 255 255 / 0.08);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255 255 255 / 0.12);
   border-radius: 1rem;
   transition: all 0.3s ease;
   min-width: 260px;
 }
 
 .futuristic-level-card:hover {
-  border-color: hsl(190 80% 45% / 0.4);
+  border-color: rgba(255 255 255 / 0.25);
   box-shadow: 0 0 20px hsl(190 80% 45% / 0.1);
 }
 
 .futuristic-level-card.selected {
-  background: linear-gradient(145deg, hsl(215 30% 13%) 0%, hsl(220 35% 10%) 100%);
+  background: rgba(255 255 255 / 0.14);
 }
 
 /* ── Upload zone ── */
 .futuristic-upload-zone {
-  border: 2px dashed hsl(190 80% 45% / 0.25);
+  border: 2px dashed rgba(255 255 255 / 0.2);
   border-radius: 1.25rem;
   padding: 3rem 2rem;
   text-align: center;
-  background: linear-gradient(145deg, hsl(215 30% 10%) 0%, hsl(220 35% 8%) 100%);
+  background: rgba(255 255 255 / 0.06);
+  backdrop-filter: blur(16px);
   transition: all 0.3s ease;
 }
 
@@ -997,8 +1003,9 @@
   justify-content: space-between;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  background: hsl(215 30% 10%);
-  border: 1px solid hsl(210 20% 18%);
+  background: rgba(255 255 255 / 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255 255 255 / 0.1);
   transition: border-color 0.2s ease;
 }
 
@@ -1013,8 +1020,9 @@
 }
 
 .futuristic-review-card {
-  background: linear-gradient(145deg, hsl(215 30% 11%) 0%, hsl(220 35% 8%) 100%);
-  border: 1px solid hsl(210 20% 18%);
+  background: rgba(255 255 255 / 0.08);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255 255 255 / 0.12);
   border-radius: 1rem;
   padding: 1rem 1.25rem;
   transition: border-color 0.3s ease;
@@ -1024,10 +1032,11 @@
 .futuristic-btn-primary {
   background: linear-gradient(135deg, hsl(190 80% 38%) 0%, hsl(210 70% 40%) 100%) !important;
   color: hsl(0 0% 100%) !important;
-  border: 1px solid hsl(190 80% 45% / 0.3) !important;
+  border: 1px solid rgba(255 255 255 / 0.2) !important;
   font-weight: 800 !important;
   border-radius: 0.85rem !important;
   box-shadow: 0 10px 30px -10px hsl(190 80% 45% / 0.4);
+  backdrop-filter: blur(8px);
   transition: all 0.3s ease;
 }
 

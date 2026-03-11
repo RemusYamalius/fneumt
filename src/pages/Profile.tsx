@@ -438,7 +438,7 @@ const Profile = () => {
                     return (
                       <div key={card.key} className="profile-summary-row">
                         <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                          style={{ background: 'hsl(190 80% 45% / 0.12)', border: '1px solid hsl(190 80% 45% / 0.2)' }}>
+                          style={{ background: 'hsl(190 80% 45% / 0.08)', border: '1px solid hsl(190 80% 45% / 0.15)' }}>
                           <Icon className="w-4 h-4" style={{ color: 'hsl(190 80% 35%)' }} />
                         </div>
                         <div className="flex-1 min-w-0">

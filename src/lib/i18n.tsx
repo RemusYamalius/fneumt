@@ -532,6 +532,18 @@ const translations: Record<Lang, Record<string, string>> = {
     downloadFormTitle: "Formulaire d'informations et de problèmes",
     downloadFormDesc: "Téléchargez le formulaire, imprimez-le, remplissez-le avec vos informations et signez-le, puis joignez-le à votre demande.",
     downloadFormButton: 'Télécharger le formulaire',
+    deleteAccount: 'Supprimer le compte',
+    deleteAccountConfirm: 'Êtes-vous sûr de vouloir supprimer définitivement votre compte ?',
+    deleteAccountWarning: 'Toutes vos données seront supprimées définitivement et cette action est irréversible.',
+    viewInfo: 'Voir les informations',
+    editInfo: 'Modifier les informations',
+    profileComplete: 'Opération terminée avec succès !',
+    requiredField: 'Champ obligatoire',
+    profileCardOf: 'de',
+    confirm: 'Confirmer',
+    cancel: 'Annuler',
+    accountDeleted: 'Compte supprimé avec succès',
+    noUsers: 'Aucun utilisateur',
   },
 };
 

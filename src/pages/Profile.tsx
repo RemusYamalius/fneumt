@@ -358,7 +358,7 @@ const Profile = () => {
         value={(form as any)[card.key] || ''}
         onChange={e => handleChange(card.key, e.target.value)}
         dir={card.dir || undefined}
-        className="futuristic-input h-12"
+        className="profile-input h-12"
       />
     );
   };

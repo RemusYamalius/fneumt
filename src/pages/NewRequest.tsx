@@ -112,6 +112,11 @@ const OrbitalHub = ({
         const isSelected = selectedKey === item.key;
         const isItemHovered = hoveredItem === item.key;
 
+        // Calculate outward label position (radially outward from center)
+        const labelDistance = isSmall ? 38 : 48;
+        const outwardX = Math.cos(angle) * labelDistance;
+        const outwardY = Math.sin(angle) * labelDistance;
+
         return (
           <motion.button
             key={item.key}
@@ -140,33 +145,23 @@ const OrbitalHub = ({
             >
               <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 65%)' }} />
             </div>
-            {/* Persistent label */}
-            {(!isSmall || isSelected) && (
+            {/* Outward label - only for selected or hovered items */}
+            {(isSelected || isItemHovered) && (
               <div
-                className="absolute top-full mt-1 left-1/2 -translate-x-1/2 orbital-label-persistent"
+                className="absolute whitespace-nowrap orbital-label-persistent pointer-events-none"
                 style={{
-                  color: isItemHovered || isSelected ? item.color : 'hsl(210 15% 50%)',
-                  fontSize: isSmall ? '0.5rem' : (isItemHovered || isSelected ? '0.62rem' : '0.55rem'),
-                  fontWeight: isItemHovered || isSelected ? 800 : 600,
+                  left: `calc(50% + ${outwardX}px)`,
+                  top: `calc(50% + ${outwardY}px)`,
+                  transform: 'translate(-50%, -50%)',
+                  color: item.color,
+                  fontSize: isSmall ? '0.5rem' : '0.62rem',
+                  fontWeight: 800,
+                  textShadow: `0 0 8px ${item.color}60`,
                 }}
               >
                 {labelFn(item.key)}
               </div>
             )}
-            {/* Hover tooltip with background */}
-            <AnimatePresence>
-              {(isItemHovered || isSelected) && !isSmall && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.8 }}
-                  className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label"
-                  style={{ color: item.color }}
-                >
-                  {labelFn(item.key)}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.button>
         );
       })}

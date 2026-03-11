@@ -667,13 +667,13 @@ const NewRequest = () => {
                 {/* Form template download */}
                 <div className="mt-6 futuristic-card p-5">
                   <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'hsl(270 60% 50% / 0.15)', border: '1px solid hsl(270 60% 50% / 0.3)' }}>
-                      <FileText className="w-5 h-5" style={{ color: 'hsl(270 60% 60%)' }} />
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'hsl(225 75% 55% / 0.15)', border: '1px solid hsl(225 75% 55% / 0.3)' }}>
+                      <FileText className="w-5 h-5" style={{ color: 'hsl(225 75% 60%)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-bold mb-1" style={{ color: 'hsl(0 0% 88%)' }}>{t.downloadFormTitle}</h3>
                       <p className="text-xs mb-3" style={{ color: 'hsl(210 15% 50%)' }}>{t.downloadFormDesc}</p>
-                      <a href="/forms/information-problems-form.pdf" download className="futuristic-btn-sm inline-flex items-center gap-2">
+                      <a href="/forms/information-problems-form.pdf" download className="futuristic-btn-royal inline-flex items-center gap-2">
                         <Download className="w-3.5 h-3.5" />
                         {t.downloadFormButton}
                       </a>

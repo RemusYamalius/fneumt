@@ -112,21 +112,16 @@ const OrbitalHub = ({
         const isSelected = selectedKey === item.key;
         const isItemHovered = hoveredItem === item.key;
 
-        // Calculate outward label position (radially outward from center)
-        const labelDistance = isSmall ? 38 : 48;
-        const outwardX = Math.cos(angle) * labelDistance;
-        const outwardY = Math.sin(angle) * labelDistance;
-
         return (
           <motion.button
             key={item.key}
-            className="absolute orbital-item"
+            className="absolute orbital-item overflow-visible"
             style={{
               width: itemSize,
               height: itemSize,
               left: `calc(50% + ${x}px - ${itemSize / 2}px)`,
               top: `calc(50% + ${y}px - ${itemSize / 2}px)`,
-              zIndex: isItemHovered || isSelected ? 20 : 5,
+              zIndex: isItemHovered || isSelected ? 30 : 5,
             }}
             animate={{
               scale: isItemHovered ? 1.35 : isSelected ? 1.2 : 1,
@@ -145,35 +140,17 @@ const OrbitalHub = ({
             >
               <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 65%)' }} />
             </div>
-            {/* Label rendering */}
-            {isSmall ? (
-              /* Step 2 (minimized): only selected item label, radially outward */
-              isSelected && (
-                <div
-                  className="absolute whitespace-nowrap orbital-label-persistent pointer-events-none"
-                  style={{
-                    left: `calc(50% + ${outwardX}px)`,
-                    top: `calc(50% + ${outwardY}px)`,
-                    transform: 'translate(-50%, -50%)',
-                    color: item.color,
-                    fontSize: '0.5rem',
-                    fontWeight: 800,
-                    textShadow: `0 0 8px ${item.color}60`,
-                  }}
-                >
-                  {labelFn(item.key)}
-                </div>
-              )
-            ) : (
-              /* Step 1 (full orbit): all labels always visible below icons */
+            {/* Phase 1 label: always visible below icon, with bg on hover */}
+            {!isSmall && (
               <div
-                className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label-persistent pointer-events-none"
+                className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label-persistent pointer-events-none px-1.5 py-0.5 rounded"
                 style={{
                   color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 50%)',
-                  fontSize: isSelected || isItemHovered ? '0.62rem' : '0.55rem',
+                  fontSize: isSelected || isItemHovered ? '0.65rem' : '0.55rem',
                   fontWeight: isSelected || isItemHovered ? 800 : 600,
                   textShadow: isSelected || isItemHovered ? `0 0 8px ${item.color}60` : 'none',
                   opacity: isSelected || isItemHovered ? 1 : 0.7,
+                  background: isSelected || isItemHovered ? 'hsla(220 30% 10% / 0.85)' : 'transparent',
                 }}
               >
                 {labelFn(item.key)}
@@ -182,6 +159,34 @@ const OrbitalHub = ({
           </motion.button>
         );
       })}
+
+      {/* Phase 2: outer-orbit label for selected item only */}
+      {isSmall && selectedKey && (() => {
+        const selectedIndex = items.findIndex(it => it.key === selectedKey);
+        if (selectedIndex === -1) return null;
+        const selectedItem = items[selectedIndex];
+        const angle = angleStep * selectedIndex + (rotation * Math.PI) / 180;
+        const outerDistance = baseRadius + itemSize / 2 + 22;
+        const labelX = Math.cos(angle) * outerDistance;
+        const labelY = Math.sin(angle) * outerDistance;
+        return (
+          <div
+            className="absolute whitespace-nowrap orbital-label-persistent pointer-events-none"
+            style={{
+              left: `calc(50% + ${labelX}px)`,
+              top: `calc(50% + ${labelY}px)`,
+              transform: 'translate(-50%, -50%)',
+              color: selectedItem.color,
+              fontSize: '0.6rem',
+              fontWeight: 800,
+              textShadow: `0 0 10px ${selectedItem.color}80`,
+              zIndex: 40,
+            }}
+          >
+            {labelFn(selectedItem.key)}
+          </div>
+        );
+      })()}
     </div>
   );
 };

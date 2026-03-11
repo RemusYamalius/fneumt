@@ -26,10 +26,42 @@ const STATUS_STEPS: { key: RequestStatus; icon: typeof Check }[] = [
 
 const TrackRequest = () => {
   const { t, dir, lang } = useI18n();
+  const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<RequestResult | null>(null);
   const [searching, setSearching] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const hasAutoSearched = useRef(false);
+
+  // Auto-search when arriving with ?q=REQ-xxx
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q && !hasAutoSearched.current) {
+      hasAutoSearched.current = true;
+      setQuery(q);
+      doSearch(q);
+    }
+  }, [searchParams]);
+
+  const doSearch = async (trackingNumber: string) => {
+    if (!trackingNumber.trim()) return;
+    setSearching(true);
+    setNotFound(false);
+    setResult(null);
+
+    const { data, error } = await supabase
+      .from('requests')
+      .select('tracking_number, category, subject, status, created_at')
+      .eq('tracking_number', trackingNumber.trim())
+      .maybeSingle();
+
+    if (error || !data) {
+      setNotFound(true);
+    } else {
+      setResult(data as RequestResult);
+    }
+    setSearching(false);
+  };
 
   const handleSearch = async () => {
     if (!query.trim()) return;

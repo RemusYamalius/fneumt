@@ -79,7 +79,7 @@ const OrbitalHub = ({
     <div
       ref={containerRef}
       className="relative flex items-center justify-center"
-      style={{ width: (baseRadius * 2) + itemSize + 20, height: (baseRadius * 2) + itemSize + 20 }}
+      style={{ width: (baseRadius * 2) + itemSize + 60, height: (baseRadius * 2) + itemSize + 60, overflow: 'visible' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => { setIsHovered(false); setHoveredItem(null); }}
     >

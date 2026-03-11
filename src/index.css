@@ -872,7 +872,7 @@
    ══════════════════════════════════════════════ */
 
 .futuristic-bg {
-  background: linear-gradient(165deg, hsl(215 60% 12%) 0%, hsl(220 55% 8%) 50%, hsl(210 50% 10%) 100%);
+  background: linear-gradient(165deg, hsl(195 75% 22%) 0%, hsl(205 70% 18%) 40%, hsl(215 65% 15%) 100%);
   position: relative;
 }
 
@@ -881,9 +881,9 @@
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 15%, hsl(190 80% 50% / 0.12), transparent),
-    radial-gradient(ellipse 60% 60% at 80% 80%, hsl(220 80% 50% / 0.10), transparent),
-    radial-gradient(ellipse 40% 40% at 50% 50%, hsl(200 90% 45% / 0.08), transparent);
+    radial-gradient(ellipse 80% 60% at 20% 15%, hsl(185 80% 45% / 0.18), transparent),
+    radial-gradient(ellipse 60% 60% at 80% 80%, hsl(210 75% 45% / 0.15), transparent),
+    radial-gradient(ellipse 50% 50% at 50% 40%, hsl(195 85% 40% / 0.12), transparent);
   pointer-events: none;
   z-index: 0;
 }

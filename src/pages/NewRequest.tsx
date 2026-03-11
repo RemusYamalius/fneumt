@@ -166,7 +166,7 @@ const OrbitalHub = ({
         if (selectedIndex === -1) return null;
         const selectedItem = items[selectedIndex];
         const angle = angleStep * selectedIndex + (rotation * Math.PI) / 180;
-        const outerDistance = baseRadius + itemSize / 2 + 8;
+        const outerDistance = baseRadius + itemSize / 2 + 14;
         const labelX = Math.cos(angle) * outerDistance;
         const labelY = Math.sin(angle) * outerDistance;
         return (

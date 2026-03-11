@@ -178,10 +178,9 @@ const Profile = () => {
 
   const scrollTo = useCallback((index: number) => {
     if (emblaApi) {
-      playClick();
       emblaApi.scrollTo(index);
     }
-  }, [emblaApi, playClick]);
+  }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
     if (emblaApi) {

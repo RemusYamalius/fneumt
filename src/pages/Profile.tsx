@@ -341,7 +341,7 @@ const Profile = () => {
           onValueChange={isAcademy ? handleAcademyChange : (v) => handleChange(card.key, v)}
           disabled={card.key === 'directorate' && !form.academy}
         >
-          <SelectTrigger className="futuristic-input h-12">
+          <SelectTrigger className="profile-input h-12">
             <SelectValue placeholder={card.label} />
           </SelectTrigger>
           <SelectContent>

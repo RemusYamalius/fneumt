@@ -1068,6 +1068,42 @@
   box-shadow: 0 8px 20px -8px hsl(270 60% 50% / 0.4);
 }
 
+/* Royal blue download button with shimmer */
+.futuristic-btn-royal {
+  position: relative;
+  overflow: hidden;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, hsl(225 75% 50%) 0%, hsl(230 80% 42%) 100%);
+  color: white;
+  border: 1px solid hsl(225 75% 55% / 0.4);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px -4px hsl(225 75% 50% / 0.4);
+}
+
+.futuristic-btn-royal:hover {
+  box-shadow: 0 8px 25px -8px hsl(225 75% 55% / 0.5);
+  transform: translateY(-1px);
+}
+
+.futuristic-btn-royal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255 255 255 / 0.25), transparent);
+  animation: btn-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes btn-shimmer {
+  0%, 100% { left: -100%; }
+  50% { left: 150%; }
+}
+
 .futuristic-submit-btn {
   display: inline-flex;
   align-items: center;

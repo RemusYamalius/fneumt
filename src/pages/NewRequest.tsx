@@ -79,7 +79,7 @@ const OrbitalHub = ({
     <div
       ref={containerRef}
       className="relative flex items-center justify-center"
-      style={{ width: (baseRadius * 2) + itemSize + 20, height: (baseRadius * 2) + itemSize + 20 }}
+      style={{ width: (baseRadius * 2) + itemSize + 60, height: (baseRadius * 2) + itemSize + 60, overflow: 'visible' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => { setIsHovered(false); setHoveredItem(null); }}
     >
@@ -166,7 +166,7 @@ const OrbitalHub = ({
         if (selectedIndex === -1) return null;
         const selectedItem = items[selectedIndex];
         const angle = angleStep * selectedIndex + (rotation * Math.PI) / 180;
-        const outerDistance = baseRadius + itemSize / 2 + 22;
+        const outerDistance = baseRadius + itemSize / 2 + 8;
         const labelX = Math.cos(angle) * outerDistance;
         const labelY = Math.sin(angle) * outerDistance;
         return (

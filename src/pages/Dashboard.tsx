@@ -39,16 +39,6 @@ const Dashboard = () => {
       .then(({ count }) => setPendingCount(count || 0));
   }, [user, showIncomingRequests]);
 
-  // Mark all unread notifications as read when dashboard loads (for request owners)
-  useEffect(() => {
-    if (!user || showIncomingRequests) return;
-    supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false)
-      .then(() => {});
-  }, [user, showIncomingRequests]);
 
   // Fetch user's own requests
   useEffect(() => {

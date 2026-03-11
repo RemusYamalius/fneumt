@@ -548,12 +548,13 @@ const Profile = () => {
                     onClick={scrollPrev}
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
                     style={{
-                      background: 'linear-gradient(135deg, hsl(207 62% 92%) 0%, hsl(190 60% 90%) 100%)',
-                      border: '1.5px solid hsl(207 62% 80%)',
-                      boxShadow: '0 4px 12px hsl(207 62% 50% / 0.1)',
+                      background: 'rgba(255 255 255 / 0.08)',
+                      border: '1px solid rgba(255 255 255 / 0.2)',
+                      boxShadow: 'inset 0 1px 0 rgba(255 255 255 / 0.1), 0 4px 12px rgba(0 0 0 / 0.1)',
+                      backdropFilter: 'blur(12px)',
                     }}
                   >
-                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(207 62% 40%)' }} />
+                    <NavPrev className="w-5 h-5" style={{ color: 'rgba(255 255 255 / 0.8)' }} />
                   </button>
 
                   {/* Dots */}
@@ -565,11 +566,11 @@ const Profile = () => {
                         className="w-2.5 h-2.5 rounded-full transition-all"
                         style={{
                           background: i === activeIndex
-                            ? 'hsl(190 80% 45%)'
+                            ? 'rgba(255 255 255 / 0.8)'
                             : isFieldFilled(cards[i].key)
-                              ? 'hsl(160 70% 45%)'
-                              : 'hsl(210 15% 85%)',
-                          boxShadow: i === activeIndex ? '0 0 8px hsl(190 80% 45% / 0.5)' : 'none',
+                              ? 'rgba(255 255 255 / 0.4)'
+                              : 'rgba(255 255 255 / 0.15)',
+                          boxShadow: i === activeIndex ? '0 0 8px rgba(255 255 255 / 0.4)' : 'none',
                           transform: i === activeIndex ? 'scale(1.3)' : 'scale(1)',
                         }}
                       />
@@ -580,12 +581,13 @@ const Profile = () => {
                     onClick={scrollNext}
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
                     style={{
-                      background: 'linear-gradient(135deg, hsl(207 62% 92%) 0%, hsl(190 60% 90%) 100%)',
-                      border: '1.5px solid hsl(207 62% 80%)',
-                      boxShadow: '0 4px 12px hsl(207 62% 50% / 0.1)',
+                      background: 'rgba(255 255 255 / 0.08)',
+                      border: '1px solid rgba(255 255 255 / 0.2)',
+                      boxShadow: 'inset 0 1px 0 rgba(255 255 255 / 0.1), 0 4px 12px rgba(0 0 0 / 0.1)',
+                      backdropFilter: 'blur(12px)',
                     }}
                   >
-                    <NavNext className="w-5 h-5" style={{ color: 'hsl(207 62% 40%)' }} />
+                    <NavNext className="w-5 h-5" style={{ color: 'rgba(255 255 255 / 0.8)' }} />
                   </button>
                 </div>
 

@@ -484,7 +484,7 @@ const Profile = () => {
               >
                 {/* Card counter */}
                 <div className="text-center mb-4">
-                  <span className="text-sm font-bold" style={{ color: 'hsl(190 80% 35%)' }}>
+                  <span className="text-sm font-bold" style={{ color: 'rgba(255 255 255 / 0.7)' }}>
                     {activeIndex + 1} {t.profileCardOf} {cards.length}
                   </span>
                 </div>

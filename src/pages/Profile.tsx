@@ -86,19 +86,8 @@ const Profile = () => {
     mission: '', is_member: false, membership_card_number: '',
   });
 
-  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    clickSoundRef.current = new Audio('/notification.mp3');
-    clickSoundRef.current.volume = 0.15;
-  }, []);
 
-  const playClick = useCallback(() => {
-    if (clickSoundRef.current) {
-      clickSoundRef.current.currentTime = 0;
-      clickSoundRef.current.play().catch(() => {});
-    }
-  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');

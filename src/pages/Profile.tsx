@@ -31,8 +31,8 @@ const FloatingParticles = () => {
       size: Math.random() * 3 + 1,
       duration: Math.random() * 20 + 15,
       delay: Math.random() * 10,
-      color: i % 3 === 0 ? 'hsl(190 80% 80%)' : i % 3 === 1 ? 'hsl(220 70% 82%)' : 'hsl(270 60% 82%)',
-      opacity: Math.random() * 0.25 + 0.05,
+      color: 'rgba(255 255 255 / 0.6)',
+      opacity: Math.random() * 0.15 + 0.05,
     })), []
   );
 
@@ -299,21 +299,23 @@ const Profile = () => {
           <div className="flex gap-3">
             <button
               onClick={() => handleChange('is_member', true)}
-              className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
-                form.is_member
-                ? 'border-[hsl(190_80%_45%)] bg-[hsl(190_80%_45%/0.08)] text-[hsl(190_80%_30%)]'
-                  : 'border-[hsl(210_15%_88%)] bg-[hsl(210_15%_97%)] text-[hsl(210_15%_45%)]'
-              }`}
+              className="flex-1 px-4 py-3 rounded-xl font-medium text-sm transition-all"
+              style={{
+                background: form.is_member ? 'rgba(255 255 255 / 0.15)' : 'rgba(255 255 255 / 0.05)',
+                border: `1.5px solid ${form.is_member ? 'rgba(255 255 255 / 0.4)' : 'rgba(255 255 255 / 0.15)'}`,
+                color: 'rgba(255 255 255 / 0.85)',
+              }}
             >
               {t.isMember}
             </button>
             <button
               onClick={() => handleChange('is_member', false)}
-              className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
-                !form.is_member
-                ? 'border-[hsl(0_70%_45%)] bg-[hsl(0_70%_45%/0.08)] text-[hsl(0_70%_35%)]'
-                  : 'border-[hsl(210_15%_88%)] bg-[hsl(210_15%_97%)] text-[hsl(210_15%_45%)]'
-              }`}
+              className="flex-1 px-4 py-3 rounded-xl font-medium text-sm transition-all"
+              style={{
+                background: !form.is_member ? 'rgba(255 255 255 / 0.15)' : 'rgba(255 255 255 / 0.05)',
+                border: `1.5px solid ${!form.is_member ? 'rgba(255 200 200 / 0.4)' : 'rgba(255 255 255 / 0.15)'}`,
+                color: 'rgba(255 255 255 / 0.85)',
+              }}
             >
               {t.isNotMember}
             </button>
@@ -380,7 +382,7 @@ const Profile = () => {
 
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-black" style={{ color: 'hsl(210 20% 15%)' }}>{t.profile}</h1>
+            <h1 className="text-2xl font-black" style={{ color: 'rgba(255 255 255 / 0.9)' }}>{t.profile}</h1>
             <div className="flex gap-3">
               <button
                 onClick={() => setViewMode(!viewMode)}
@@ -394,15 +396,15 @@ const Profile = () => {
 
           {/* Progress */}
           <div className="flex items-center gap-2 mb-8">
-            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'hsl(210 15% 92%)' }}>
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255 255 255 / 0.12)', border: '1px solid rgba(255 255 255 / 0.1)' }}>
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: 'linear-gradient(90deg, hsl(190 80% 45%), hsl(160 70% 45%))' }}
+                style={{ background: 'rgba(255 255 255 / 0.5)' }}
                 animate={{ width: `${(filledCount / cards.length) * 100}%` }}
                 transition={{ duration: 0.5 }}
               />
             </div>
-            <span className="text-xs font-bold" style={{ color: 'hsl(190 80% 35%)' }}>
+            <span className="text-xs font-bold" style={{ color: 'rgba(255 255 255 / 0.7)' }}>
               {filledCount}/{cards.length}
             </span>
           </div>
@@ -424,14 +426,14 @@ const Profile = () => {
                     return (
                       <div key={card.key} className="profile-summary-row">
                         <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                          style={{ background: 'hsl(190 80% 45% / 0.08)', border: '1px solid hsl(190 80% 45% / 0.15)' }}>
-                          <Icon className="w-4 h-4" style={{ color: 'hsl(190 80% 35%)' }} />
+                          style={{ background: 'rgba(255 255 255 / 0.08)', border: '1px solid rgba(255 255 255 / 0.2)' }}>
+                          <Icon className="w-4 h-4" style={{ color: 'rgba(255 255 255 / 0.7)' }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold" style={{ color: 'hsl(210 15% 40%)' }}>
-                            {card.label} <span style={{ color: 'hsl(0 80% 55%)' }}>*</span>
+                          <div className="text-xs font-bold" style={{ color: 'rgba(255 255 255 / 0.6)' }}>
+                            {card.label} <span style={{ color: 'rgba(255 150 150 / 0.8)' }}>*</span>
                           </div>
-                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'hsl(210 20% 20%)' : 'hsl(0 80% 55% / 0.6)' }}>
+                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'rgba(255 255 255 / 0.9)' : 'rgba(255 150 150 / 0.5)' }}>
                             {value || '—'}
                           </div>
                         </div>
@@ -482,7 +484,7 @@ const Profile = () => {
               >
                 {/* Card counter */}
                 <div className="text-center mb-4">
-                  <span className="text-sm font-bold" style={{ color: 'hsl(190 80% 35%)' }}>
+                  <span className="text-sm font-bold" style={{ color: 'rgba(255 255 255 / 0.7)' }}>
                     {activeIndex + 1} {t.profileCardOf} {cards.length}
                   </span>
                 </div>
@@ -515,18 +517,18 @@ const Profile = () => {
                             {/* Icon */}
                             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
                               style={{
-                                background: isActive ? 'hsl(190 80% 45% / 0.1)' : 'hsl(210 15% 95%)',
-                                border: `1.5px solid ${isActive ? 'hsl(190 80% 45% / 0.4)' : 'hsl(210 15% 88%)'}`,
+                                background: 'rgba(255 255 255 / 0.08)',
+                                border: `1px solid ${isActive ? 'rgba(255 255 255 / 0.3)' : 'rgba(255 255 255 / 0.15)'}`,
                               }}>
-                              <Icon className="w-6 h-6" style={{ color: isActive ? 'hsl(190 80% 35%)' : 'hsl(210 15% 55%)' }} />
+                              <Icon className="w-6 h-6" style={{ color: isActive ? 'rgba(255 255 255 / 0.9)' : 'rgba(255 255 255 / 0.5)' }} />
                             </div>
 
                             {/* Label */}
                             <div className="text-center mb-4">
-                              <span className="text-sm font-black" style={{ color: isActive ? 'hsl(210 20% 15%)' : 'hsl(210 15% 55%)' }}>
+                              <span className="text-sm font-black" style={{ color: isActive ? 'rgba(255 255 255 / 0.9)' : 'rgba(255 255 255 / 0.5)' }}>
                                 {card.label}
                               </span>
-                              <span className="text-sm font-black" style={{ color: 'hsl(0 80% 55%)' }}> *</span>
+                              <span className="text-sm font-black" style={{ color: 'rgba(255 150 150 / 0.8)' }}> *</span>
                             </div>
 
                             {/* Input field */}
@@ -546,12 +548,13 @@ const Profile = () => {
                     onClick={scrollPrev}
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
                     style={{
-                      background: 'linear-gradient(135deg, hsl(207 62% 92%) 0%, hsl(190 60% 90%) 100%)',
-                      border: '1.5px solid hsl(207 62% 80%)',
-                      boxShadow: '0 4px 12px hsl(207 62% 50% / 0.1)',
+                      background: 'rgba(255 255 255 / 0.08)',
+                      border: '1px solid rgba(255 255 255 / 0.2)',
+                      boxShadow: 'inset 0 1px 0 rgba(255 255 255 / 0.1), 0 4px 12px rgba(0 0 0 / 0.1)',
+                      backdropFilter: 'blur(12px)',
                     }}
                   >
-                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(207 62% 40%)' }} />
+                    <NavPrev className="w-5 h-5" style={{ color: 'rgba(255 255 255 / 0.8)' }} />
                   </button>
 
                   {/* Dots */}
@@ -563,11 +566,11 @@ const Profile = () => {
                         className="w-2.5 h-2.5 rounded-full transition-all"
                         style={{
                           background: i === activeIndex
-                            ? 'hsl(190 80% 45%)'
+                            ? 'rgba(255 255 255 / 0.8)'
                             : isFieldFilled(cards[i].key)
-                              ? 'hsl(160 70% 45%)'
-                              : 'hsl(210 15% 85%)',
-                          boxShadow: i === activeIndex ? '0 0 8px hsl(190 80% 45% / 0.5)' : 'none',
+                              ? 'rgba(255 255 255 / 0.4)'
+                              : 'rgba(255 255 255 / 0.15)',
+                          boxShadow: i === activeIndex ? '0 0 8px rgba(255 255 255 / 0.4)' : 'none',
                           transform: i === activeIndex ? 'scale(1.3)' : 'scale(1)',
                         }}
                       />
@@ -578,12 +581,13 @@ const Profile = () => {
                     onClick={scrollNext}
                     className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
                     style={{
-                      background: 'linear-gradient(135deg, hsl(207 62% 92%) 0%, hsl(190 60% 90%) 100%)',
-                      border: '1.5px solid hsl(207 62% 80%)',
-                      boxShadow: '0 4px 12px hsl(207 62% 50% / 0.1)',
+                      background: 'rgba(255 255 255 / 0.08)',
+                      border: '1px solid rgba(255 255 255 / 0.2)',
+                      boxShadow: 'inset 0 1px 0 rgba(255 255 255 / 0.1), 0 4px 12px rgba(0 0 0 / 0.1)',
+                      backdropFilter: 'blur(12px)',
                     }}
                   >
-                    <NavNext className="w-5 h-5" style={{ color: 'hsl(207 62% 40%)' }} />
+                    <NavNext className="w-5 h-5" style={{ color: 'rgba(255 255 255 / 0.8)' }} />
                   </button>
                 </div>
 

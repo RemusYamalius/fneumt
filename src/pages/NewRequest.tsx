@@ -110,10 +110,19 @@ const OrbitalHub = ({
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center justify-center"
-      style={{ width: (baseRadius * 2) + itemSize + 60, height: (baseRadius * 2) + itemSize + 60, overflow: 'visible' }}
+      className="relative flex items-center justify-center touch-none"
+      style={{
+        width: (baseRadius * 2) + itemSize + 60,
+        height: (baseRadius * 2) + itemSize + 60,
+        overflow: 'visible',
+        cursor: isDragging.current ? 'grabbing' : 'grab',
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => { setIsHovered(false); setHoveredItem(null); }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       {/* Orbit ring */}
       <div

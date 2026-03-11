@@ -1176,7 +1176,7 @@
 /* ── Text helpers ── */
 .futuristic-text-cyan { color: hsl(190 100% 65%); }
 .futuristic-text-cyan-dim { color: hsl(190 60% 45%); }
-.futuristic-text-muted { color: hsl(210 15% 35%); }
+.futuristic-text-muted { color: hsl(0 0% 100% / 0.7); }
 
 /* ── Success orb ── */
 .success-orb {

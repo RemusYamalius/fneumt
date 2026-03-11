@@ -439,13 +439,13 @@ const Profile = () => {
                       <div key={card.key} className="profile-summary-row">
                         <div className="w-9 h-9 rounded-full flex items-center justify-center"
                           style={{ background: 'hsl(190 80% 45% / 0.12)', border: '1px solid hsl(190 80% 45% / 0.2)' }}>
-                          <Icon className="w-4 h-4" style={{ color: 'hsl(190 100% 65%)' }} />
+                          <Icon className="w-4 h-4" style={{ color: 'hsl(190 80% 35%)' }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold" style={{ color: 'hsl(210 15% 50%)' }}>
+                          <div className="text-xs font-bold" style={{ color: 'hsl(210 15% 40%)' }}>
                             {card.label} <span style={{ color: 'hsl(0 80% 55%)' }}>*</span>
                           </div>
-                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'hsl(0 0% 90%)' : 'hsl(0 80% 55% / 0.6)' }}>
+                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'hsl(210 20% 20%)' : 'hsl(0 80% 55% / 0.6)' }}>
                             {value || '—'}
                           </div>
                         </div>

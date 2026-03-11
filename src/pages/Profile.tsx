@@ -394,7 +394,7 @@ const Profile = () => {
 
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-black" style={{ color: 'hsl(0 0% 95%)' }}>{t.profile}</h1>
+            <h1 className="text-2xl font-black" style={{ color: 'hsl(210 20% 15%)' }}>{t.profile}</h1>
             <div className="flex gap-3">
               <button
                 onClick={() => setViewMode(!viewMode)}

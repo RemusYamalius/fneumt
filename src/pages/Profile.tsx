@@ -590,7 +590,7 @@ const Profile = () => {
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="futuristic-submit-btn"
+                    className="profile-save-btn"
                   >
                     {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                     {t.saveProfile}

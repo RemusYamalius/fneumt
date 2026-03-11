@@ -408,7 +408,7 @@ const Profile = () => {
 
           {/* Progress */}
           <div className="flex items-center gap-2 mb-8">
-            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'hsl(215 30% 12%)' }}>
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'hsl(210 15% 92%)' }}>
               <motion.div
                 className="h-full rounded-full"
                 style={{ background: 'linear-gradient(90deg, hsl(190 80% 45%), hsl(160 70% 45%))' }}

@@ -1,54 +1,104 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Save, Loader2, User, Phone, Hash, Building2, MapPin, Briefcase, GraduationCap, CreditCard } from 'lucide-react';
+import {
+  ArrowRight, ArrowLeft, Save, Loader2, User, Phone, Hash, Building2, MapPin,
+  Briefcase, GraduationCap, CreditCard, Mail, ChevronLeft, ChevronRight, Eye,
+  Trash2, AlertTriangle
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import useEmblaCarousel from 'embla-carousel-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { ACADEMIES } from '@/lib/academies-data';
 
-interface ProfileFormFieldProps {
-  label: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}
+/* ── Floating Particles ── */
+const FloatingParticles = () => {
+  const particles = useMemo(() =>
+    Array.from({ length: 25 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 20 + 15,
+      delay: Math.random() * 10,
+      color: i % 3 === 0 ? 'hsl(190 80% 55%)' : i % 3 === 1 ? 'hsl(220 70% 60%)' : 'hsl(270 60% 55%)',
+      opacity: Math.random() * 0.4 + 0.1,
+    })), []
+  );
 
-const ProfileFormField = ({ label, icon, children }: ProfileFormFieldProps) => (
-  <div className="space-y-2">
-    <Label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-      {icon}
-      {label}
-    </Label>
-    {children}
-  </div>
-);
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+      {particles.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            width: p.size, height: p.size, left: `${p.x}%`, top: `${p.y}%`,
+            background: p.color, opacity: p.opacity, boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
+          }}
+          animate={{
+            x: [0, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 60, 0],
+            y: [0, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 60, 0],
+            opacity: [p.opacity, p.opacity * 1.5, p.opacity * 0.5, p.opacity],
+          }}
+          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'linear' }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* ── Card field definitions ── */
+interface CardField {
+  key: string;
+  label: string;
+  icon: typeof User;
+  type: 'text' | 'select' | 'membership';
+  options?: { value: string; label: string }[];
+  readOnly?: boolean;
+  dir?: string;
+}
 
 const Profile = () => {
   const { t, dir } = useI18n();
   const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const BackArrow = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
   const [form, setForm] = useState({
-    full_name: '',
-    phone: '',
-    employee_number: '',
-    corps: '',
-    institution: '',
-    zone: '',
-    directorate: '',
-    academy: '',
-    mission: '',
-    is_member: false,
-    membership_card_number: '',
+    full_name: '', phone: '', employee_number: '', corps: '',
+    institution: '', zone: '', directorate: '', academy: '',
+    mission: '', is_member: false, membership_card_number: '',
   });
+
+  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    clickSoundRef.current = new Audio('/notification.mp3');
+    clickSoundRef.current.volume = 0.15;
+  }, []);
+
+  const playClick = useCallback(() => {
+    if (clickSoundRef.current) {
+      clickSoundRef.current.currentTime = 0;
+      clickSoundRef.current.play().catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');
@@ -86,6 +136,99 @@ const Profile = () => {
     setForm(prev => ({ ...prev, academy: value, directorate: '' }));
   };
 
+  const corpsOptions = [
+    { value: 'primary', label: t.corpsPrimary },
+    { value: 'middle_school', label: t.corpsMiddle },
+    { value: 'high_school', label: t.corpsHigh },
+  ];
+
+  const missionOptions = [
+    { value: 'teacher', label: t.missionTeacher },
+    { value: 'support_staff', label: t.missionSupportStaff },
+    { value: 'supplier', label: t.missionSupplier },
+    { value: 'educational_advisor', label: t.missionEducationalAdvisor },
+    { value: 'guard', label: t.missionGuard },
+    { value: 'director', label: t.missionDirector },
+    { value: 'administrator', label: t.missionAdministrator },
+    { value: 'educational_inspector', label: t.missionEducationalInspector },
+    { value: 'tech_assistant', label: t.missionTechAssistant },
+    { value: 'economy_admin', label: t.missionEconomyAdmin },
+    { value: 'treasurer', label: t.missionTreasurer },
+    { value: 'other', label: t.missionOther },
+  ];
+
+  const cards: CardField[] = useMemo(() => [
+    { key: 'full_name', label: t.fullNameLabel, icon: User, type: 'text' },
+    { key: 'phone', label: t.phoneLabel, icon: Phone, type: 'text', dir: 'ltr' },
+    { key: 'employee_number', label: t.employeeNumberLabel, icon: Hash, type: 'text', dir: 'ltr' },
+    { key: 'academy', label: t.academyLabel, icon: GraduationCap, type: 'select', options: ACADEMIES.map(a => ({ value: a.label, label: a.label })) },
+    { key: 'directorate', label: t.directorateLabel, icon: MapPin, type: 'select', options: directorates.map(d => ({ value: d, label: d })) },
+    { key: 'mission', label: t.missionLabel, icon: Briefcase, type: 'select', options: missionOptions },
+    { key: 'corps', label: t.corpsLabel, icon: GraduationCap, type: 'select', options: corpsOptions },
+    { key: 'institution', label: t.institutionLabel, icon: Building2, type: 'text' },
+    { key: 'membership', label: t.membershipLabel, icon: CreditCard, type: 'membership' },
+    { key: 'email', label: t.emailLabel, icon: Mail, type: 'text', readOnly: true },
+  ], [t, directorates, corpsOptions, missionOptions]);
+
+  // Embla carousel
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    direction: dir === 'rtl' ? 'rtl' : 'ltr',
+    align: 'center',
+    containScroll: 'trimSnaps',
+    dragFree: true,
+  });
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      setActiveIndex(emblaApi.selectedScrollSnap());
+    };
+    emblaApi.on('select', onSelect);
+    return () => { emblaApi.off('select', onSelect); };
+  }, [emblaApi]);
+
+  const scrollTo = useCallback((index: number) => {
+    if (emblaApi) {
+      playClick();
+      emblaApi.scrollTo(index);
+    }
+  }, [emblaApi, playClick]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) {
+      playClick();
+      emblaApi.scrollNext();
+    }
+  }, [emblaApi, playClick]);
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) {
+      playClick();
+      emblaApi.scrollPrev();
+    }
+  }, [emblaApi, playClick]);
+
+  const getFieldValue = (key: string): string => {
+    if (key === 'email') return user?.email || '';
+    if (key === 'membership') {
+      return form.is_member ? `${t.isMember}${form.membership_card_number ? ` - ${form.membership_card_number}` : ''}` : t.isNotMember;
+    }
+    const val = (form as any)[key];
+    if (!val) return '';
+    // Translate select values
+    if (key === 'corps') return corpsOptions.find(o => o.value === val)?.label || val;
+    if (key === 'mission') return missionOptions.find(o => o.value === val)?.label || val;
+    return val;
+  };
+
+  const isFieldFilled = (key: string): boolean => {
+    if (key === 'email') return true;
+    if (key === 'membership') return true;
+    return !!(form as any)[key];
+  };
+
+  const filledCount = cards.filter(c => isFieldFilled(c.key)).length;
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -110,7 +253,30 @@ const Profile = () => {
     if (error) {
       toast({ title: t.submitError, variant: 'destructive' });
     } else {
-      toast({ title: t.profileUpdated });
+      toast({ title: t.profileComplete || t.profileUpdated });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No session');
+
+      const res = await supabase.functions.invoke('delete-account', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (res.error) throw res.error;
+
+      await supabase.auth.signOut();
+      toast({ title: t.accountDeleted || 'Account deleted' });
+      navigate('/');
+    } catch (err: any) {
+      toast({ title: t.submitError, description: err?.message, variant: 'destructive' });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -124,192 +290,353 @@ const Profile = () => {
 
   if (!user) return null;
 
-  const corpsOptions = [
-    { value: 'primary', label: t.corpsPrimary },
-    { value: 'middle_school', label: t.corpsMiddle },
-    { value: 'high_school', label: t.corpsHigh },
-  ];
+  const BackArrow = dir === 'rtl' ? ArrowRight : ArrowLeft;
+  const NavPrev = dir === 'rtl' ? ChevronRight : ChevronLeft;
+  const NavNext = dir === 'rtl' ? ChevronLeft : ChevronRight;
 
-  const missionOptions = [
-    { value: 'teacher', label: t.missionTeacher },
-    { value: 'support_staff', label: t.missionSupportStaff },
-    { value: 'supplier', label: t.missionSupplier },
-    { value: 'educational_advisor', label: t.missionEducationalAdvisor },
-    { value: 'guard', label: t.missionGuard },
-    { value: 'director', label: t.missionDirector },
-    { value: 'administrator', label: t.missionAdministrator },
-    { value: 'educational_inspector', label: t.missionEducationalInspector },
-    { value: 'tech_assistant', label: t.missionTechAssistant },
-    { value: 'economy_admin', label: t.missionEconomyAdmin },
-    { value: 'treasurer', label: t.missionTreasurer },
-    { value: 'other', label: t.missionOther },
-  ];
+  const renderCardContent = (card: CardField, index: number) => {
+    const isActive = index === activeIndex;
 
-  const inputClasses = "bg-muted/50 border-border/60 focus:border-primary focus:bg-background transition-colors";
-  const selectTriggerClasses = "bg-muted/50 border-border/60 focus:border-primary focus:bg-background transition-colors";
+    if (card.readOnly) {
+      return (
+        <Input
+          value={user.email || ''}
+          disabled
+          className="futuristic-input opacity-70"
+        />
+      );
+    }
+
+    if (card.type === 'membership') {
+      return (
+        <div className="space-y-3">
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleChange('is_member', true)}
+              className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
+                form.is_member
+                  ? 'border-[hsl(190_80%_45%)] bg-[hsl(190_80%_45%/0.15)] text-[hsl(190_100%_65%)]'
+                  : 'border-[hsl(210_20%_22%)] bg-[hsl(215_30%_10%)] text-[hsl(210_15%_50%)]'
+              }`}
+            >
+              {t.isMember}
+            </button>
+            <button
+              onClick={() => handleChange('is_member', false)}
+              className={`flex-1 px-4 py-3 rounded-xl border-2 font-medium text-sm transition-all ${
+                !form.is_member
+                  ? 'border-[hsl(0_70%_45%)] bg-[hsl(0_70%_45%/0.15)] text-[hsl(0_80%_65%)]'
+                  : 'border-[hsl(210_20%_22%)] bg-[hsl(215_30%_10%)] text-[hsl(210_15%_50%)]'
+              }`}
+            >
+              {t.isNotMember}
+            </button>
+          </div>
+          {form.is_member && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+              <Input
+                value={form.membership_card_number}
+                onChange={e => handleChange('membership_card_number', e.target.value)}
+                placeholder={t.membershipCardPlaceholder}
+                dir="ltr"
+                className="futuristic-input"
+              />
+            </motion.div>
+          )}
+        </div>
+      );
+    }
+
+    if (card.type === 'select') {
+      const isAcademy = card.key === 'academy';
+      return (
+        <Select
+          value={(form as any)[card.key] || ''}
+          onValueChange={isAcademy ? handleAcademyChange : (v) => handleChange(card.key, v)}
+          disabled={card.key === 'directorate' && !form.academy}
+        >
+          <SelectTrigger className="futuristic-input h-12">
+            <SelectValue placeholder={card.label} />
+          </SelectTrigger>
+          <SelectContent>
+            {(card.options || []).map(o => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+    }
+
+    return (
+      <Input
+        value={(form as any)[card.key] || ''}
+        onChange={e => handleChange(card.key, e.target.value)}
+        dir={card.dir || undefined}
+        className="futuristic-input h-12"
+      />
+    );
+  };
 
   return (
     <AuthenticatedLayout>
+      <div className="min-h-screen futuristic-bg" dir={dir}>
+        <FloatingParticles />
 
-      <main className="max-w-3xl mx-auto px-6 py-8">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[hsl(207,75%,17%)] to-[hsl(207,62%,40%)] text-white font-medium text-sm shadow-lg hover:shadow-xl hover:opacity-90 transition-all duration-300 mb-6"
-        >
-          <BackArrow className="w-4 h-4" />
-          {t.backToDashboard}
-        </button>
+        <div className="relative z-10 max-w-5xl mx-auto px-4 py-6">
+          {/* Back button */}
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="futuristic-back-btn mb-6"
+          >
+            <BackArrow className="w-4 h-4" />
+            {t.backToDashboard}
+          </button>
 
-        <h1 className="text-2xl font-bold text-foreground mb-8">{t.profile}</h1>
-
-        <div className="bg-card rounded-2xl border border-border shadow-sm p-6 md:p-8 space-y-6">
-          {/* Email (read-only) */}
-          <ProfileFormField label={t.emailLabel} icon={<User className="w-4 h-4 text-primary" />}>
-            <Input value={user.email || ''} disabled className="bg-muted/70 text-muted-foreground" />
-          </ProfileFormField>
-
-          {/* Full Name */}
-          <ProfileFormField label={t.fullNameLabel} icon={<User className="w-4 h-4 text-primary" />}>
-            <Input value={form.full_name} onChange={e => handleChange('full_name', e.target.value)} className={inputClasses} />
-          </ProfileFormField>
-
-          {/* Phone */}
-          <ProfileFormField label={t.phoneLabel} icon={<Phone className="w-4 h-4 text-primary" />}>
-            <Input value={form.phone} onChange={e => handleChange('phone', e.target.value)} dir="ltr" className={inputClasses} />
-          </ProfileFormField>
-
-          {/* Employee Number */}
-          <ProfileFormField label={t.employeeNumberLabel} icon={<Hash className="w-4 h-4 text-primary" />}>
-            <Input value={form.employee_number} onChange={e => handleChange('employee_number', e.target.value)} dir="ltr" className={inputClasses} />
-          </ProfileFormField>
-
-          {/* Academy */}
-          <ProfileFormField label={t.academyLabel} icon={<GraduationCap className="w-4 h-4 text-primary" />}>
-            <Select value={form.academy} onValueChange={handleAcademyChange}>
-              <SelectTrigger className={selectTriggerClasses}>
-                <SelectValue placeholder={t.academyLabel} />
-              </SelectTrigger>
-              <SelectContent>
-                {ACADEMIES.map(a => (
-                  <SelectItem key={a.label} value={a.label}>{a.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </ProfileFormField>
-
-          {/* Directorate */}
-          <ProfileFormField label={t.directorateLabel} icon={<MapPin className="w-4 h-4 text-primary" />}>
-            <Select value={form.directorate} onValueChange={v => handleChange('directorate', v)} disabled={!form.academy}>
-              <SelectTrigger className={selectTriggerClasses}>
-                <SelectValue placeholder={t.directorateLabel} />
-              </SelectTrigger>
-              <SelectContent>
-                {directorates.map(d => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </ProfileFormField>
-
-          {/* Mission */}
-          <ProfileFormField label={t.missionLabel} icon={<Briefcase className="w-4 h-4 text-primary" />}>
-            <Select value={form.mission} onValueChange={v => handleChange('mission', v)}>
-              <SelectTrigger className={selectTriggerClasses}>
-                <SelectValue placeholder={t.missionLabel} />
-              </SelectTrigger>
-              <SelectContent>
-                {missionOptions.map(o => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </ProfileFormField>
-
-          {/* Corps */}
-          <ProfileFormField label={t.corpsLabel} icon={<GraduationCap className="w-4 h-4 text-primary" />}>
-            <Select value={form.corps} onValueChange={v => handleChange('corps', v)}>
-              <SelectTrigger className={selectTriggerClasses}>
-                <SelectValue placeholder={t.corpsLabel} />
-              </SelectTrigger>
-              <SelectContent>
-                {corpsOptions.map(o => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </ProfileFormField>
-
-          {/* Institution */}
-          <ProfileFormField label={t.institutionLabel} icon={<Building2 className="w-4 h-4 text-primary" />}>
-            <Input value={form.institution} onChange={e => handleChange('institution', e.target.value)} className={inputClasses} />
-          </ProfileFormField>
-
-          {/* Membership Status */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <CreditCard className="w-4 h-4 text-primary" />
-              {t.membershipLabel}
-            </Label>
-            <div className="flex gap-4">
-              {/* Member option */}
-              <label
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all flex-1 ${
-                  form.is_member
-                    ? 'border-primary bg-primary/10 shadow-sm'
-                    : 'border-border bg-muted/30 hover:border-border/80'
-                }`}
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-black" style={{ color: 'hsl(0 0% 95%)' }}>{t.profile}</h1>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setViewMode(!viewMode)}
+                className="futuristic-back-btn flex items-center gap-2"
               >
-                <input
-                  type="checkbox"
-                  checked={form.is_member}
-                  onChange={() => handleChange('is_member', true)}
-                  className="w-4 h-4 rounded border-primary text-primary accent-[hsl(var(--primary))]"
-                />
-                <span className={`font-medium text-sm ${form.is_member ? 'text-primary' : 'text-muted-foreground'}`}>
-                  {t.isMember}
-                </span>
-              </label>
-
-              {/* Non-member option */}
-              <label
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all flex-1 ${
-                  !form.is_member
-                    ? 'border-destructive bg-destructive/10 shadow-sm'
-                    : 'border-border bg-muted/30 hover:border-border/80'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={!form.is_member}
-                  onChange={() => handleChange('is_member', false)}
-                  className="w-4 h-4 rounded border-destructive text-destructive accent-[hsl(var(--destructive))]"
-                />
-                <span className={`font-medium text-sm ${!form.is_member ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  {t.isNotMember}
-                </span>
-              </label>
+                <Eye className="w-4 h-4" />
+                {viewMode ? t.editInfo : t.viewInfo}
+              </button>
             </div>
-
-            {/* Membership card number - shown only when member */}
-            {form.is_member && (
-              <div className="mt-3 animate-in slide-in-from-top-2 duration-200">
-                <Input
-                  value={form.membership_card_number}
-                  onChange={e => handleChange('membership_card_number', e.target.value)}
-                  placeholder={t.membershipCardPlaceholder}
-                  dir="ltr"
-                  className={`${inputClasses} border-primary/30`}
-                />
-              </div>
-            )}
           </div>
 
-          <Button onClick={handleSave} disabled={saving} className="w-full mt-4">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-            {t.saveProfile}
-          </Button>
+          {/* Progress */}
+          <div className="flex items-center gap-2 mb-8">
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'hsl(215 30% 12%)' }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, hsl(190 80% 45%), hsl(160 70% 45%))' }}
+                animate={{ width: `${(filledCount / cards.length) * 100}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            </div>
+            <span className="text-xs font-bold" style={{ color: 'hsl(190 100% 65%)' }}>
+              {filledCount}/{cards.length}
+            </span>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {viewMode ? (
+              /* ── Summary view ── */
+              <motion.div
+                key="summary"
+                initial={{ opacity: 0, x: dir === 'rtl' ? -100 : 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: dir === 'rtl' ? -100 : 100 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              >
+                <div className="profile-summary-card p-6 space-y-1">
+                  {cards.map((card) => {
+                    const Icon = card.icon;
+                    const value = getFieldValue(card.key);
+                    return (
+                      <div key={card.key} className="profile-summary-row">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center"
+                          style={{ background: 'hsl(190 80% 45% / 0.12)', border: '1px solid hsl(190 80% 45% / 0.2)' }}>
+                          <Icon className="w-4 h-4" style={{ color: 'hsl(190 100% 65%)' }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold" style={{ color: 'hsl(210 15% 50%)' }}>
+                            {card.label} <span style={{ color: 'hsl(0 80% 55%)' }}>*</span>
+                          </div>
+                          <div className="text-sm font-semibold truncate" style={{ color: value ? 'hsl(0 0% 90%)' : 'hsl(0 80% 55% / 0.6)' }}>
+                            {value || '—'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Delete account */}
+                <div className="mt-8 text-center">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="profile-delete-btn flex items-center gap-2 mx-auto">
+                        <Trash2 className="w-4 h-4" />
+                        {t.deleteAccount}
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="w-5 h-5 text-destructive" />
+                          {t.deleteAccountConfirm}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>{t.deleteAccountWarning}</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={deleting}
+                        >
+                          {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : t.confirm}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </motion.div>
+            ) : (
+              /* ── Carousel edit view ── */
+              <motion.div
+                key="carousel"
+                initial={{ opacity: 0, x: dir === 'rtl' ? 100 : -100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: dir === 'rtl' ? 100 : -100 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              >
+                {/* Card counter */}
+                <div className="text-center mb-4">
+                  <span className="text-sm font-bold" style={{ color: 'hsl(190 100% 65%)' }}>
+                    {activeIndex + 1} {t.profileCardOf} {cards.length}
+                  </span>
+                </div>
+
+                {/* Carousel */}
+                <div className="overflow-hidden" ref={emblaRef}>
+                  <div className="flex gap-4" style={{ direction: dir === 'rtl' ? 'rtl' : 'ltr' }}>
+                    {cards.map((card, index) => {
+                      const Icon = card.icon;
+                      const isActive = index === activeIndex;
+                      const filled = isFieldFilled(card.key);
+
+                      return (
+                        <div
+                          key={card.key}
+                          className="flex-shrink-0"
+                          style={{ width: 'min(85vw, 340px)' }}
+                          onClick={() => scrollTo(index)}
+                        >
+                          <div className={`profile-card-glass relative p-6 min-h-[220px] flex flex-col ${isActive ? 'active' : ''} ${filled && !isActive ? 'completed' : ''}`}>
+                            {/* Icon */}
+                            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                              style={{
+                                background: isActive ? 'hsl(190 80% 45% / 0.15)' : 'rgba(255 255 255 / 0.06)',
+                                border: `1.5px solid ${isActive ? 'hsl(190 80% 45% / 0.4)' : 'rgba(255 255 255 / 0.1)'}`,
+                              }}>
+                              <Icon className="w-6 h-6" style={{ color: isActive ? 'hsl(190 100% 65%)' : 'hsl(210 15% 55%)' }} />
+                            </div>
+
+                            {/* Label */}
+                            <div className="text-center mb-4">
+                              <span className="text-sm font-black" style={{ color: isActive ? 'hsl(0 0% 95%)' : 'hsl(210 15% 55%)' }}>
+                                {card.label}
+                              </span>
+                              <span className="text-sm font-black" style={{ color: 'hsl(0 80% 55%)' }}> *</span>
+                            </div>
+
+                            {/* Input field */}
+                            <div className="flex-1">
+                              {renderCardContent(card, index)}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Navigation */}
+                <div className="flex items-center justify-center gap-4 mt-6">
+                  <button
+                    onClick={scrollPrev}
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+                    style={{
+                      background: 'rgba(255 255 255 / 0.08)',
+                      border: '1.5px solid rgba(255 255 255 / 0.15)',
+                    }}
+                  >
+                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(190 100% 65%)' }} />
+                  </button>
+
+                  {/* Dots */}
+                  <div className="flex gap-1.5">
+                    {cards.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => scrollTo(i)}
+                        className="w-2.5 h-2.5 rounded-full transition-all"
+                        style={{
+                          background: i === activeIndex
+                            ? 'hsl(190 80% 45%)'
+                            : isFieldFilled(cards[i].key)
+                              ? 'hsl(160 70% 45%)'
+                              : 'hsl(210 20% 22%)',
+                          boxShadow: i === activeIndex ? '0 0 8px hsl(190 80% 45% / 0.5)' : 'none',
+                          transform: i === activeIndex ? 'scale(1.3)' : 'scale(1)',
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={scrollNext}
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+                    style={{
+                      background: 'rgba(255 255 255 / 0.08)',
+                      border: '1.5px solid rgba(255 255 255 / 0.15)',
+                    }}
+                  >
+                    <NavNext className="w-5 h-5" style={{ color: 'hsl(190 100% 65%)' }} />
+                  </button>
+                </div>
+
+                {/* Save button */}
+                <div className="mt-8 text-center">
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="futuristic-submit-btn"
+                  >
+                    {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                    {t.saveProfile}
+                  </button>
+                </div>
+
+                {/* Delete account in carousel mode */}
+                <div className="mt-10 text-center">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="profile-delete-btn flex items-center gap-2 mx-auto text-sm">
+                        <Trash2 className="w-3.5 h-3.5" />
+                        {t.deleteAccount}
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="w-5 h-5 text-destructive" />
+                          {t.deleteAccountConfirm}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>{t.deleteAccountWarning}</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          disabled={deleting}
+                        >
+                          {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : t.confirm}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </main>
+      </div>
     </AuthenticatedLayout>
   );
 };

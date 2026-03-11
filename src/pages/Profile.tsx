@@ -570,7 +570,7 @@ const Profile = () => {
                             ? 'hsl(190 80% 45%)'
                             : isFieldFilled(cards[i].key)
                               ? 'hsl(160 70% 45%)'
-                              : 'hsl(210 20% 22%)',
+                              : 'hsl(210 15% 85%)',
                           boxShadow: i === activeIndex ? '0 0 8px hsl(190 80% 45% / 0.5)' : 'none',
                           transform: i === activeIndex ? 'scale(1.3)' : 'scale(1)',
                         }}

@@ -288,7 +288,7 @@ const Profile = () => {
         <Input
           value={user.email || ''}
           disabled
-          className="futuristic-input opacity-70"
+          className="profile-input opacity-70"
         />
       );
     }

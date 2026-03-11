@@ -145,18 +145,35 @@ const OrbitalHub = ({
             >
               <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 65%)' }} />
             </div>
-            {/* Outward label - only for selected or hovered items */}
-            {(isSelected || isItemHovered) && (
+            {/* Label rendering */}
+            {isSmall ? (
+              /* Step 2 (minimized): only selected item label, radially outward */
+              isSelected && (
+                <div
+                  className="absolute whitespace-nowrap orbital-label-persistent pointer-events-none"
+                  style={{
+                    left: `calc(50% + ${outwardX}px)`,
+                    top: `calc(50% + ${outwardY}px)`,
+                    transform: 'translate(-50%, -50%)',
+                    color: item.color,
+                    fontSize: '0.5rem',
+                    fontWeight: 800,
+                    textShadow: `0 0 8px ${item.color}60`,
+                  }}
+                >
+                  {labelFn(item.key)}
+                </div>
+              )
+            ) : (
+              /* Step 1 (full orbit): all labels always visible below icons */
               <div
-                className="absolute whitespace-nowrap orbital-label-persistent pointer-events-none"
+                className="absolute top-full mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap orbital-label-persistent pointer-events-none"
                 style={{
-                  left: `calc(50% + ${outwardX}px)`,
-                  top: `calc(50% + ${outwardY}px)`,
-                  transform: 'translate(-50%, -50%)',
-                  color: item.color,
-                  fontSize: isSmall ? '0.5rem' : '0.62rem',
-                  fontWeight: 800,
-                  textShadow: `0 0 8px ${item.color}60`,
+                  color: isSelected || isItemHovered ? item.color : 'hsl(210 15% 50%)',
+                  fontSize: isSelected || isItemHovered ? '0.62rem' : '0.55rem',
+                  fontWeight: isSelected || isItemHovered ? 800 : 600,
+                  textShadow: isSelected || isItemHovered ? `0 0 8px ${item.color}60` : 'none',
+                  opacity: isSelected || isItemHovered ? 1 : 0.7,
                 }}
               >
                 {labelFn(item.key)}

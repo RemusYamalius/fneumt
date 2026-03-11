@@ -288,7 +288,7 @@ const Profile = () => {
         <Input
           value={user.email || ''}
           disabled
-          className="futuristic-input opacity-70"
+          className="profile-input opacity-70"
         />
       );
     }
@@ -325,7 +325,7 @@ const Profile = () => {
                 onChange={e => handleChange('membership_card_number', e.target.value)}
                 placeholder={t.membershipCardPlaceholder}
                 dir="ltr"
-                className="futuristic-input"
+                className="profile-input"
               />
             </motion.div>
           )}
@@ -341,7 +341,7 @@ const Profile = () => {
           onValueChange={isAcademy ? handleAcademyChange : (v) => handleChange(card.key, v)}
           disabled={card.key === 'directorate' && !form.academy}
         >
-          <SelectTrigger className="futuristic-input h-12">
+          <SelectTrigger className="profile-input h-12">
             <SelectValue placeholder={card.label} />
           </SelectTrigger>
           <SelectContent>
@@ -358,7 +358,7 @@ const Profile = () => {
         value={(form as any)[card.key] || ''}
         onChange={e => handleChange(card.key, e.target.value)}
         dir={card.dir || undefined}
-        className="futuristic-input h-12"
+        className="profile-input h-12"
       />
     );
   };
@@ -488,18 +488,27 @@ const Profile = () => {
                 </div>
 
                 {/* Carousel */}
-                <div className="overflow-hidden" ref={emblaRef}>
+                <div className="overflow-hidden" ref={emblaRef} style={{ perspective: '1200px' }}>
                   <div className="flex gap-4" style={{ direction: dir === 'rtl' ? 'rtl' : 'ltr' }}>
                     {cards.map((card, index) => {
                       const Icon = card.icon;
                       const isActive = index === activeIndex;
                       const filled = isFieldFilled(card.key);
+                      const offset = index - activeIndex;
+                      const rotateY = isActive ? 0 : offset > 0 ? -8 : 8;
+                      const scale3d = isActive ? 1 : 0.92;
+                      const opacity3d = isActive ? 1 : 0.7;
 
                       return (
                         <div
                           key={card.key}
-                          className="flex-shrink-0"
-                          style={{ width: 'min(85vw, 340px)' }}
+                          className="flex-shrink-0 transition-all duration-500"
+                          style={{
+                            width: 'min(85vw, 340px)',
+                            transform: `perspective(1200px) rotateY(${rotateY}deg) scale(${scale3d})`,
+                            opacity: opacity3d,
+                            transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.5s ease',
+                          }}
                           onClick={() => scrollTo(index)}
                         >
                           <div className={`profile-card-glass relative p-6 min-h-[220px] flex flex-col ${isActive ? 'active' : ''} ${filled && !isActive ? 'completed' : ''}`}>
@@ -535,13 +544,14 @@ const Profile = () => {
                 <div className="flex items-center justify-center gap-4 mt-6">
                   <button
                     onClick={scrollPrev}
-                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
                     style={{
-                      background: 'hsl(210 15% 97%)',
-                      border: '1.5px solid hsl(210 15% 88%)',
+                      background: 'linear-gradient(135deg, hsl(207 62% 92%) 0%, hsl(190 60% 90%) 100%)',
+                      border: '1.5px solid hsl(207 62% 80%)',
+                      boxShadow: '0 4px 12px hsl(207 62% 50% / 0.1)',
                     }}
                   >
-                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(190 80% 35%)' }} />
+                    <NavPrev className="w-5 h-5" style={{ color: 'hsl(207 62% 40%)' }} />
                   </button>
 
                   {/* Dots */}
@@ -566,13 +576,14 @@ const Profile = () => {
 
                   <button
                     onClick={scrollNext}
-                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+                    className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
                     style={{
-                      background: 'hsl(210 15% 97%)',
-                      border: '1.5px solid hsl(210 15% 88%)',
+                      background: 'linear-gradient(135deg, hsl(207 62% 92%) 0%, hsl(190 60% 90%) 100%)',
+                      border: '1.5px solid hsl(207 62% 80%)',
+                      boxShadow: '0 4px 12px hsl(207 62% 50% / 0.1)',
                     }}
                   >
-                    <NavNext className="w-5 h-5" style={{ color: 'hsl(190 80% 35%)' }} />
+                    <NavNext className="w-5 h-5" style={{ color: 'hsl(207 62% 40%)' }} />
                   </button>
                 </div>
 
@@ -581,7 +592,7 @@ const Profile = () => {
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="futuristic-submit-btn"
+                    className="profile-save-btn"
                   >
                     {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                     {t.saveProfile}

@@ -1242,8 +1242,56 @@
   -webkit-backdrop-filter: blur(24px);
   border: 1.5px solid hsl(220 25% 88%);
   border-radius: 1.25rem;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 24px -6px hsl(220 30% 60% / 0.1);
+  transform-style: preserve-3d;
+}
+
+/* ── Profile Input (light theme) ── */
+.profile-input {
+  background: rgba(255 255 255 / 0.85) !important;
+  border: 1.5px solid hsl(210 20% 85%) !important;
+  color: hsl(210 20% 15%) !important;
+  border-radius: 0.75rem !important;
+  transition: all 0.3s ease;
+}
+
+.profile-input:focus,
+.profile-input:focus-visible {
+  border-color: hsl(207 62% 50% / 0.5) !important;
+  box-shadow: 0 0 0 3px hsl(207 62% 50% / 0.1) !important;
+  background: rgba(255 255 255 / 0.95) !important;
+  outline: none !important;
+}
+
+.profile-input::placeholder {
+  color: hsl(210 15% 60%) !important;
+}
+
+/* ── Profile Save Button ── */
+.profile-save-btn {
+  background: linear-gradient(135deg, hsl(207 62% 45%) 0%, hsl(190 80% 40%) 100%);
+  color: white;
+  border: 1px solid hsl(207 62% 50% / 0.4);
+  font-weight: 800;
+  border-radius: 0.85rem;
+  padding: 0.85rem 2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px -10px hsl(207 62% 45% / 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-save-btn:hover {
+  box-shadow: 0 14px 40px -10px hsl(207 62% 45% / 0.55);
+  transform: translateY(-2px);
+}
+
+.profile-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .profile-card-glass.active {

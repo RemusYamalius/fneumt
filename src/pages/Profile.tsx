@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, ArrowLeft, Save, Loader2, User, Phone, Hash, Building2, MapPin,
@@ -86,19 +86,8 @@ const Profile = () => {
     mission: '', is_member: false, membership_card_number: '',
   });
 
-  const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    clickSoundRef.current = new Audio('/notification.mp3');
-    clickSoundRef.current.volume = 0.15;
-  }, []);
 
-  const playClick = useCallback(() => {
-    if (clickSoundRef.current) {
-      clickSoundRef.current.currentTime = 0;
-      clickSoundRef.current.play().catch(() => {});
-    }
-  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');
@@ -189,24 +178,21 @@ const Profile = () => {
 
   const scrollTo = useCallback((index: number) => {
     if (emblaApi) {
-      playClick();
       emblaApi.scrollTo(index);
     }
-  }, [emblaApi, playClick]);
+  }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
     if (emblaApi) {
-      playClick();
       emblaApi.scrollNext();
     }
-  }, [emblaApi, playClick]);
+  }, [emblaApi]);
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) {
-      playClick();
       emblaApi.scrollPrev();
     }
-  }, [emblaApi, playClick]);
+  }, [emblaApi]);
 
   const getFieldValue = (key: string): string => {
     if (key === 'email') return user?.email || '';

@@ -1232,24 +1232,24 @@
    ══════════════════════════════════════════════ */
 
 .profile-white-bg {
-  background: hsl(0 0% 100%);
+  background: linear-gradient(160deg, hsl(210 30% 97%) 0%, hsl(220 25% 94%) 40%, hsl(200 20% 96%) 100%);
   position: relative;
 }
 
 .profile-card-glass {
-  background: rgba(255 255 255 / 0.65);
+  background: rgba(255 255 255 / 0.55);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1.5px solid hsl(210 15% 88%);
+  border: 1.5px solid hsl(220 25% 88%);
   border-radius: 1.25rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px -6px hsl(210 20% 50% / 0.08);
+  box-shadow: 0 4px 24px -6px hsl(220 30% 60% / 0.1);
 }
 
 .profile-card-glass.active {
-  background: rgba(255 255 255 / 0.85);
-  border-color: hsl(190 80% 45% / 0.5);
-  box-shadow: 0 0 30px hsl(190 80% 45% / 0.12), 0 20px 50px -20px hsl(210 20% 50% / 0.15);
+  background: rgba(255 255 255 / 0.8);
+  border-color: hsl(207 62% 50% / 0.45);
+  box-shadow: 0 0 30px hsl(207 62% 50% / 0.1), 0 20px 50px -20px hsl(220 30% 60% / 0.15);
   transform: scale(1.03);
 }
 
@@ -1280,12 +1280,12 @@
 }
 
 .profile-summary-card {
-  background: rgba(255 255 255 / 0.7);
+  background: rgba(255 255 255 / 0.6);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid hsl(210 15% 88%);
+  border: 1px solid hsl(220 25% 88%);
   border-radius: 1.25rem;
-  box-shadow: 0 4px 20px -6px hsl(210 20% 50% / 0.08);
+  box-shadow: 0 4px 24px -6px hsl(220 30% 60% / 0.1);
 }
 
 .profile-summary-row {

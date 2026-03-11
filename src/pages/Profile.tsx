@@ -517,18 +517,18 @@ const Profile = () => {
                             {/* Icon */}
                             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
                               style={{
-                                background: isActive ? 'hsl(190 80% 45% / 0.1)' : 'hsl(210 15% 95%)',
-                                border: `1.5px solid ${isActive ? 'hsl(190 80% 45% / 0.4)' : 'hsl(210 15% 88%)'}`,
+                                background: 'rgba(255 255 255 / 0.08)',
+                                border: `1px solid ${isActive ? 'rgba(255 255 255 / 0.3)' : 'rgba(255 255 255 / 0.15)'}`,
                               }}>
-                              <Icon className="w-6 h-6" style={{ color: isActive ? 'hsl(190 80% 35%)' : 'hsl(210 15% 55%)' }} />
+                              <Icon className="w-6 h-6" style={{ color: isActive ? 'rgba(255 255 255 / 0.9)' : 'rgba(255 255 255 / 0.5)' }} />
                             </div>
 
                             {/* Label */}
                             <div className="text-center mb-4">
-                              <span className="text-sm font-black" style={{ color: isActive ? 'hsl(210 20% 15%)' : 'hsl(210 15% 55%)' }}>
+                              <span className="text-sm font-black" style={{ color: isActive ? 'rgba(255 255 255 / 0.9)' : 'rgba(255 255 255 / 0.5)' }}>
                                 {card.label}
                               </span>
-                              <span className="text-sm font-black" style={{ color: 'hsl(0 80% 55%)' }}> *</span>
+                              <span className="text-sm font-black" style={{ color: 'rgba(255 150 150 / 0.8)' }}> *</span>
                             </div>
 
                             {/* Input field */}

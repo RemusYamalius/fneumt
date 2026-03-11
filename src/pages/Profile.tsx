@@ -184,10 +184,9 @@ const Profile = () => {
 
   const scrollNext = useCallback(() => {
     if (emblaApi) {
-      playClick();
       emblaApi.scrollNext();
     }
-  }, [emblaApi, playClick]);
+  }, [emblaApi]);
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) {

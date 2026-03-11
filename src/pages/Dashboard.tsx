@@ -289,6 +289,7 @@ const Dashboard = () => {
           loadingRequests={loadingRequests}
           myRequests={myRequests}
           dir={dir}
+          userId={user.id}
         />
       </main>
     </AuthenticatedLayout>

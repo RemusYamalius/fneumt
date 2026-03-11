@@ -1247,9 +1247,9 @@
 }
 
 .profile-card-glass.active {
-  background: rgba(255 255 255 / 0.85);
-  border-color: hsl(190 80% 45% / 0.5);
-  box-shadow: 0 0 30px hsl(190 80% 45% / 0.12), 0 20px 50px -20px hsl(210 20% 50% / 0.15);
+  background: rgba(255 255 255 / 0.8);
+  border-color: hsl(207 62% 50% / 0.45);
+  box-shadow: 0 0 30px hsl(207 62% 50% / 0.1), 0 20px 50px -20px hsl(220 30% 60% / 0.15);
   transform: scale(1.03);
 }
 

@@ -897,8 +897,9 @@
 }
 
 .orbital-center {
-  background: radial-gradient(circle, hsl(215 35% 12%) 0%, hsl(220 40% 8%) 100%);
-  border: 1.5px solid hsl(190 80% 45% / 0.25);
+  background: rgba(255 255 255 / 0.06);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255 255 255 / 0.15);
 }
 
 .orbital-center-glow {

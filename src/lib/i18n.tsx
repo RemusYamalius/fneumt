@@ -320,7 +320,7 @@ const translations: Record<Lang, Record<string, string>> = {
     loginSubtitle: 'Entrez vos identifiants pour continuer',
     signupSubtitle: 'Créez votre nouveau compte',
     phoneLabel: 'Téléphone',
-    employeeNumberLabel: "Numéro d'employé",
+    employeeNumberLabel: 'N°PPR',
     zoneLabel: 'Zone',
     directorateLabel: 'Direction provinciale',
     academyLabel: 'Académie régionale',

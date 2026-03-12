@@ -14,9 +14,12 @@ const Dashboard = () => {
   const { user, profile, role, loading } = useAuth();
   const navigate = useNavigate();
   const [pendingCount, setPendingCount] = useState(0);
+  const [joinPendingCount, setJoinPendingCount] = useState(0);
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | null>(null);
+  const [hasJoinRequest, setHasJoinRequest] = useState(false);
+  const [joiningLoading, setJoiningLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {

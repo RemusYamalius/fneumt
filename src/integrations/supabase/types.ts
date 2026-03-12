@@ -87,6 +87,30 @@ export type Database = {
           },
         ]
       }
+      join_requests: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

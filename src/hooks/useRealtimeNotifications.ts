@@ -38,27 +38,34 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
 
     if (isInboxRole) {
       // Subscribe to requests table changes for inbox roles
-      const channel = supabase
+      const reqChannel = supabase
         .channel('requests-badge-realtime')
         .on(
           'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'requests',
-            filter: `assigned_to=eq.${userId}`,
-          },
+          { event: '*', schema: 'public', table: 'requests', filter: `assigned_to=eq.${userId}` },
           (payload) => {
-            if (payload.eventType === 'INSERT') {
-              play();
-            }
+            if (payload.eventType === 'INSERT') play();
+            fetchUnreadCount();
+          }
+        )
+        .subscribe();
+
+      // Also subscribe to join_requests for inbox roles
+      const joinChannel = supabase
+        .channel('join-requests-badge-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'join_requests', filter: `assigned_to=eq.${userId}` },
+          (payload) => {
+            if (payload.eventType === 'INSERT') play();
             fetchUnreadCount();
           }
         )
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(reqChannel);
+        supabase.removeChannel(joinChannel);
       };
     } else {
       // Subscribe to notifications table for other roles
@@ -66,16 +73,9 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
         .channel('notifications-realtime')
         .on(
           'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${userId}`,
-          },
+          { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
           (payload) => {
-            if (payload.eventType === 'INSERT') {
-              play();
-            }
+            if (payload.eventType === 'INSERT') play();
             fetchUnreadCount();
           }
         )

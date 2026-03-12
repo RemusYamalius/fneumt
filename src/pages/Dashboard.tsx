@@ -269,6 +269,83 @@ const Dashboard = () => {
         >
           {t.welcome}، {profile?.full_name || user.email}
         </motion.h1>
+        {/* Join welcome banner for non-members */}
+        {isNonMember && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="relative overflow-hidden rounded-3xl mb-8 p-8 shadow-xl border border-[hsl(195,70%,55%)]/20"
+            style={{ background: 'linear-gradient(135deg, hsl(195, 70%, 42%) 0%, hsl(207, 78%, 38%) 50%, hsl(207, 62%, 30%) 100%)' }}
+          >
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/4" />
+            <div className="absolute top-4 left-8 w-2 h-2 rounded-full bg-white/30 animate-pulse" />
+            <div className="absolute bottom-6 right-12 w-3 h-3 rounded-full bg-white/20 animate-pulse" style={{ animationDelay: '1s' }} />
+
+            <div className="relative z-10 text-center max-w-lg mx-auto">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+                className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20"
+              >
+                <UserPlus className="w-8 h-8 text-white" />
+              </motion.div>
+
+              <h2 className="text-2xl font-bold text-white mb-4 leading-relaxed">
+                {t.joinWelcomeTitle}
+              </h2>
+              <p className="text-white/85 text-base leading-relaxed mb-6 whitespace-pre-line">
+                {t.joinWelcomeBody}
+              </p>
+
+              {hasJoinRequest ? (
+                <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 text-white text-sm font-medium">
+                  <CheckCircle2 className="w-5 h-5" />
+                  {t.joinRequestAlready}
+                </div>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={joiningLoading}
+                  onClick={async () => {
+                    if (!user) return;
+                    setJoiningLoading(true);
+                    const { error } = await supabase
+                      .from('join_requests')
+                      .insert({ user_id: user.id } as any);
+                    setJoiningLoading(false);
+                    if (error) {
+                      if (error.code === '23505') {
+                        toast({ title: t.joinRequestAlready });
+                      } else {
+                        toast({ title: t.submitError, variant: 'destructive' });
+                      }
+                    } else {
+                      setHasJoinRequest(true);
+                      toast({ title: t.joinRequestSent });
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[hsl(207,78%,35%)] font-bold text-base shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50"
+                >
+                  {joiningLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <UserPlus className="w-5 h-5" />
+                  )}
+                  {t.joinWelcomeButton}
+                </motion.button>
+              )}
+
+              <p className="text-white/70 text-sm mt-5 italic">
+                {t.joinWelcomeFooter}
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Grouped layout for promoter roles */}
         {isPromoterRole ? (

@@ -559,6 +559,21 @@ const translations: Record<Lang, Record<string, string>> = {
     cancel: 'Annuler',
     accountDeleted: 'Compte supprimé avec succès',
     noUsers: 'Aucun utilisateur',
+    // Join requests
+    joinWelcomeTitle: 'Bienvenue au Château Bleu',
+    joinWelcomeBody: 'Si vous souhaitez nous rejoindre, cliquez sur ce bouton.\nNotre représentant le plus proche vous contactera.',
+    joinWelcomeFooter: 'Nous sommes heureux de vous accueillir parmi nous.',
+    joinWelcomeButton: 'Rejoignez-nous',
+    joinRequests: "Demandes d'adhésion",
+    joinRequestsDesc: "Gérer les demandes d'adhésion reçues",
+    joinRequestSent: "Votre demande d'adhésion a été envoyée avec succès ! Notre représentant vous contactera bientôt.",
+    joinRequestAlready: "Vous avez déjà envoyé une demande d'adhésion.",
+    totalJoinRequests: "Demandes d'adhésion",
+    joinStatus_pending: 'En attente',
+    joinStatus_contacted: 'Contacté',
+    joinStatus_accepted: 'Accepté',
+    joinStatus_rejected: 'Rejeté',
+    noJoinRequests: "Aucune demande d'adhésion pour le moment",
   },
 };
 

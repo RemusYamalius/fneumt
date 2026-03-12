@@ -42,6 +42,28 @@ const Dashboard = () => {
       .then(({ count }) => setPendingCount(count || 0));
   }, [user, showIncomingRequests]);
 
+  // Fetch join requests pending count for deputies
+  useEffect(() => {
+    if (!user || !isDeputyLocal) return;
+    supabase
+      .from('join_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('assigned_to', user.id)
+      .eq('status', 'pending')
+      .then(({ count }: any) => setJoinPendingCount(count || 0));
+  }, [user, role]);
+
+  // Check if non-member already sent a join request
+  const isNonMember = profile && profile.is_member === false && profile.membership_verified === false;
+  useEffect(() => {
+    if (!user || !isNonMember) return;
+    supabase
+      .from('join_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }: any) => setHasJoinRequest((count || 0) > 0));
+  }, [user, isNonMember]);
+
 
   // Fetch user's own requests
   useEffect(() => {

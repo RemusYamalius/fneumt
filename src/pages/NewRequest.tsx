@@ -632,9 +632,9 @@ const NewRequest = () => {
                                 background: `${color}20`,
                                 border: `1px solid ${color}50`,
                               }}>
-                                <Icon className="w-6 h-6" style={{ color }} />
+                              <Icon className="w-6 h-6" style={{ color, filter: isSelected ? `drop-shadow(0 0 6px ${color})` : 'none' }} />
                               </div>
-                              <span className="text-sm font-bold" style={{ color: isSelected ? color : 'hsl(210 15% 75%)' }}>
+                              <span className="text-sm font-bold" style={{ color: isSelected ? color : 'hsl(210 15% 75%)', textShadow: isSelected ? `0 0 10px ${color}60` : 'none' }}>
                                 {levelLabel(key)}
                               </span>
                             </div>

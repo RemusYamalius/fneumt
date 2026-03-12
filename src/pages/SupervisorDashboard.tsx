@@ -207,6 +207,10 @@ const SupervisorDashboard = () => {
   useEffect(() => {
     if (!user || !role) return;
     fetchData();
+    // Fetch join requests count
+    supabase.from('join_requests').select('*', { count: 'exact', head: true }).then(({ count }: any) => {
+      setJoinRequestsCount(count || 0);
+    });
   }, [user, role]);
 
   const fetchData = async () => {

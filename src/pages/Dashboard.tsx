@@ -57,7 +57,7 @@ const Dashboard = () => {
   }, [user, role]);
 
   // Check if non-member already sent a join request
-  const isNonMember = profile && profile.is_member === false && profile.membership_verified === false;
+  const isNonMember = profile && role === 'teacher' && profile.is_member === false && profile.membership_verified === false && profile.corps && profile.academy && profile.directorate;
   useEffect(() => {
     if (!user || !isNonMember) return;
     supabase

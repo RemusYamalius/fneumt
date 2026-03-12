@@ -804,11 +804,11 @@ const NewRequest = () => {
                           <div className="ms-10 futuristic-review-card" style={{ borderColor: `${lvlColor}30` }}>
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${lvlColor}15`, border: `1px solid ${lvlColor}40` }}>
-                                <LvlIcon className="w-5 h-5" style={{ color: lvlColor }} />
+                                <LvlIcon className="w-5 h-5" style={{ color: lvlColor, filter: `drop-shadow(0 0 6px ${lvlColor})` }} />
                               </div>
                               <div>
                                 <span className="text-[0.65rem] font-bold block" style={{ color: 'hsl(210 15% 50%)' }}>{t.selectResolutionLevel}</span>
-                                <span className="text-sm font-bold" style={{ color: lvlColor }}>{levelLabel(resolutionLevel)}</span>
+                                <span className="text-sm font-bold" style={{ color: lvlColor, textShadow: `0 0 10px ${lvlColor}60` }}>{levelLabel(resolutionLevel)}</span>
                               </div>
                             </div>
                           </div>

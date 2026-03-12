@@ -140,7 +140,25 @@ const OrbitalHub = ({
       {/* Center hub */}
       <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 orbital-center ${isSmall ? 'w-20 h-20' : 'w-28 h-28 sm:w-32 sm:h-32'} rounded-full flex items-center justify-center`}>
         <div className="orbital-center-glow absolute inset-0 rounded-full" />
-        <img src={logoFne} alt="FNE Logo" className={`relative z-10 object-contain rounded-full ${isSmall ? 'w-[90%] h-[90%]' : 'w-[90%] h-[90%]'}`} />
+        <div className="relative z-10 w-full h-full rounded-full" style={{ isolation: 'isolate' }}>
+          {/* Border shine */}
+          <div
+            className="absolute inset-[-2px] rounded-full animate-logo-border-shine"
+            style={{
+              background: 'conic-gradient(from 0deg, transparent 0%, transparent 60%, hsl(190 100% 60%) 75%, hsl(210 100% 70%) 85%, transparent 100%)',
+            }}
+          />
+          <div className="absolute inset-[2px] rounded-full bg-white/10 backdrop-blur-sm" />
+          <img src={logoFne} alt="FNE Logo" className="relative z-10 w-full h-full object-contain rounded-full" />
+          {/* Sparkle swipe */}
+          <div
+            className="absolute inset-0 rounded-full animate-logo-sparkle z-20 pointer-events-none"
+            style={{
+              background: 'linear-gradient(135deg, transparent 30%, hsl(190 100% 80% / 0.6) 45%, hsl(210 100% 90% / 0.4) 55%, transparent 70%)',
+              backgroundSize: '300% 300%',
+            }}
+          />
+        </div>
       </div>
 
       {/* Orbiting items */}

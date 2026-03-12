@@ -138,12 +138,9 @@ const OrbitalHub = ({
       />
 
       {/* Center hub */}
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 orbital-center ${isSmall ? 'w-20 h-20' : 'w-28 h-28 sm:w-32 sm:h-32'} rounded-full flex flex-col items-center justify-center`}>
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 orbital-center ${isSmall ? 'w-20 h-20' : 'w-28 h-28 sm:w-32 sm:h-32'} rounded-full flex items-center justify-center`}>
         <div className="orbital-center-glow absolute inset-0 rounded-full" />
-        <img src={logoFne} alt="FNE Logo" className={`relative z-10 object-contain rounded-full ${isSmall ? 'w-12 h-12' : 'w-16 h-16 sm:w-20 sm:h-20'}`} />
-        <span className={`relative z-10 font-black text-center leading-tight mt-0.5 ${isSmall ? 'text-[0.5rem]' : 'text-[0.6rem] sm:text-xs'}`} style={{ color: 'hsl(190 100% 70%)', textShadow: '0 0 8px hsl(190 80% 55% / 0.5)' }}>
-          {centerLabel}
-        </span>
+        <img src={logoFne} alt="FNE Logo" className={`relative z-10 object-contain rounded-full ${isSmall ? 'w-[90%] h-[90%]' : 'w-[90%] h-[90%]'}`} />
       </div>
 
       {/* Orbiting items */}

@@ -164,6 +164,7 @@ const SupervisorDashboard = () => {
   const [filterCorps, setFilterCorps] = useState<'all' | 'primary' | 'middle' | 'high'>('all');
   const [exportLang, setExportLang] = useState<'ar' | 'fr'>(lang as 'ar' | 'fr');
   const [exporting, setExporting] = useState(false);
+  const [joinRequestsCount, setJoinRequestsCount] = useState(0);
 
   const levelMap: Record<string, string[]> = {
     regional: ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],

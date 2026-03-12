@@ -762,11 +762,11 @@ const NewRequest = () => {
                           <div className="ms-10 futuristic-review-card" style={{ borderColor: `${catColor}30` }}>
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${catColor}15`, border: `1px solid ${catColor}40` }}>
-                                <CatIcon className="w-5 h-5" style={{ color: catColor }} />
+                                <CatIcon className="w-5 h-5" style={{ color: catColor, filter: `drop-shadow(0 0 6px ${catColor})` }} />
                               </div>
                               <div>
                                 <span className="text-[0.65rem] font-bold block" style={{ color: 'hsl(210 15% 50%)' }}>{t.selectCategory}</span>
-                                <span className="text-sm font-bold" style={{ color: catColor }}>{category ? categoryLabel(category) : ''}</span>
+                                <span className="text-sm font-bold" style={{ color: catColor, textShadow: `0 0 10px ${catColor}60` }}>{category ? categoryLabel(category) : ''}</span>
                               </div>
                             </div>
                           </div>

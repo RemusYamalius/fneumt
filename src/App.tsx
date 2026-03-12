@@ -17,6 +17,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import SupervisorDashboard from "./pages/SupervisorDashboard";
 import Profile from "./pages/Profile";
 import MembershipVerification from "./pages/MembershipVerification";
+import JoinRequests from "./pages/JoinRequests";
 import RoleGuard from "./components/RoleGuard";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/supervisor" element={<RoleGuard allowedRoles={['admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high', 'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator']}><SupervisorDashboard /></RoleGuard>} />
               <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high', 'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator']}><UserManagement /></RoleGuard>} />
               <Route path="/membership-verification" element={<RoleGuard allowedRoles={['admin', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high']}><MembershipVerification /></RoleGuard>} />
+              <Route path="/join-requests" element={<RoleGuard allowedRoles={['admin', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high']}><JoinRequests /></RoleGuard>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

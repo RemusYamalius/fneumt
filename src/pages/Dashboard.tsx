@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter } from 'lucide-react';
+import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,15 +8,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ar, fr } from 'date-fns/locale';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import { toast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
   const { t, dir, lang } = useI18n();
   const { user, profile, role, loading } = useAuth();
   const navigate = useNavigate();
   const [pendingCount, setPendingCount] = useState(0);
+  const [joinPendingCount, setJoinPendingCount] = useState(0);
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | null>(null);
+  const [hasJoinRequest, setHasJoinRequest] = useState(false);
+  const [joiningLoading, setJoiningLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -38,6 +42,28 @@ const Dashboard = () => {
       .eq('status', 'submitted')
       .then(({ count }) => setPendingCount(count || 0));
   }, [user, showIncomingRequests]);
+
+  // Fetch join requests pending count for deputies
+  useEffect(() => {
+    if (!user || !isDeputyLocal) return;
+    supabase
+      .from('join_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('assigned_to', user.id)
+      .eq('status', 'pending')
+      .then(({ count }: any) => setJoinPendingCount(count || 0));
+  }, [user, role]);
+
+  // Check if non-member already sent a join request
+  const isNonMember = profile && profile.is_member === false && profile.membership_verified === false;
+  useEffect(() => {
+    if (!user || !isNonMember) return;
+    supabase
+      .from('join_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }: any) => setHasJoinRequest((count || 0) > 0));
+  }, [user, isNonMember]);
 
 
   // Fetch user's own requests
@@ -116,6 +142,7 @@ const Dashboard = () => {
 
   const professionalCards = [
     ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', color: cardColors.incomingRequests, badge: pendingCount }] : []),
+    ...(isDeputyLocal ? [{ icon: UserPlus, title: t.joinRequests, desc: t.joinRequestsDesc, to: '/join-requests', color: 'from-[hsl(195,70%,42%)] to-[hsl(195,70%,55%)]', badge: joinPendingCount }] : []),
     ...(isDeputyLocal ? [{ icon: UserCheck, title: t.membershipVerification || 'التحقق من الانخراط', desc: t.membershipVerificationDesc || '', to: '/membership-verification', color: 'from-[hsl(160,60%,38%)] to-[hsl(160,60%,50%)]', badge: 0 }] : []),
     ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', color: cardColors.supervisorDashboard }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
@@ -241,6 +268,83 @@ const Dashboard = () => {
         >
           {t.welcome}، {profile?.full_name || user.email}
         </motion.h1>
+        {/* Join welcome banner for non-members */}
+        {isNonMember && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="relative overflow-hidden rounded-3xl mb-8 p-8 shadow-xl border border-[hsl(195,70%,55%)]/20"
+            style={{ background: 'linear-gradient(135deg, hsl(195, 70%, 42%) 0%, hsl(207, 78%, 38%) 50%, hsl(207, 62%, 30%) 100%)' }}
+          >
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/4" />
+            <div className="absolute top-4 left-8 w-2 h-2 rounded-full bg-white/30 animate-pulse" />
+            <div className="absolute bottom-6 right-12 w-3 h-3 rounded-full bg-white/20 animate-pulse" style={{ animationDelay: '1s' }} />
+
+            <div className="relative z-10 text-center max-w-lg mx-auto">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+                className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20"
+              >
+                <UserPlus className="w-8 h-8 text-white" />
+              </motion.div>
+
+              <h2 className="text-2xl font-bold text-white mb-4 leading-relaxed">
+                {t.joinWelcomeTitle}
+              </h2>
+              <p className="text-white/85 text-base leading-relaxed mb-6 whitespace-pre-line">
+                {t.joinWelcomeBody}
+              </p>
+
+              {hasJoinRequest ? (
+                <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 text-white text-sm font-medium">
+                  <CheckCircle2 className="w-5 h-5" />
+                  {t.joinRequestAlready}
+                </div>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={joiningLoading}
+                  onClick={async () => {
+                    if (!user) return;
+                    setJoiningLoading(true);
+                    const { error } = await supabase
+                      .from('join_requests')
+                      .insert({ user_id: user.id } as any);
+                    setJoiningLoading(false);
+                    if (error) {
+                      if (error.code === '23505') {
+                        toast({ title: t.joinRequestAlready });
+                      } else {
+                        toast({ title: t.submitError, variant: 'destructive' });
+                      }
+                    } else {
+                      setHasJoinRequest(true);
+                      toast({ title: t.joinRequestSent });
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[hsl(207,78%,35%)] font-bold text-base shadow-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50"
+                >
+                  {joiningLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <UserPlus className="w-5 h-5" />
+                  )}
+                  {t.joinWelcomeButton}
+                </motion.button>
+              )}
+
+              <p className="text-white/70 text-sm mt-5 italic">
+                {t.joinWelcomeFooter}
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Grouped layout for promoter roles */}
         {isPromoterRole ? (

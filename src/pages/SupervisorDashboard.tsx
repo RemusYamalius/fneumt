@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon, TrendingUp, Clock, CheckCircle2, XCircle, Eye, FileText, Activity, UserCheck, ChevronDown, UsersRound, Filter, Download } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Users, BarChart3, PieChart as PieIcon, TrendingUp, Clock, CheckCircle2, XCircle, Eye, FileText, Activity, UserCheck, UserPlus, ChevronDown, UsersRound, Filter, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -164,6 +164,7 @@ const SupervisorDashboard = () => {
   const [filterCorps, setFilterCorps] = useState<'all' | 'primary' | 'middle' | 'high'>('all');
   const [exportLang, setExportLang] = useState<'ar' | 'fr'>(lang as 'ar' | 'fr');
   const [exporting, setExporting] = useState(false);
+  const [joinRequestsCount, setJoinRequestsCount] = useState(0);
 
   const levelMap: Record<string, string[]> = {
     regional: ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'],
@@ -206,6 +207,10 @@ const SupervisorDashboard = () => {
   useEffect(() => {
     if (!user || !role) return;
     fetchData();
+    // Fetch join requests count
+    supabase.from('join_requests').select('*', { count: 'exact', head: true }).then(({ count }: any) => {
+      setJoinRequestsCount(count || 0);
+    });
   }, [user, role]);
 
   const fetchData = async () => {
@@ -588,11 +593,12 @@ const SupervisorDashboard = () => {
         ) : (
           <>
             {/* Global KPIs */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
               <KPICard icon={UsersRound} label={t.totalSubordinates} value={globalKPIs.totalSubordinates} color="hsl(207, 78%, 46%)" delay={0} />
               <KPICard icon={FileText} label={t.totalRequests} value={globalKPIs.total} color="hsl(146, 63%, 38%)" delay={0.1} />
               <KPICard icon={CheckCircle2} label={t.processedRequests} value={globalKPIs.processed} color="hsl(268, 61%, 52%)" delay={0.2} />
               <KPICard icon={Eye} label={t.responseRate} value={globalKPIs.responseRate} suffix="%" color="hsl(38, 92%, 46%)" delay={0.3} />
+              <KPICard icon={UserPlus} label={t.totalJoinRequests} value={joinRequestsCount} color="hsl(195, 70%, 42%)" delay={0.4} />
             </div>
 
             {/* Filters */}

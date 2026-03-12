@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, UserPlus, Clock, Phone, CheckCircle2, XCircle, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, UserPlus, Clock, Phone, CheckCircle2, XCircle, User, Eye, Building, MapPin, Hash, BookOpen, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,18 +8,29 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { toast } from '@/hooks/use-toast';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
+
+interface ProfileInfo {
+  full_name: string | null;
+  employee_number: string | null;
+  institution: string | null;
+  phone: string | null;
+  corps: string | null;
+  academy: string | null;
+  directorate: string | null;
+  zone: string | null;
+  email: string | null;
+  mission: string | null;
+}
 
 interface JoinRequest {
   id: string;
   user_id: string;
   status: string;
   created_at: string;
-  profile?: {
-    full_name: string | null;
-    employee_number: string | null;
-    institution: string | null;
-    phone: string | null;
-  };
+  profile?: ProfileInfo;
 }
 
 const STATUS_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
@@ -29,12 +40,19 @@ const STATUS_CONFIG: Record<string, { icon: any; color: string; bg: string }> = 
   rejected: { icon: XCircle, color: 'text-destructive', bg: 'bg-destructive/10 border-destructive/20' },
 };
 
+const CORPS_LABELS: Record<string, Record<string, string>> = {
+  ar: { primary: 'ابتدائي', middle_school: 'إعدادي', high_school: 'ثانوي', administrative: 'إداري' },
+  fr: { primary: 'Primaire', middle_school: 'Collège', high_school: 'Lycée', administrative: 'Administratif' },
+};
+
 const JoinRequests = () => {
   const { t, dir, lang } = useI18n();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState<ProfileInfo | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -54,7 +72,7 @@ const JoinRequests = () => {
       const userIds = joinData.map((j: any) => j.user_id);
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, employee_number, institution, phone')
+        .select('user_id, full_name, employee_number, institution, phone, corps, academy, directorate, zone, email, mission')
         .in('user_id', userIds);
 
       const profileMap = new Map((profilesData || []).map(p => [p.user_id, p]));
@@ -72,7 +90,6 @@ const JoinRequests = () => {
     if (user) fetchRequests();
   }, [user]);
 
-  // Realtime subscription
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -96,6 +113,12 @@ const JoinRequests = () => {
     }
   };
 
+  const openProfile = (profile: ProfileInfo | undefined) => {
+    if (!profile) return;
+    setSelectedProfile(profile);
+    setDialogOpen(true);
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -103,6 +126,21 @@ const JoinRequests = () => {
   );
 
   const statusActions = ['pending', 'contacted', 'accepted', 'rejected'];
+
+  const ProfileField = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | null | undefined }) => {
+    if (!value) return null;
+    return (
+      <div className="flex items-start gap-3 py-2.5 border-b border-border/50 last:border-0">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+          <Icon className="w-4 h-4 text-primary" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="text-sm font-medium text-foreground truncate">{value}</p>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <AuthenticatedLayout>
@@ -161,13 +199,20 @@ const JoinRequests = () => {
                     className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex flex-col sm:flex-row items-start gap-4">
-                      {/* User info */}
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[hsl(195,70%,42%)] to-[hsl(195,70%,55%)] flex items-center justify-center shrink-0">
+                      {/* User info - clickable */}
+                      <button
+                        onClick={() => openProfile(req.profile)}
+                        className="flex items-center gap-3 flex-1 min-w-0 text-start hover:opacity-80 transition-opacity cursor-pointer"
+                        title={lang === 'ar' ? 'عرض الملف الشخصي' : 'Voir le profil'}
+                      >
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[hsl(195,70%,42%)] to-[hsl(195,70%,55%)] flex items-center justify-center shrink-0 ring-2 ring-transparent hover:ring-primary/30 transition-all">
                           <User className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-bold text-foreground truncate">{req.profile?.full_name || '—'}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-foreground truncate">{req.profile?.full_name || '—'}</p>
+                            <Eye className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                          </div>
                           <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
                             {req.profile?.employee_number && (
                               <span className="font-mono">N°PPR: {req.profile.employee_number}</span>
@@ -178,7 +223,7 @@ const JoinRequests = () => {
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">{dateStr}</p>
                         </div>
-                      </div>
+                      </button>
 
                       {/* Status + actions */}
                       <div className="flex items-center gap-2 flex-wrap shrink-0">
@@ -213,6 +258,42 @@ const JoinRequests = () => {
           </div>
         )}
       </main>
+
+      {/* Profile Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[hsl(195,70%,42%)] to-[hsl(195,70%,55%)] flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              {selectedProfile?.full_name || '—'}
+            </DialogTitle>
+            <DialogDescription>
+              {lang === 'ar' ? 'معلومات الملف الشخصي' : 'Informations du profil'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1 mt-2">
+            <ProfileField icon={Hash} label={lang === 'ar' ? 'رقم التأجير' : 'N° PPR'} value={selectedProfile?.employee_number} />
+            <ProfileField icon={Phone} label={lang === 'ar' ? 'الهاتف' : 'Téléphone'} value={selectedProfile?.phone} />
+            <ProfileField icon={Globe} label={lang === 'ar' ? 'البريد الإلكتروني' : 'Email'} value={selectedProfile?.email} />
+            <ProfileField icon={Building} label={lang === 'ar' ? 'المؤسسة' : 'Établissement'} value={selectedProfile?.institution} />
+            <ProfileField icon={BookOpen} label={lang === 'ar' ? 'السلك' : 'Corps'} value={selectedProfile?.corps ? (CORPS_LABELS[lang]?.[selectedProfile.corps] || selectedProfile.corps) : null} />
+            <ProfileField icon={MapPin} label={lang === 'ar' ? 'الأكاديمية' : 'Académie'} value={selectedProfile?.academy} />
+            <ProfileField icon={MapPin} label={lang === 'ar' ? 'المديرية' : 'Direction'} value={selectedProfile?.directorate} />
+            <ProfileField icon={MapPin} label={lang === 'ar' ? 'المنطقة' : 'Zone'} value={selectedProfile?.zone} />
+          </div>
+          {selectedProfile?.phone && (
+            <a
+              href={`tel:${selectedProfile.phone}`}
+              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[hsl(195,70%,42%)] to-[hsl(195,70%,55%)] text-white font-medium text-sm shadow-md hover:shadow-lg transition-shadow"
+            >
+              <Phone className="w-4 h-4" />
+              {lang === 'ar' ? 'اتصال مباشر' : 'Appeler directement'}
+            </a>
+          )}
+        </DialogContent>
+      </Dialog>
     </AuthenticatedLayout>
   );
 };

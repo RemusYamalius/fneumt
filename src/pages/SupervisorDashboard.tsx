@@ -772,9 +772,7 @@ const SupervisorDashboard = () => {
                             )}
 
                             {/* For request handlers, show full analytics */}
-                            {handlesRequests && stats.total === 0 ? (
-                              <p className="text-center text-muted-foreground py-8">{t.noRequestsForDeputy}</p>
-                            ) : handlesRequests ? (
+                            {handlesRequests ? (
                               <>
                                 {/* Mini Stats Row */}
                                 <motion.div

@@ -104,8 +104,6 @@ const Dashboard = () => {
 
   const isLocalCoordinator = role === 'local_coordinator';
 
-  const isDeputyLocal = role && ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role);
-
   const isPromoterRole = role && [
     'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',

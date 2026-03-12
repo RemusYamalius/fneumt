@@ -8,7 +8,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ar, fr } from 'date-fns/locale';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 const Dashboard = () => {

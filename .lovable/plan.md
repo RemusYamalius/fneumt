@@ -1,65 +1,58 @@
 
 
-# إشعار المستخدم عند تغيير حالة طلب الانضمام + التحقق من اكتمال الملف + تحسينات بصرية
+## التغييرات المطلوبة
 
-## 1. قاعدة البيانات — Trigger لإرسال إشعار عند تغيير حالة طلب الانضمام
+ثلاث تعديلات رئيسية على صفحة "طلب جديد":
 
-إنشاء trigger على `join_requests` يُطلق عند `UPDATE` على عمود `status`. يُدرج إشعاراً في جدول `notifications` للمستخدم صاحب الطلب (`user_id`) مع رسالة تتضمن الحالة الجديدة.
+---
 
-```sql
-CREATE OR REPLACE FUNCTION public.notify_join_request_status_change()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
-SET search_path TO 'public' AS $$
-BEGIN
-  IF OLD.status IS DISTINCT FROM NEW.status AND NEW.status != 'pending' THEN
-    INSERT INTO public.notifications (user_id, title, message, link)
-    VALUES (NEW.user_id, 'تحديث طلب الانضمام', 
-      CASE NEW.status
-        WHEN 'contacted' THEN 'تم التواصل معك بخصوص طلب انضمامك'
-        WHEN 'accepted' THEN 'تم قبول طلب انضمامك'
-        WHEN 'rejected' THEN 'تم رفض طلب انضمامك'
-      END, '/dashboard');
-  END IF;
-  RETURN NEW;
-END; $$;
+### 1. ترتيب البطاقات RTL
 
-CREATE TRIGGER on_join_request_status_change
-  AFTER UPDATE ON public.join_requests
-  FOR EACH ROW EXECUTE FUNCTION public.notify_join_request_status_change();
+في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
+
+---
+
+### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
+
+عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
+- **الموضوع** (إلزامي) — `Input`
+- **الوصف** (اختياري) — `Textarea`
+
+تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
+
+تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
+
+---
+
+### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
+
+- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
+- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
+  1. المصالح المركزية للوزارة
+  2. الأكاديمية الجهوية
+  3. المديرية الإقليمية
+  4. المؤسسة مقر العمل
+
+- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
+- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
+
+**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
+
+---
+
+### الملفات المعنية
+
+| الملف | التعديل |
+|---|---|
+| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
+| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
+| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
+
+### تدفق الخطوات الجديد:
+```text
+1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
+2. مستوى حل المشكل (4 اختيارات)
+3. المرفقات
+4. المراجعة
 ```
-
-## 2. `src/pages/Dashboard.tsx` — التحقق من اكتمال جميع حقول الملف الشخصي
-
-تعديل شرط `isNonMember` ليشمل التحقق من أن **جميع** الحقول الإلزامية مملوءة (full_name, employee_number, institution, phone, corps, academy, directorate, zone) قبل إظهار رسالة الترحيب وزر الانضمام.
-
-```typescript
-const isNonMember = profile 
-  && role === 'teacher' 
-  && profile.is_member === false 
-  && profile.membership_verified === false 
-  && profile.full_name && profile.employee_number 
-  && profile.institution && profile.phone 
-  && profile.corps && profile.academy 
-  && profile.directorate && profile.zone;
-```
-
-## 3. `src/pages/NewRequest.tsx` — وضع اللوغو في الدائرة الوسطى + تظليل النصوص
-
-### 3.1 الدائرة الوسطى للعجلة
-تعديل مكون `OrbitalHub` لعرض اللوغو (`logo-fne.png`) في الدائرة الوسطى بدلاً من النص فقط، مع إبقاء النص تحت اللوغو.
-
-### 3.2 تظليل النصوص والأيقونات
-- إضافة `textShadow` و `filter: drop-shadow(...)` للعنصر المختار في العجلة (موضوع الطلب) — تطبيقه على نص الـ label.
-- إضافة نفس التأثير لأيقونات مستوى الحل (`RESOLUTION_LEVELS`) عند التحديد.
-- تطبيق نفس التحسينات في فقرة المراجعة (Step 4): إضافة `textShadow` و `drop-shadow` لأسماء الفئة ومستوى الحل والأيقونات المعروضة.
-
-## 4. `src/pages/JoinRequests.tsx` — عرض جميع حقول الملف الشخصي
-
-الحقول معروضة بالفعل في الـ Dialog الحالي. سيتم التأكد من عدم إخفاء أي حقل (إزالة شرط `if (!value) return null` من `ProfileField` واستبداله بعرض "—" للحقول الفارغة) لضمان ظهور جميع الحقول دائماً.
-
-## ملخص الملفات المعدلة
-- **Migration SQL جديد**: Trigger لإشعار المستخدم
-- **`src/pages/Dashboard.tsx`**: شرط اكتمال الملف
-- **`src/pages/NewRequest.tsx`**: لوغو في الوسط + تظليل
-- **`src/pages/JoinRequests.tsx`**: عرض كل الحقول
 

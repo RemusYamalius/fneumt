@@ -128,7 +128,6 @@ const JoinRequests = () => {
   const statusActions = ['pending', 'contacted', 'accepted', 'rejected'];
 
   const ProfileField = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | null | undefined }) => {
-    if (!value) return null;
     return (
       <div className="flex items-start gap-3 py-2.5 border-b border-border/50 last:border-0">
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -136,7 +135,7 @@ const JoinRequests = () => {
         </div>
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-sm font-medium text-foreground truncate">{value}</p>
+          <p className={`text-sm font-medium truncate ${value ? 'text-foreground' : 'text-muted-foreground/50 italic'}`}>{value || '—'}</p>
         </div>
       </div>
     );

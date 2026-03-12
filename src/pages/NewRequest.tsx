@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import logoFne from '@/assets/logo-fne.png';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, ArrowLeft, Upload, X, Check, Copy, FileText, Award, Star, Clock,

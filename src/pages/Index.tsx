@@ -1,4 +1,4 @@
-import { FilePlus, Search, LogIn, Globe, Phone, Mail, MapPin } from 'lucide-react';
+import { FilePlus, Search, LogIn, Globe, Phone, Mail } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';

@@ -301,7 +301,7 @@ const translations: Record<Lang, Record<string, string>> = {
     login: 'Connexion',
     loginDesc: 'Accédez à votre espace personnel',
     footer: "Au service des adhérents de la Fédération Nationale de l'Enseignement,\naffiliée à l'Union Marocaine du Travail.\nToujours : Plus proche / Plus rapide / Plus efficace.",
-    copyright: '© 2026 FNE-UMT Sidi Bennour. Tous droits réservés.',
+    copyright: '© 2026 FNE-UMT. Tous droits réservés.',
     langSwitch: 'عربية',
     contact: 'Contactez-nous',
     phone: 'Téléphone',

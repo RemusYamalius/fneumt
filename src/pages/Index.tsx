@@ -1,4 +1,4 @@
-import { FilePlus, Search, LogIn, Globe, Phone, Mail, MapPin } from 'lucide-react';
+import { FilePlus, Search, LogIn, Globe, Phone, Mail } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -183,13 +183,10 @@ const Index = () => {
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 text-xs text-white/60">
               <span className="flex items-center gap-1">
-                <MapPin className="w-3 h-3" /> سيدي بنور
+                <Phone className="w-3 h-3" /> +212697331515
               </span>
               <span className="flex items-center gap-1">
-                <Phone className="w-3 h-3" /> 0600000000
-              </span>
-              <span className="flex items-center gap-1">
-                <Mail className="w-3 h-3" /> contact@fne-umt-sidibennour.ma
+                <Mail className="w-3 h-3" /> contact@fneumt.com
               </span>
             </div>
           </div>

@@ -283,10 +283,10 @@ const IncomingRequests = () => {
                 className="ps-9"
               />
             </div>
-            <Button size="sm" onClick={() => navigate('/dashboard')} className="rounded-full bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(220,70%,45%)] text-primary-foreground hover:opacity-90">
+            <button onClick={() => navigate('/dashboard')} className="futuristic-back-btn">
               {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
               {t.backToDashboard}
-            </Button>
+            </button>
           </div>
         </div>
 

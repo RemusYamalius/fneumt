@@ -916,8 +916,8 @@ const SupervisorDashboard = () => {
                                         <TableHeader>
                                           <TableRow className="bg-amber-50/50 dark:bg-amber-950/10">
                                             <TableHead className="text-xs text-start whitespace-nowrap">{t.trackingNumberLabel}</TableHead>
-                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.resolutionLevelLabel}</TableHead>
                                             <TableHead className="text-xs text-start whitespace-nowrap">{t.stepCategory}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.resolutionLevelLabel}</TableHead>
                                             <TableHead className="text-xs text-start whitespace-nowrap">{t.currentStatus}</TableHead>
                                             <TableHead className="text-xs text-start whitespace-nowrap">{t.dateLabel}</TableHead>
                                           </TableRow>
@@ -926,8 +926,8 @@ const SupervisorDashboard = () => {
                                           {stats.recent5.map(req => (
                                             <TableRow key={req.id}>
                                               <TableCell className="font-mono text-xs text-start font-bold text-primary whitespace-nowrap">{req.tracking_number}</TableCell>
-                                              <TableCell className="text-xs text-start">{req.resolution_level ? (t[`level_${req.resolution_level}` as keyof typeof t] || req.resolution_level) : '-'}</TableCell>
                                               <TableCell className="text-xs text-start whitespace-nowrap">{t[`cat_${req.category}`] || req.category}</TableCell>
+                                              <TableCell className="text-xs text-start">{req.resolution_level ? (t[`level_${req.resolution_level}` as keyof typeof t] || req.resolution_level) : '-'}</TableCell>
                                               <TableCell className="text-start">
                                               <span
                                                 className="px-2 py-0.5 rounded-full text-[10px] font-semibold border"

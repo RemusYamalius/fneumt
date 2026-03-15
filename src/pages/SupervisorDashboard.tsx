@@ -317,7 +317,7 @@ const SupervisorDashboard = () => {
     if (realDeputyIds.length > 0) {
       const [profilesRes, requestsRes, allProfilesRes] = await Promise.all([
         supabase.from('profiles').select('user_id, full_name, academy, directorate').in('user_id', realDeputyIds),
-        supabase.from('requests').select('id, tracking_number, category, status, created_at, subject, assigned_to').in('assigned_to', realDeputyIds).order('created_at', { ascending: false }),
+        supabase.from('requests').select('id, tracking_number, category, status, created_at, resolution_level, assigned_to').in('assigned_to', realDeputyIds).order('created_at', { ascending: false }),
         supabase.from('profiles').select('user_id, is_member, membership_verified'),
       ]);
 

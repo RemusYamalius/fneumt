@@ -30,7 +30,6 @@ const Dashboard = () => {
 
   const showIncomingRequests = role && [
     'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
-    'local_coordinator',
   ].includes(role);
 
   const isDeputyLocal = role && ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role);

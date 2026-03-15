@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 
@@ -31,9 +31,9 @@ const MembershipVerification = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [filterName, setFilterName] = useState('all');
-  const [filterEmployee, setFilterEmployee] = useState('all');
-  const [filterInstitution, setFilterInstitution] = useState('all');
+  const [filterName, setFilterName] = useState('');
+  const [filterEmployee, setFilterEmployee] = useState('');
+  const [filterInstitution, setFilterInstitution] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,9 +73,9 @@ const MembershipVerification = () => {
   const uniqueEmployees = useMemo(() => [...new Set(users.map(u => u.employee_number).filter(Boolean))] as string[], [users]);
   const uniqueInstitutions = useMemo(() => [...new Set(users.map(u => u.institution).filter(Boolean))] as string[], [users]);
 
-  const hasActiveFilter = filterName !== 'all' || filterEmployee !== 'all' || filterInstitution !== 'all';
+  const hasActiveFilter = filterName !== '' || filterEmployee !== '' || filterInstitution !== '';
 
-  const resetFilters = () => { setFilterName('all'); setFilterEmployee('all'); setFilterInstitution('all'); };
+  const resetFilters = () => { setFilterName(''); setFilterEmployee(''); setFilterInstitution(''); };
 
   const handleSetMembershipStatus = async (targetUser: UserProfile, status: 'not_member' | 'pending' | 'verified') => {
     setUpdatingId(targetUser.user_id);
@@ -128,9 +128,9 @@ const MembershipVerification = () => {
   };
 
   const filteredUsers = users.filter(u => {
-    if (filterName !== 'all' && u.full_name !== filterName) return false;
-    if (filterEmployee !== 'all' && u.employee_number !== filterEmployee) return false;
-    if (filterInstitution !== 'all' && u.institution !== filterInstitution) return false;
+    if (filterName && !(u.full_name || '').toLowerCase().includes(filterName.toLowerCase())) return false;
+    if (filterEmployee && !(u.employee_number || '').toLowerCase().includes(filterEmployee.toLowerCase())) return false;
+    if (filterInstitution && !(u.institution || '').toLowerCase().includes(filterInstitution.toLowerCase())) return false;
     return true;
   });
 
@@ -162,41 +162,32 @@ const MembershipVerification = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-blue-700">{lang === 'ar' ? 'الاسم' : 'Nom'}</label>
-            <Select value={filterName} onValueChange={setFilterName}>
-              <SelectTrigger className="focus:ring-blue-400 border-blue-200 text-blue-700">
-                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="focus:bg-blue-100 focus:text-blue-900">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                {uniqueNames.map(n => <SelectItem key={n} value={n} className="focus:bg-blue-100 focus:text-blue-900">{n}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Input
+              value={filterName}
+              onChange={e => setFilterName(e.target.value)}
+              placeholder={lang === 'ar' ? 'ابحث بالاسم...' : 'Rechercher par nom...'}
+              className="focus-visible:ring-blue-400 border-blue-200 text-blue-700 placeholder:text-blue-400"
+            />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-amber-700">{lang === 'ar' ? 'رقم التأجير' : 'N° employé'}</label>
-            <Select value={filterEmployee} onValueChange={setFilterEmployee}>
-              <SelectTrigger className="focus:ring-amber-400 border-amber-200 text-amber-700">
-                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="focus:bg-amber-100 focus:text-amber-900">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                {uniqueEmployees.map(n => <SelectItem key={n} value={n} className="focus:bg-amber-100 focus:text-amber-900">{n}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Input
+              value={filterEmployee}
+              onChange={e => setFilterEmployee(e.target.value)}
+              placeholder={lang === 'ar' ? 'ابحث برقم التأجير...' : 'Rechercher par N°PPR...'}
+              className="focus-visible:ring-amber-400 border-amber-200 text-amber-700 placeholder:text-amber-400"
+            />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-emerald-700">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
-            <Select value={filterInstitution} onValueChange={setFilterInstitution}>
-              <SelectTrigger className="focus:ring-emerald-400 border-emerald-200 text-emerald-700">
-                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="focus:bg-emerald-100 focus:text-emerald-900">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                {uniqueInstitutions.map(n => <SelectItem key={n} value={n} className="focus:bg-emerald-100 focus:text-emerald-900">{n}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Input
+              value={filterInstitution}
+              onChange={e => setFilterInstitution(e.target.value)}
+              placeholder={lang === 'ar' ? 'ابحث بالمؤسسة...' : 'Rechercher par établissement...'}
+              className="focus-visible:ring-emerald-400 border-emerald-200 text-emerald-700 placeholder:text-emerald-400"
+            />
           </div>
         </div>
 

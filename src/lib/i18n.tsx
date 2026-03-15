@@ -434,6 +434,7 @@ const translations: Record<Lang, Record<string, string>> = {
     level_institution: "Établissement d'affectation",
     selectCategory: 'Objet de la demande',
     subjectLabel: 'Sujet',
+    resolutionLevelLabel: 'Niveau de résolution',
     subjectPlaceholder: 'Entrez le sujet de la demande',
     descriptionLabel: 'Description',
     descriptionPlaceholder: 'Ajoutez une description détaillée (optionnel)',

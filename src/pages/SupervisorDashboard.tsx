@@ -926,7 +926,7 @@ const SupervisorDashboard = () => {
                                           {stats.recent5.map(req => (
                                             <TableRow key={req.id}>
                                               <TableCell className="font-mono text-xs text-start font-bold text-primary whitespace-nowrap">{req.tracking_number}</TableCell>
-                                              <TableCell className="text-xs text-start">{req.subject}</TableCell>
+                                              <TableCell className="text-xs text-start">{req.resolution_level ? (t[`level_${req.resolution_level}` as keyof typeof t] || req.resolution_level) : '-'}</TableCell>
                                               <TableCell className="text-xs text-start whitespace-nowrap">{t[`cat_${req.category}`] || req.category}</TableCell>
                                               <TableCell className="text-start">
                                               <span

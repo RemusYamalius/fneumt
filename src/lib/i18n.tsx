@@ -147,6 +147,7 @@ const translations: Record<Lang, Record<string, string>> = {
     level_institution: 'المؤسسة مقر العمل',
     selectCategory: 'موضوع الطلب',
     subjectLabel: 'الموضوع',
+    resolutionLevelLabel: 'مستوى حل المشكل',
     subjectPlaceholder: 'أدخل موضوع الطلب',
     descriptionLabel: 'الوصف',
     descriptionPlaceholder: 'أضف وصفاً تفصيلياً (اختياري)',

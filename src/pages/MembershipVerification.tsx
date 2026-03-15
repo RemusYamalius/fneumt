@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 

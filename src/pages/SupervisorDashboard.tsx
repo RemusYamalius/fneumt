@@ -30,7 +30,7 @@ interface RequestData {
   category: string;
   status: string;
   created_at: string;
-  subject: string;
+  resolution_level: string | null;
   assigned_to: string;
 }
 

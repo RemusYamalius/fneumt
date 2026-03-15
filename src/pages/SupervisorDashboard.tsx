@@ -916,7 +916,7 @@ const SupervisorDashboard = () => {
                                         <TableHeader>
                                           <TableRow className="bg-amber-50/50 dark:bg-amber-950/10">
                                             <TableHead className="text-xs text-start whitespace-nowrap">{t.trackingNumberLabel}</TableHead>
-                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.subjectLabel}</TableHead>
+                                            <TableHead className="text-xs text-start whitespace-nowrap">{t.resolutionLevelLabel}</TableHead>
                                             <TableHead className="text-xs text-start whitespace-nowrap">{t.stepCategory}</TableHead>
                                             <TableHead className="text-xs text-start whitespace-nowrap">{t.currentStatus}</TableHead>
                                             <TableHead className="text-xs text-start whitespace-nowrap">{t.dateLabel}</TableHead>

@@ -38,6 +38,9 @@ const MembershipVerification = () => {
   const [filterEmployee, setFilterEmployee] = useState('');
   const [filterInstitution, setFilterInstitution] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [openName, setOpenName] = useState(false);
+  const [openEmployee, setOpenEmployee] = useState(false);
+  const [openInstitution, setOpenInstitution] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');

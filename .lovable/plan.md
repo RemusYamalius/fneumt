@@ -1,58 +1,45 @@
 
 
-## التغييرات المطلوبة
+# خطة التعديلات الأربعة
 
-ثلاث تعديلات رئيسية على صفحة "طلب جديد":
+## 1. التمرير لأعلى الصفحة عند التنقل (Scroll to Top)
 
----
+**الملف:** `src/App.tsx`
 
-### 1. ترتيب البطاقات RTL
+إضافة مكون `ScrollToTop` يستخدم `useLocation` من React Router لتنفيذ `window.scrollTo(0, 0)` عند كل تغيير في المسار. يوضع داخل `<BrowserRouter>` قبل `<Routes>`.
 
-في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
+## 2. صفحة تتبع الملف — عرض بطاقة تسجيل الدخول للمستخدم غير المسجل
 
----
+**الملف:** `src/pages/TrackRequest.tsx`
 
-### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
+حالياً الصفحة مغلفة بـ `AuthenticatedLayout` الذي يتطلب تسجيل الدخول. التعديل:
+- استيراد `useAuth` والتحقق من حالة المستخدم
+- إذا كان المستخدم **غير مسجل**: عرض الصفحة بدون `AuthenticatedLayout` مع إضافة بطاقة/رابط لتسجيل الدخول (مشابه لما في Index)
+- إذا كان المستخدم **مسجلاً**: الإبقاء على التخطيط الحالي
 
-عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
-- **الموضوع** (إلزامي) — `Input`
-- **الوصف** (اختياري) — `Textarea`
+## 3. استبدال تكرار الموضوع بـ "مستوى حل المشكل"
 
-تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
+**الملفات:** `src/pages/Dashboard.tsx`, `src/pages/TrackRequest.tsx`, `src/pages/IncomingRequests.tsx`
 
-تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
+المشكلة: حقل `subject` في قاعدة البيانات يحمل نفس قيمة `category` (لأن الموضوع يُختار من قائمة الفئات). لذلك يظهر مكرراً.
 
----
+التعديل:
+- **Dashboard** (بطاقات الطلبات): استبدال عرض `req.subject` بعرض `resolution_level` مع ترجمته (`t[level_${req.resolution_level}]`)
+- **TrackRequest**: استبدال خانة "الموضوع" بخانة "مستوى حل المشكل" — يتطلب إضافة `resolution_level` لاستعلام Supabase وللـ interface
+- **IncomingRequests**: استبدال `req.subject` بـ `resolution_level` — يتطلب إضافة `resolution_level` لاستعلام Supabase وللـ interface
 
-### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
+## 4. البحث الكتابي في فلاتر التحقق من الانخراط
 
-- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
-- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
-  1. المصالح المركزية للوزارة
-  2. الأكاديمية الجهوية
-  3. المديرية الإقليمية
-  4. المؤسسة مقر العمل
+**الملف:** `src/pages/MembershipVerification.tsx`
 
-- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
-- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
+حالياً الفلاتر الثلاثة (الاسم، رقم التأجير، المؤسسة) تستخدم `Select` dropdowns عادية. التعديل:
+- استبدالها بمكون `Command` (Combobox) من shadcn/ui أو ببساطة استخدام `Popover` + `Command` للسماح بالبحث الكتابي داخل القوائم المنسدلة
+- بديل أبسط: استخدام `Input` عادي للبحث الحر بدلاً من القوائم المنسدلة، مع تصفية النتائج مباشرة أثناء الكتابة
 
-**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
-
----
-
-### الملفات المعنية
-
-| الملف | التعديل |
-|---|---|
-| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
-| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
-| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
-
-### تدفق الخطوات الجديد:
-```text
-1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
-2. مستوى حل المشكل (4 اختيارات)
-3. المرفقات
-4. المراجعة
-```
+## ملخص الملفات المعدلة
+- `src/App.tsx` — مكون ScrollToTop
+- `src/pages/TrackRequest.tsx` — دعم المستخدم غير المسجل + resolution_level
+- `src/pages/Dashboard.tsx` — resolution_level بدل subject
+- `src/pages/IncomingRequests.tsx` — resolution_level بدل subject
+- `src/pages/MembershipVerification.tsx` — بحث كتابي في الفلاتر
 

@@ -1,14 +1,17 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, User, Building2, CreditCard, Hash, Loader2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, User, Building2, CreditCard, Hash, Loader2, RotateCcw, ChevronsUpDown, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 

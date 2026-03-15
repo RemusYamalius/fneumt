@@ -166,34 +166,100 @@ const MembershipVerification = () => {
 
         {/* Filters */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          {/* Name Combobox */}
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-blue-700">{lang === 'ar' ? 'الاسم' : 'Nom'}</label>
-            <Input
-              value={filterName}
-              onChange={e => setFilterName(e.target.value)}
-              placeholder={lang === 'ar' ? 'ابحث بالاسم...' : 'Rechercher par nom...'}
-              className="focus-visible:ring-blue-400 border-blue-200 text-blue-700 placeholder:text-blue-400"
-            />
+            <Popover open={openName} onOpenChange={setOpenName}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={openName} className={cn("w-full justify-between border-blue-200 text-blue-700 hover:bg-blue-50/50 font-normal", !filterName && "text-blue-400")}>
+                  <span className="truncate">{filterName || (lang === 'ar' ? 'ابحث بالاسم...' : 'Rechercher par nom...')}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {filterName && <X className="h-3.5 w-3.5 opacity-50 hover:opacity-100" onClick={(e) => { e.stopPropagation(); setFilterName(''); }} />}
+                    <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                  </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder={lang === 'ar' ? 'اكتب للبحث...' : 'Tapez pour filtrer...'} />
+                  <CommandList className="max-h-[200px]">
+                    <CommandEmpty>{lang === 'ar' ? 'لا توجد نتائج' : 'Aucun résultat'}</CommandEmpty>
+                    <CommandGroup>
+                      {uniqueNames.map(name => (
+                        <CommandItem key={name} value={name} onSelect={(val) => { setFilterName(filterName === val ? '' : val); setOpenName(false); }}>
+                          <Check className={cn("mr-2 h-4 w-4", filterName === name ? "opacity-100" : "opacity-0")} />
+                          {name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
+          {/* Employee Number Combobox */}
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-amber-700">{lang === 'ar' ? 'رقم التأجير' : 'N° employé'}</label>
-            <Input
-              value={filterEmployee}
-              onChange={e => setFilterEmployee(e.target.value)}
-              placeholder={lang === 'ar' ? 'ابحث برقم التأجير...' : 'Rechercher par N°PPR...'}
-              className="focus-visible:ring-amber-400 border-amber-200 text-amber-700 placeholder:text-amber-400"
-            />
+            <Popover open={openEmployee} onOpenChange={setOpenEmployee}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={openEmployee} className={cn("w-full justify-between border-amber-200 text-amber-700 hover:bg-amber-50/50 font-normal", !filterEmployee && "text-amber-400")}>
+                  <span className="truncate">{filterEmployee || (lang === 'ar' ? 'ابحث برقم التأجير...' : 'Rechercher par N°PPR...')}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {filterEmployee && <X className="h-3.5 w-3.5 opacity-50 hover:opacity-100" onClick={(e) => { e.stopPropagation(); setFilterEmployee(''); }} />}
+                    <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                  </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder={lang === 'ar' ? 'اكتب للبحث...' : 'Tapez pour filtrer...'} />
+                  <CommandList className="max-h-[200px]">
+                    <CommandEmpty>{lang === 'ar' ? 'لا توجد نتائج' : 'Aucun résultat'}</CommandEmpty>
+                    <CommandGroup>
+                      {uniqueEmployees.map(emp => (
+                        <CommandItem key={emp} value={emp} onSelect={(val) => { setFilterEmployee(filterEmployee === val ? '' : val); setOpenEmployee(false); }}>
+                          <Check className={cn("mr-2 h-4 w-4", filterEmployee === emp ? "opacity-100" : "opacity-0")} />
+                          {emp}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
+          {/* Institution Combobox */}
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-emerald-700">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
-            <Input
-              value={filterInstitution}
-              onChange={e => setFilterInstitution(e.target.value)}
-              placeholder={lang === 'ar' ? 'ابحث بالمؤسسة...' : 'Rechercher par établissement...'}
-              className="focus-visible:ring-emerald-400 border-emerald-200 text-emerald-700 placeholder:text-emerald-400"
-            />
+            <Popover open={openInstitution} onOpenChange={setOpenInstitution}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={openInstitution} className={cn("w-full justify-between border-emerald-200 text-emerald-700 hover:bg-emerald-50/50 font-normal", !filterInstitution && "text-emerald-400")}>
+                  <span className="truncate">{filterInstitution || (lang === 'ar' ? 'ابحث بالمؤسسة...' : 'Rechercher par établissement...')}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {filterInstitution && <X className="h-3.5 w-3.5 opacity-50 hover:opacity-100" onClick={(e) => { e.stopPropagation(); setFilterInstitution(''); }} />}
+                    <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                  </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder={lang === 'ar' ? 'اكتب للبحث...' : 'Tapez pour filtrer...'} />
+                  <CommandList className="max-h-[200px]">
+                    <CommandEmpty>{lang === 'ar' ? 'لا توجد نتائج' : 'Aucun résultat'}</CommandEmpty>
+                    <CommandGroup>
+                      {uniqueInstitutions.map(inst => (
+                        <CommandItem key={inst} value={inst} onSelect={(val) => { setFilterInstitution(filterInstitution === val ? '' : val); setOpenInstitution(false); }}>
+                          <Check className={cn("mr-2 h-4 w-4", filterInstitution === inst ? "opacity-100" : "opacity-0")} />
+                          {inst}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 

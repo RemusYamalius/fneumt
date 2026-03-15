@@ -128,9 +128,9 @@ const MembershipVerification = () => {
   };
 
   const filteredUsers = users.filter(u => {
-    if (filterName !== 'all' && u.full_name !== filterName) return false;
-    if (filterEmployee !== 'all' && u.employee_number !== filterEmployee) return false;
-    if (filterInstitution !== 'all' && u.institution !== filterInstitution) return false;
+    if (filterName && !(u.full_name || '').toLowerCase().includes(filterName.toLowerCase())) return false;
+    if (filterEmployee && !(u.employee_number || '').toLowerCase().includes(filterEmployee.toLowerCase())) return false;
+    if (filterInstitution && !(u.institution || '').toLowerCase().includes(filterInstitution.toLowerCase())) return false;
     return true;
   });
 

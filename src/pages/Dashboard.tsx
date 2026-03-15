@@ -536,7 +536,7 @@ const RequestsSection = ({ t, lang, loadingRequests, myRequests, dir, userId }: 
                           {categoryLabel}
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-foreground truncate">{req.subject}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{req.resolution_level ? (t[`level_${req.resolution_level}`] || req.resolution_level) : categoryLabel}</p>
                       <p className="text-xs text-muted-foreground mt-1">{t.dateLabel}: {dateStr}</p>
                     </div>
                     <div className="flex flex-col items-center gap-1 shrink-0">

@@ -162,41 +162,32 @@ const MembershipVerification = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-blue-700">{lang === 'ar' ? 'الاسم' : 'Nom'}</label>
-            <Select value={filterName} onValueChange={setFilterName}>
-              <SelectTrigger className="focus:ring-blue-400 border-blue-200 text-blue-700">
-                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="focus:bg-blue-100 focus:text-blue-900">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                {uniqueNames.map(n => <SelectItem key={n} value={n} className="focus:bg-blue-100 focus:text-blue-900">{n}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Input
+              value={filterName}
+              onChange={e => setFilterName(e.target.value)}
+              placeholder={lang === 'ar' ? 'ابحث بالاسم...' : 'Rechercher par nom...'}
+              className="focus-visible:ring-blue-400 border-blue-200 text-blue-700 placeholder:text-blue-400"
+            />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-amber-700">{lang === 'ar' ? 'رقم التأجير' : 'N° employé'}</label>
-            <Select value={filterEmployee} onValueChange={setFilterEmployee}>
-              <SelectTrigger className="focus:ring-amber-400 border-amber-200 text-amber-700">
-                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="focus:bg-amber-100 focus:text-amber-900">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                {uniqueEmployees.map(n => <SelectItem key={n} value={n} className="focus:bg-amber-100 focus:text-amber-900">{n}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Input
+              value={filterEmployee}
+              onChange={e => setFilterEmployee(e.target.value)}
+              placeholder={lang === 'ar' ? 'ابحث برقم التأجير...' : 'Rechercher par N°PPR...'}
+              className="focus-visible:ring-amber-400 border-amber-200 text-amber-700 placeholder:text-amber-400"
+            />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-emerald-700">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
-            <Select value={filterInstitution} onValueChange={setFilterInstitution}>
-              <SelectTrigger className="focus:ring-emerald-400 border-emerald-200 text-emerald-700">
-                <SelectValue placeholder={lang === 'ar' ? 'الكل' : 'Tous'} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="focus:bg-emerald-100 focus:text-emerald-900">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                {uniqueInstitutions.map(n => <SelectItem key={n} value={n} className="focus:bg-emerald-100 focus:text-emerald-900">{n}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Input
+              value={filterInstitution}
+              onChange={e => setFilterInstitution(e.target.value)}
+              placeholder={lang === 'ar' ? 'ابحث بالمؤسسة...' : 'Rechercher par établissement...'}
+              className="focus-visible:ring-emerald-400 border-emerald-200 text-emerald-700 placeholder:text-emerald-400"
+            />
           </div>
         </div>
 

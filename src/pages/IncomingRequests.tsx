@@ -373,7 +373,7 @@ const IncomingRequests = () => {
                   </div>
 
                   <div className="mt-3">
-                    <h3 className="text-base font-semibold text-foreground mb-1 truncate">{req.subject}</h3>
+                    <h3 className="text-base font-semibold text-foreground mb-1 truncate">{(req as any).resolution_level ? (t[`level_${(req as any).resolution_level}`] || (req as any).resolution_level) : req.subject}</h3>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1.5">
                         <Tag className="w-3.5 h-3.5" />

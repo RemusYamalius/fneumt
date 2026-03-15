@@ -83,7 +83,7 @@ const IncomingRequests = () => {
     setLoadingData(true);
     const { data, error } = await supabase
       .from('requests')
-      .select('id, tracking_number, category, subject, description, status, created_at, updated_at, user_id')
+      .select('id, tracking_number, category, subject, description, status, created_at, updated_at, user_id, resolution_level')
       .eq('assigned_to', user.id)
       .order('created_at', { ascending: false });
 

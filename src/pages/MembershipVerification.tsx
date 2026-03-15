@@ -73,9 +73,9 @@ const MembershipVerification = () => {
   const uniqueEmployees = useMemo(() => [...new Set(users.map(u => u.employee_number).filter(Boolean))] as string[], [users]);
   const uniqueInstitutions = useMemo(() => [...new Set(users.map(u => u.institution).filter(Boolean))] as string[], [users]);
 
-  const hasActiveFilter = filterName !== 'all' || filterEmployee !== 'all' || filterInstitution !== 'all';
+  const hasActiveFilter = filterName !== '' || filterEmployee !== '' || filterInstitution !== '';
 
-  const resetFilters = () => { setFilterName('all'); setFilterEmployee('all'); setFilterInstitution('all'); };
+  const resetFilters = () => { setFilterName(''); setFilterEmployee(''); setFilterInstitution(''); };
 
   const handleSetMembershipStatus = async (targetUser: UserProfile, status: 'not_member' | 'pending' | 'verified') => {
     setUpdatingId(targetUser.user_id);

@@ -31,9 +31,9 @@ const MembershipVerification = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [filterName, setFilterName] = useState('all');
-  const [filterEmployee, setFilterEmployee] = useState('all');
-  const [filterInstitution, setFilterInstitution] = useState('all');
+  const [filterName, setFilterName] = useState('');
+  const [filterEmployee, setFilterEmployee] = useState('');
+  const [filterInstitution, setFilterInstitution] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {

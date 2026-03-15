@@ -283,10 +283,10 @@ const IncomingRequests = () => {
                 className="ps-9"
               />
             </div>
-            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+            <button onClick={() => navigate('/dashboard')} className="futuristic-back-btn">
               {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
               {t.backToDashboard}
-            </Button>
+            </button>
           </div>
         </div>
 

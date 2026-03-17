@@ -370,6 +370,44 @@ const Profile = () => {
       );
     }
 
+    if (card.type === 'datepicker') {
+      const dateValue = form.date_of_birth
+        ? parse(form.date_of_birth, 'yyyy-MM-dd', new Date())
+        : undefined;
+      return (
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className="profile-input h-12 w-full flex items-center justify-between px-3 rounded-xl text-sm"
+              style={{
+                background: 'rgba(255 255 255 / 0.06)',
+                border: '1px solid rgba(255 255 255 / 0.15)',
+                color: dateValue ? 'rgba(255 255 255 / 0.9)' : 'rgba(255 255 255 / 0.4)',
+              }}
+            >
+              <span>{dateValue ? format(dateValue, 'yyyy/MM/dd') : t.pickDate}</span>
+              <CalendarDays className="w-4 h-4 opacity-50" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              mode="single"
+              selected={dateValue}
+              onSelect={(d) => {
+                if (d) handleChange('date_of_birth', format(d, 'yyyy-MM-dd'));
+              }}
+              disabled={(date) => date > new Date() || date < new Date('1940-01-01')}
+              initialFocus
+              className="p-3 pointer-events-auto"
+              captionLayout="dropdown-buttons"
+              fromYear={1940}
+              toYear={new Date().getFullYear()}
+            />
+          </PopoverContent>
+        </Popover>
+      );
+    }
+
     if (card.type === 'select') {
       const isAcademy = card.key === 'academy';
       return (

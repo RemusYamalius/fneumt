@@ -148,6 +148,7 @@ const Dashboard = () => {
     ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', color: cardColors.supervisorDashboard }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
     ...(isLocalCoordinator ? [{ icon: Building2, title: t.localOffice, desc: t.localOfficeDesc, to: '/local-office', color: 'from-[hsl(45,80%,45%)] to-[hsl(45,80%,58%)]' }] : []),
+    ...(isAdminLike ? [{ icon: Database, title: t.databaseTitle, desc: t.databaseDesc, to: '/database', color: 'from-[hsl(180,60%,35%)] to-[hsl(195,70%,50%)]' }] : []),
   ];
 
   // Simple layout for regular users (teacher/union_officer)

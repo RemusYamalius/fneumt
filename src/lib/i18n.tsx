@@ -427,7 +427,7 @@ const translations: Record<Lang, Record<string, string>> = {
     missionInspectorFinance: 'Inspecteur(trice) des services financiers',
     missionEconomyAdmin: "Attaché(e) d'économie et administration",
     missionDoctor: 'Médecin',
-    missionOther: 'Autre',
+    
     genderLabel: 'Genre',
     genderMale: 'Masculin',
     genderFemale: 'Féminin',

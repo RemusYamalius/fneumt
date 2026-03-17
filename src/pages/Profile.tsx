@@ -160,7 +160,6 @@ const Profile = () => {
     { value: 'inspector_finance', label: t.missionInspectorFinance },
     { value: 'economy_admin', label: t.missionEconomyAdmin },
     { value: 'doctor', label: t.missionDoctor },
-    { value: 'other', label: t.missionOther },
   ];
 
   const genderOptions = [

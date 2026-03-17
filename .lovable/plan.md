@@ -1,26 +1,58 @@
 
 
-# Fix: Allow Admin to Assign National Roles (One Person Only)
+## التغييرات المطلوبة
 
-## Problem
-The `getAllowedPromotions('admin')` function doesn't include `national_secretary` or `deputy_national_secretary` in its return list, so these roles don't appear in the dropdown for admin.
+ثلاث تعديلات رئيسية على صفحة "طلب جديد":
 
-## Changes
+---
 
-### 1. `src/lib/role-hierarchy.ts`
-- Add `'national_secretary'` and `'deputy_national_secretary'` to the return array **only for `'admin'`** (not for `national_secretary` or `deputy_national_secretary` themselves — they cannot self-assign or assign each other to these positions).
-- Split the switch case: `admin` gets `national_secretary` + `deputy_national_secretary` + all other roles. `national_secretary`/`deputy_national_secretary` get only the subordinate roles (as currently).
+### 1. ترتيب البطاقات RTL
 
-### 2. `src/pages/admin/UserManagement.tsx` — Uniqueness enforcement
-- Before allowing role change to `national_secretary` or `deputy_national_secretary`, check if someone already holds that role.
-- In `handleRoleChange`: if `newRole` is one of these two, query `user_roles` to check if another user already has it. If yes, show an error toast and block the change.
-- In the role dropdown: disable/hide these two options if they're already taken by another user (pre-fetch occupied national roles on page load).
+في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
 
-### 3. Database constraint (migration)
-- Add a partial unique index to enforce at most one user per national role:
-```sql
-CREATE UNIQUE INDEX unique_national_secretary ON public.user_roles (role) WHERE role = 'national_secretary';
-CREATE UNIQUE INDEX unique_deputy_national_secretary ON public.user_roles (role) WHERE role = 'deputy_national_secretary';
+---
+
+### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
+
+عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
+- **الموضوع** (إلزامي) — `Input`
+- **الوصف** (اختياري) — `Textarea`
+
+تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
+
+تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
+
+---
+
+### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
+
+- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
+- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
+  1. المصالح المركزية للوزارة
+  2. الأكاديمية الجهوية
+  3. المديرية الإقليمية
+  4. المؤسسة مقر العمل
+
+- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
+- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
+
+**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
+
+---
+
+### الملفات المعنية
+
+| الملف | التعديل |
+|---|---|
+| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
+| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
+| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
+
+### تدفق الخطوات الجديد:
+```text
+1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
+2. مستوى حل المشكل (4 اختيارات)
+3. المرفقات
+4. المراجعة
 ```
-This guarantees the constraint at the database level too.
 

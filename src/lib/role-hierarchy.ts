@@ -38,9 +38,21 @@ export const PROMOTER_ROLES: AppRole[] = [
 export function getAllowedPromotions(promoterRole: AppRole): AppRole[] {
   switch (promoterRole) {
     case 'admin':
+      // Only admin can assign national roles (one person each)
+      return [
+        'national_secretary',
+        'deputy_national_secretary',
+        'regional_supervisor',
+        'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
+        'provincial_manager',
+        'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
+        'local_coordinator',
+        'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
+        'teacher',
+      ];
     case 'national_secretary':
     case 'deputy_national_secretary':
-      // Admin-level can assign any role
+      // National roles can assign subordinates but NOT national roles
       return [
         'regional_supervisor',
         'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',

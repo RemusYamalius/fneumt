@@ -279,6 +279,7 @@ const translations: Record<Lang, Record<string, string>> = {
     badge_black: 'قيد التحقق',
     badge_blue: 'منخرط مفعّل',
     badge_gold: 'مسؤول نقابي',
+    badge_green: 'الكاتب العام الوطني',
     downloadFormTitle: 'استمارة المعلومات والمشاكل',
     downloadFormDesc: 'قم بتحميل الاستمارة، اطبعها، املأها بمعلوماتك ووقّعها، ثم أرفقها مع طلبك.',
     downloadFormButton: 'تحميل الاستمارة',

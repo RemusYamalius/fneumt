@@ -609,17 +609,17 @@ const DatabaseDashboard = () => {
                 <table className="w-full text-xs" dir={dir}>
                   <thead className="bg-muted/50 text-muted-foreground">
                     <tr>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.roleLabel}</th>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.membershipFilter}</th>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.phoneLabel}</th>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.institutionLabel}</th>
-                      <SortHeader field="directorate">{t.directorateLabel}</SortHeader>
-                      <SortHeader field="academy">{t.academyLabel}</SortHeader>
-                      <SortHeader field="mission">{t.missionLabel}</SortHeader>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.employeeNumberLabel}</th>
-                      <SortHeader field="date_of_birth">{t.dateOfBirthLabel}</SortHeader>
-                      <SortHeader field="gender">{t.genderLabel}</SortHeader>
                       <SortHeader field="full_name">{t.fullNameLabel}</SortHeader>
+                      <SortHeader field="gender">{t.genderLabel}</SortHeader>
+                      <SortHeader field="date_of_birth">{t.dateOfBirthLabel}</SortHeader>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.employeeNumberLabel}</th>
+                      <SortHeader field="mission">{t.missionLabel}</SortHeader>
+                      <SortHeader field="academy">{t.academyLabel}</SortHeader>
+                      <SortHeader field="directorate">{t.directorateLabel}</SortHeader>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.institutionLabel}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.phoneLabel}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.membershipFilter}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.roleLabel}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">

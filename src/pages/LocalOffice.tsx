@@ -53,6 +53,7 @@ interface MembershipCard {
 const LocalOffice = () => {
   const { t, dir } = useI18n();
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
 
   // Office state
   const [officeId, setOfficeId] = useState<string | null>(null);

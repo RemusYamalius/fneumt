@@ -392,6 +392,7 @@ const translations: Record<Lang, Record<string, string>> = {
     pendingStatus: 'قيد التحقق',
     noData: 'لا توجد بيانات',
     exportData: 'تصدير البيانات',
+    exportToExcel: 'تصدير إلى Excel',
     showingResults: 'عرض النتائج',
     of: 'من',
     page: 'صفحة',

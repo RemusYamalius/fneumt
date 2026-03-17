@@ -271,7 +271,31 @@ const DatabaseDashboard = () => {
     return (t as any)[`role_${ur.role}`] || ur.role;
   };
 
-  if (loading || loadingData) {
+  const handleExportExcel = () => {
+    const data = filteredProfiles.map(p => {
+      const badge = getMembershipBadge(p);
+      return {
+        [t.fullNameLabel]: p.full_name || '',
+        [t.genderLabel]: p.gender === 'male' ? t.genderMale : p.gender === 'female' ? t.genderFemale : '',
+        [t.dateOfBirthLabel]: p.date_of_birth || '',
+        [t.employeeNumberLabel]: p.employee_number || '',
+        [t.missionLabel]: getMissionLabel(p.mission),
+        [t.academyLabel]: p.academy || '',
+        [t.directorateLabel]: p.directorate || '',
+        [t.institutionLabel]: p.institution || '',
+        [t.phoneLabel]: p.phone || '',
+        [t.membershipFilter]: badge.label,
+        [t.roleLabel]: getRoleName(p.user_id),
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = Object.keys(data[0] || {}).map(() => ({ wch: 25 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, t.registeredUsers);
+    const date = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `database-export-${date}.xlsx`);
+  };
+
     return (
       <AuthenticatedLayout>
         <div className="min-h-[60vh] flex items-center justify-center">

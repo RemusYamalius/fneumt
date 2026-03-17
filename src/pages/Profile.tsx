@@ -226,6 +226,13 @@ const Profile = () => {
     if (key === 'membership') {
       return form.is_member ? `${t.isMember}${form.membership_card_number ? ` - ${form.membership_card_number}` : ''}` : t.isNotMember;
     }
+    if (key === 'date_of_birth') {
+      if (!form.date_of_birth) return '';
+      try {
+        const d = parse(form.date_of_birth, 'yyyy-MM-dd', new Date());
+        return format(d, 'yyyy/MM/dd');
+      } catch { return form.date_of_birth; }
+    }
     const val = (form as any)[key];
     if (!val) return '';
     if (key === 'corps') return corpsOptions.find(o => o.value === val)?.label || val;

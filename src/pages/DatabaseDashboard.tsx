@@ -296,6 +296,7 @@ const DatabaseDashboard = () => {
     XLSX.writeFile(wb, `database-export-${date}.xlsx`);
   };
 
+  if (loading || loadingData) {
     return (
       <AuthenticatedLayout>
         <div className="min-h-[60vh] flex items-center justify-center">

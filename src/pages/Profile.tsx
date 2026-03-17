@@ -175,6 +175,7 @@ const Profile = () => {
   const cards: CardField[] = useMemo(() => [
     { key: 'full_name', label: t.fullNameLabel, icon: User, type: 'text' },
     { key: 'gender', label: t.genderLabel, icon: User, type: 'select', options: genderOptions },
+    { key: 'date_of_birth', label: t.dateOfBirthLabel, icon: CalendarDays, type: 'datepicker' },
     { key: 'employee_number', label: t.employeeNumberLabel, icon: Hash, type: 'text', dir: 'ltr' },
     { key: 'mission', label: t.missionLabel, icon: Briefcase, type: 'select', options: missionOptions },
     { key: 'academy', label: t.academyLabel, icon: GraduationCap, type: 'select', options: ACADEMIES.map(a => ({ value: a.label, label: a.label })) },

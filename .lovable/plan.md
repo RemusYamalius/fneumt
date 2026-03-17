@@ -1,58 +1,36 @@
 
 
-## التغييرات المطلوبة
+# إصلاح محاذاة أعمدة بطائق الانخراط + إضافة عمودي النوع والمؤسسة + فلتر
 
-ثلاث تعديلات رئيسية على صفحة "طلب جديد":
+## التغييرات في `src/pages/LocalOffice.tsx`
 
----
-
-### 1. ترتيب البطاقات RTL
-
-في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
-
----
-
-### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
-
-عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
-- **الموضوع** (إلزامي) — `Input`
-- **الوصف** (اختياري) — `Textarea`
-
-تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
-
-تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
-
----
-
-### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
-
-- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
-- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
-  1. المصالح المركزية للوزارة
-  2. الأكاديمية الجهوية
-  3. المديرية الإقليمية
-  4. المؤسسة مقر العمل
-
-- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
-- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
-
-**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
-
----
-
-### الملفات المعنية
-
-| الملف | التعديل |
-|---|---|
-| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
-| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
-| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
-
-### تدفق الخطوات الجديد:
-```text
-1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
-2. مستوى حل المشكل (4 اختيارات)
-3. المرفقات
-4. المراجعة
+### 1. توسيع واجهة MembershipCard
+إضافة حقلي `gender` و `institution` للواجهة:
+```typescript
+interface MembershipCard {
+  // ... existing
+  gender?: string;
+  institution?: string;
+}
 ```
+
+### 2. تحديث استعلامات جلب البيانات
+في `loadOfficeData` وقسم جلب `dirMembers`، إضافة `gender, institution` إلى `select`:
+```typescript
+.select('user_id, full_name, employee_number, gender, institution')
+```
+
+### 3. إضافة حالة الفلتر
+```typescript
+const [cardFilter, setCardFilter] = useState('');
+```
+فلترة `cards` حسب الاسم أو رقم التأجير أو المؤسسة.
+
+### 4. تحديث جدول بطائق الانخراط
+- إضافة عمودي "النوع" و"المؤسسة" بين "N°PPR" و"رقم البطاقة"
+- إضافة حقل بحث/فلتر فوق الجدول
+- إصلاح محاذاة الأعمدة بإضافة `text-center` أو `text-start` بشكل متسق على `TableHead` و `TableCell`
+
+### 5. الترجمات
+المفاتيح `genderLabel`, `institutionLabel`, `genderMale`, `genderFemale` موجودة فعلا في `i18n.tsx`. سأضيف مفتاح فلتر إن لم يكن موجودا (مثل `filterMembers`).
 

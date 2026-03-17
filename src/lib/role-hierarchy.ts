@@ -73,7 +73,7 @@ export function getAllowedPromotions(promoterRole: AppRole): AppRole[] {
 export type GeoConstraint = 'none' | 'academy' | 'directorate';
 
 export function getGeoConstraint(promoterRole: AppRole): GeoConstraint {
-  if (promoterRole === 'admin') return 'none';
+  if (['admin', 'national_secretary', 'deputy_national_secretary'].includes(promoterRole)) return 'none';
   if (['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'].includes(promoterRole)) {
     return 'academy';
   }

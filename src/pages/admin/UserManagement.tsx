@@ -70,7 +70,7 @@ const UserManagement = () => {
     return users.filter(u => {
       if (u.user_id === user?.id) return false;
 
-      if (myRole === 'admin') {
+      if (['admin', 'national_secretary', 'deputy_national_secretary'].includes(myRole)) {
         if (filterAcademy !== 'all' && u.academy !== filterAcademy) return false;
         if (filterDirectorate !== 'all' && u.directorate !== filterDirectorate) return false;
         return true;

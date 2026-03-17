@@ -229,8 +229,8 @@ const SupervisorDashboard = () => {
       'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
     ];
 
-    if (role === 'admin') {
-      // Admin sees ALL non-teacher supervisory roles + placeholders for missing ones
+    if (['admin', 'national_secretary', 'deputy_national_secretary'].includes(role)) {
+      // Admin-level sees ALL non-teacher supervisory roles
       const { data } = await supabase
         .from('user_roles')
         .select('user_id, role, promoted_by')

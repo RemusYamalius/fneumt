@@ -88,7 +88,7 @@ const Profile = () => {
     full_name: '', phone: '', employee_number: '', corps: '',
     institution: '', zone: '', directorate: '', academy: '',
     mission: '', is_member: false, membership_card_number: '',
-    gender: '',
+    gender: '', date_of_birth: '',
   });
 
 

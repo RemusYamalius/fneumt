@@ -404,6 +404,10 @@ const Profile = () => {
               fromYear={1940}
               toYear={new Date().getFullYear()}
               locale={dir === 'rtl' ? ar : fr}
+              labels={{
+                labelMonthDropdown: () => dir === 'rtl' ? 'الشهر' : 'Mois',
+                labelYearDropdown: () => dir === 'rtl' ? 'السنة' : 'Année',
+              }}
             />
           </PopoverContent>
         </Popover>

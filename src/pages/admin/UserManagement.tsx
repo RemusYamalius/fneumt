@@ -33,6 +33,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [occupiedNationalRoles, setOccupiedNationalRoles] = useState<Set<string>>(new Set());
   const [filterAcademy, setFilterAcademy] = useState<string>('all');
   const [filterDirectorate, setFilterDirectorate] = useState<string>('all');
 

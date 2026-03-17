@@ -86,6 +86,8 @@ export function isPromoterRole(role: AppRole): boolean {
 
 export const ALL_ROLES: AppRole[] = [
   'admin',
+  'national_secretary',
+  'deputy_national_secretary',
   'regional_supervisor',
   'deputy_regional_primary',
   'deputy_regional_middle',

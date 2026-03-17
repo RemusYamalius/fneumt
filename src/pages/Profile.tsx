@@ -405,7 +405,6 @@ const Profile = () => {
               toYear={new Date().getFullYear()}
               locale={dir === 'rtl' ? ar : fr}
             />
-            />
           </PopoverContent>
         </Popover>
       );

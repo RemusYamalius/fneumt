@@ -135,7 +135,7 @@ const LocalOffice = () => {
         const cardUserIds = cardData.map(c => c.member_user_id);
         const { data: cardProfiles } = await supabase
           .from('profiles')
-          .select('user_id, full_name, employee_number')
+          .select('user_id, full_name, employee_number, gender, institution')
           .in('user_id', cardUserIds);
 
         const cardProfileMap = new Map(cardProfiles?.map(p => [p.user_id, p]) || []);
@@ -146,6 +146,8 @@ const LocalOffice = () => {
           is_paid: c.is_paid,
           full_name: cardProfileMap.get(c.member_user_id)?.full_name || '',
           employee_number: cardProfileMap.get(c.member_user_id)?.employee_number || '',
+          gender: cardProfileMap.get(c.member_user_id)?.gender || '',
+          institution: cardProfileMap.get(c.member_user_id)?.institution || '',
         })));
       }
 

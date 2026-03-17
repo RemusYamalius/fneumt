@@ -337,26 +337,24 @@ const DatabaseDashboard = () => {
   return (
     <AuthenticatedLayout>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {/* Back Button */}
-        <motion.div initial={{ opacity: 0, x: dir === 'rtl' ? 20 : -20 }} animate={{ opacity: 1, x: 0 }} className="mb-6">
+        {/* Header + Back Button */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 flex items-start justify-between gap-4"
+        >
+          <div>
+            <h1 className="text-3xl font-extrabold text-foreground mb-1">{t.databaseTitle}</h1>
+            <p className="text-muted-foreground text-sm">{t.databaseDesc}</p>
+          </div>
           <Button
             variant="ghost"
             onClick={() => navigate('/dashboard')}
-            className="rounded-full bg-gradient-to-r from-[hsl(217,70%,25%)] to-[hsl(217,60%,35%)] text-white hover:from-[hsl(217,70%,30%)] hover:to-[hsl(217,60%,40%)] shadow-md px-5 h-10 text-sm gap-2"
+            className="rounded-full bg-gradient-to-r from-[hsl(217,70%,25%)] to-[hsl(217,60%,35%)] text-white hover:from-[hsl(217,70%,30%)] hover:to-[hsl(217,60%,40%)] shadow-md px-5 h-10 text-sm gap-2 shrink-0"
           >
             {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
             {dir === 'rtl' ? 'العودة للوحة التحكم' : 'Retour au tableau de bord'}
           </Button>
-        </motion.div>
-
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-extrabold text-foreground mb-1">{t.databaseTitle}</h1>
-          <p className="text-muted-foreground text-sm">{t.databaseDesc}</p>
         </motion.div>
 
         {/* KPI Cards */}

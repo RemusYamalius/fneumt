@@ -28,11 +28,13 @@ const Dashboard = () => {
     }
   }, [loading, user, navigate]);
 
+  const isAdminLike = role && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(role);
+
   const showIncomingRequests = role && [
     'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
-  ].includes(role);
+  ].includes(role) || isAdminLike;
 
-  const isDeputyLocal = role && ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role);
+  const isDeputyLocal = role && ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role) || isAdminLike;
 
   useEffect(() => {
     if (!user || !showIncomingRequests) return;

@@ -226,7 +226,7 @@ const UserManagement = () => {
                                 {getRoleLabel(r)}
                               </SelectItem>
                             ))}
-                          {u.role !== 'teacher' && !allowedPromotions.includes('teacher') && myRole === 'admin' && (
+                          {u.role !== 'teacher' && !allowedPromotions.includes('teacher') && myRole && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(myRole) && (
                             <SelectItem value="teacher">{getRoleLabel('teacher')}</SelectItem>
                           )}
                         </SelectContent>

@@ -628,19 +628,19 @@ const DatabaseDashboard = () => {
                       const age = getAge(p.date_of_birth);
                       return (
                         <tr key={p.id} className={i % 2 === 0 ? '' : 'bg-muted/20'}>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getRoleName(p.user_id)}</td>
+                          <td className="px-3 py-2.5 font-medium whitespace-nowrap">{p.full_name || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.gender === 'male' ? t.genderMale : p.gender === 'female' ? t.genderFemale : '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.date_of_birth || '—'}{age !== null ? ` (${age})` : ''}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono">{p.employee_number || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getMissionLabel(p.mission)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.academy?.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '') || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.directorate || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.institution || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono text-[11px]">{p.phone || '—'}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${badge.color}`}>{badge.label}</span>
                           </td>
-                          <td className="px-3 py-2.5 whitespace-nowrap font-mono text-[11px]">{p.phone || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.institution || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.directorate || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.academy?.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '') || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getMissionLabel(p.mission)}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap font-mono">{p.employee_number || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.date_of_birth || '—'}{age !== null ? ` (${age})` : ''}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.gender === 'male' ? t.genderMale : p.gender === 'female' ? t.genderFemale : '—'}</td>
-                          <td className="px-3 py-2.5 font-medium whitespace-nowrap">{p.full_name || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getRoleName(p.user_id)}</td>
                         </tr>
                       );
                     })}

@@ -4,7 +4,17 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
+const getDocumentDirection = (): "rtl" | "ltr" => {
+  if (typeof document === "undefined") return "ltr";
+  return document.documentElement.dir === "rtl" ? "rtl" : "ltr";
+};
+
+type SelectProps = React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>;
+
+const Select = ({ dir, ...props }: SelectProps) => {
+  const resolvedDir = dir ?? getDocumentDirection();
+  return <SelectPrimitive.Root dir={resolvedDir} {...props} />;
+};
 
 const SelectGroup = SelectPrimitive.Group;
 
@@ -16,6 +26,7 @@ const SelectTrigger = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
+    dir={getDocumentDirection()}
     className={cn(
       "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm text-start ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className,
@@ -24,7 +35,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
+      <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));

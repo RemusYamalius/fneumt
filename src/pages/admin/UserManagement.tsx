@@ -152,7 +152,7 @@ const UserManagement = () => {
         </div>
 
         {/* Filters */}
-        {myRole === 'admin' && (
+        {myRole && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(myRole) && (
           <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gradient-to-br from-slate-100/80 to-blue-50/50 rounded-xl border border-white/60 shadow-sm">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />

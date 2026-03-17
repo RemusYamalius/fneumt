@@ -127,6 +127,8 @@ const translations: Record<Lang, Record<string, string>> = {
     genderLabel: 'النوع',
     genderMale: 'ذكر',
     genderFemale: 'أنثى',
+    dateOfBirthLabel: 'تاريخ الازدياد',
+    pickDate: 'اختر التاريخ',
     membershipLabel: 'حالة الانخراط\n(موسم: 25/26)',
     isMember: 'منخرط',
     isNotMember: 'غير منخرط',

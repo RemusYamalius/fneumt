@@ -169,7 +169,7 @@ const LocalOffice = () => {
     if (profile?.directorate) {
       const { data: dirMembers } = await supabase
         .from('profiles')
-        .select('user_id, full_name, employee_number')
+        .select('user_id, full_name, employee_number, gender, institution')
         .eq('directorate', profile.directorate)
         .or('is_member.eq.true,membership_verified.eq.true');
 
@@ -184,6 +184,8 @@ const LocalOffice = () => {
               is_paid: false,
               full_name: p.full_name || '',
               employee_number: p.employee_number || '',
+              gender: p.gender || '',
+              institution: p.institution || '',
             }));
           return [...prev, ...newCards];
         });

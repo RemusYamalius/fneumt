@@ -71,7 +71,13 @@ const LocalOffice = () => {
   // Membership cards state
   const [cards, setCards] = useState<MembershipCard[]>([]);
   const [savingCards, setSavingCards] = useState(false);
-  const [cardFilter, setCardFilter] = useState('');
+  const [columnFilters, setColumnFilters] = useState({
+    full_name: '',
+    employee_number: '',
+    gender: '' as '' | 'male' | 'female',
+    institution: '',
+  });
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [totalCollected, setTotalCollected] = useState(0);
   const [remaining, setRemaining] = useState(0);
   const [paidToProvincial, setPaidToProvincial] = useState(0);

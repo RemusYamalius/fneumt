@@ -108,6 +108,7 @@ const Profile = () => {
         mission: (profile as any).mission || '',
         is_member: (profile as any).is_member || false,
         membership_card_number: (profile as any).membership_card_number || '',
+        gender: (profile as any).gender || '',
       });
     }
   }, [profile]);

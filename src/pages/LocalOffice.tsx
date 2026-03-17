@@ -463,14 +463,14 @@ const LocalOffice = () => {
 
           {/* === Formation Tab === */}
           <TabsContent value="formation">
-            <Card>
-              <CardHeader>
+            <Card className="border-blue-200">
+              <CardHeader className="bg-blue-50/50 rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
+                  <Users className="w-5 h-5 text-blue-600" />
                   {t.officeFormation}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 pt-6">
                 {/* Office name */}
                 <div className="space-y-2">
                   <Label>{t.officeName}</Label>
@@ -489,7 +489,7 @@ const LocalOffice = () => {
                       <img
                         src={secretaryPhotoUrl}
                         alt="Secretary"
-                        className="w-20 h-20 rounded-xl object-cover border-2 border-primary/20"
+                        className="w-20 h-20 rounded-xl object-cover border-2 border-blue-200"
                       />
                     )}
                     <label className="cursor-pointer">
@@ -578,40 +578,46 @@ const LocalOffice = () => {
                   {members.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4 text-center">{t.noMembers}</p>
                   ) : (
-                    <div className="border rounded-lg overflow-hidden">
+                    <div className="border border-blue-200 rounded-lg overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow>
-                            <TableHead>{t.fullNameLabel}</TableHead>
-                            <TableHead>{t.employeeNumberLabel}</TableHead>
-                            <TableHead>{t.institutionLabel}</TableHead>
-                            <TableHead>{t.selectPosition}</TableHead>
+                          <TableRow className="bg-blue-50/50">
+                            <TableHead className="text-start">{t.fullNameLabel}</TableHead>
+                            <TableHead className="text-start">{t.employeeNumberLabel}</TableHead>
+                            <TableHead className="text-start">{t.institutionLabel}</TableHead>
+                            <TableHead className="text-start">{t.selectPosition}</TableHead>
                             <TableHead className="w-20"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {members.map(member => (
-                            <TableRow key={member.user_id}>
-                              <TableCell className="font-medium">{member.full_name}</TableCell>
-                              <TableCell>{member.employee_number}</TableCell>
-                              <TableCell>{member.institution}</TableCell>
-                              <TableCell>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                  {positionLabel(member.position)}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeMember(member.user_id)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {members.map((member, idx) => {
+                            const posColor = member.position.includes('secretary') ? 'bg-blue-100 text-blue-700' :
+                              member.position.includes('treasurer') ? 'bg-amber-100 text-amber-700' :
+                              member.position.includes('rapporteur') ? 'bg-purple-100 text-purple-700' :
+                              'bg-muted text-muted-foreground';
+                            return (
+                              <TableRow key={member.user_id} className={idx % 2 === 0 ? '' : 'bg-blue-50/20'}>
+                                <TableCell className="font-medium text-start">{member.full_name}</TableCell>
+                                <TableCell className="text-start">{member.employee_number}</TableCell>
+                                <TableCell className="text-start">{member.institution}</TableCell>
+                                <TableCell className="text-start">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${posColor}`}>
+                                    {positionLabel(member.position)}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeMember(member.user_id)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>

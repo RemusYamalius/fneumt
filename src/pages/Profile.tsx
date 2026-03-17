@@ -134,18 +134,38 @@ const Profile = () => {
   ];
 
   const missionOptions = [
-    { value: 'teacher', label: t.missionTeacher },
-    { value: 'support_staff', label: t.missionSupportStaff },
+    { value: 'teacher_primary', label: t.missionTeacherPrimary },
+    { value: 'teacher_middle', label: t.missionTeacherMiddle },
+    { value: 'teacher_high', label: t.missionTeacherHigh },
+    { value: 'specialist_educational', label: t.missionSpecialistEducational },
+    { value: 'specialist_social', label: t.missionSpecialistSocial },
+    { value: 'specialist_admin_econ', label: t.missionSpecialistAdminEcon },
+    { value: 'admin_director', label: t.missionAdminDirector },
+    { value: 'admin_guard_ext', label: t.missionAdminGuardExt },
+    { value: 'admin_guard_int', label: t.missionAdminGuardInt },
+    { value: 'admin_nazir', label: t.missionAdminNazir },
+    { value: 'admin_work_chief', label: t.missionAdminWorkChief },
+    { value: 'admin_study_dir', label: t.missionAdminStudyDir },
+    { value: 'admin_cross_sector', label: t.missionAdminCrossSector },
+    { value: 'admin_ministry', label: t.missionAdminMinistry },
     { value: 'supplier', label: t.missionSupplier },
-    { value: 'educational_advisor', label: t.missionEducationalAdvisor },
-    { value: 'guard', label: t.missionGuard },
-    { value: 'director', label: t.missionDirector },
-    { value: 'administrator', label: t.missionAdministrator },
-    { value: 'educational_inspector', label: t.missionEducationalInspector },
-    { value: 'tech_assistant', label: t.missionTechAssistant },
+    { value: 'editor', label: t.missionEditor },
+    { value: 'educational_assistant', label: t.missionEducationalAssistant },
+    { value: 'technician', label: t.missionTechnician },
+    { value: 'inspector_primary', label: t.missionInspectorPrimary },
+    { value: 'inspector_middle', label: t.missionInspectorMiddle },
+    { value: 'inspector_high', label: t.missionInspectorHigh },
+    { value: 'inspector_guidance', label: t.missionInspectorGuidance },
+    { value: 'inspector_planning', label: t.missionInspectorPlanning },
+    { value: 'inspector_finance', label: t.missionInspectorFinance },
     { value: 'economy_admin', label: t.missionEconomyAdmin },
-    { value: 'treasurer', label: t.missionTreasurer },
+    { value: 'doctor', label: t.missionDoctor },
     { value: 'other', label: t.missionOther },
+  ];
+
+  const genderOptions = [
+    { value: 'male', label: t.genderMale },
+    { value: 'female', label: t.genderFemale },
   ];
 
   const cards: CardField[] = useMemo(() => [

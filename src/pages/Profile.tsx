@@ -67,7 +67,7 @@ interface CardField {
   key: string;
   label: string;
   icon: typeof User;
-  type: 'text' | 'select' | 'membership';
+  type: 'text' | 'select' | 'membership' | 'datepicker';
   options?: { value: string; label: string }[];
   readOnly?: boolean;
   dir?: string;

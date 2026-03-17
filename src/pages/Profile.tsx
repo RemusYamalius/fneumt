@@ -403,6 +403,8 @@ const Profile = () => {
               captionLayout="dropdown-buttons"
               fromYear={1940}
               toYear={new Date().getFullYear()}
+              locale={dir === 'rtl' ? ar : fr}
+            />
             />
           </PopoverContent>
         </Popover>

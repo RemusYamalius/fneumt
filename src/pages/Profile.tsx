@@ -170,16 +170,16 @@ const Profile = () => {
 
   const cards: CardField[] = useMemo(() => [
     { key: 'full_name', label: t.fullNameLabel, icon: User, type: 'text' },
-    { key: 'phone', label: t.phoneLabel, icon: Phone, type: 'text', dir: 'ltr' },
+    { key: 'gender', label: t.genderLabel, icon: User, type: 'select', options: genderOptions },
     { key: 'employee_number', label: t.employeeNumberLabel, icon: Hash, type: 'text', dir: 'ltr' },
+    { key: 'mission', label: t.missionLabel, icon: Briefcase, type: 'select', options: missionOptions },
     { key: 'academy', label: t.academyLabel, icon: GraduationCap, type: 'select', options: ACADEMIES.map(a => ({ value: a.label, label: a.label })) },
     { key: 'directorate', label: t.directorateLabel, icon: MapPin, type: 'select', options: directorates.map(d => ({ value: d, label: d })) },
-    { key: 'mission', label: t.missionLabel, icon: Briefcase, type: 'select', options: missionOptions },
-    { key: 'corps', label: t.corpsLabel, icon: GraduationCap, type: 'select', options: corpsOptions },
     { key: 'institution', label: t.institutionLabel, icon: Building2, type: 'text' },
     { key: 'membership', label: t.membershipLabel, icon: CreditCard, type: 'membership' },
+    { key: 'phone', label: t.phoneLabel, icon: Phone, type: 'text', dir: 'ltr' },
     { key: 'email', label: t.emailLabel, icon: Mail, type: 'text', readOnly: true },
-  ], [t, directorates, corpsOptions, missionOptions]);
+  ], [t, directorates, genderOptions, missionOptions]);
 
   // Embla carousel
   const [emblaRef, emblaApi] = useEmblaCarousel({

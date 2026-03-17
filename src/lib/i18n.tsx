@@ -436,6 +436,8 @@ const translations: Record<Lang, Record<string, string>> = {
     genderLabel: 'Genre',
     genderMale: 'Masculin',
     genderFemale: 'Féminin',
+    dateOfBirthLabel: 'Date de naissance',
+    pickDate: 'Choisir une date',
     membershipLabel: "Statut d'adhésion\n(Saison : 25/26)",
     isMember: 'Adhérent',
     isNotMember: 'Non adhérent',

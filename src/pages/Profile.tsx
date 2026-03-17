@@ -3,8 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, ArrowLeft, Save, Loader2, User, Phone, Hash, Building2, MapPin,
   Briefcase, GraduationCap, CreditCard, Mail, ChevronLeft, ChevronRight, Eye,
-  Trash2, AlertTriangle
+  Trash2, AlertTriangle, CalendarDays
 } from 'lucide-react';
+import { format, parse } from 'date-fns';
+import { ar } from 'date-fns/locale';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useI18n } from '@/lib/i18n';

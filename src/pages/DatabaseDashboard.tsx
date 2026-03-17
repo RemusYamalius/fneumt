@@ -421,7 +421,7 @@ const DatabaseDashboard = () => {
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__all__">{t.allMissions}</SelectItem>
-                        {MISSIONS_LIST.map(m => <SelectItem key={m} value={m}>{(t as any)[m] || m}</SelectItem>)}
+                        {MISSION_DB_VALUES.map(m => <SelectItem key={m} value={m}>{getMissionLabel(m)}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

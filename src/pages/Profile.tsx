@@ -254,6 +254,7 @@ const Profile = () => {
         mission: form.mission || null,
         is_member: form.is_member,
         membership_card_number: form.is_member ? (form.membership_card_number.trim() || null) : null,
+        gender: form.gender || null,
       } as any)
       .eq('user_id', user.id);
 

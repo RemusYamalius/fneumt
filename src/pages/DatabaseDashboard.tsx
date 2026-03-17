@@ -242,7 +242,7 @@ const DatabaseDashboard = () => {
     const counts: Record<string, number> = {};
     filteredProfiles.forEach(p => { if (p.mission) counts[p.mission] = (counts[p.mission] || 0) + 1; });
     return Object.entries(counts)
-      .map(([name, value]) => ({ name: (t as any)[name] || name, value }))
+      .map(([name, value]) => ({ name: getMissionLabel(name), value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
   }, [filteredProfiles, t]);

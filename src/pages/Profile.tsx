@@ -113,6 +113,7 @@ const Profile = () => {
         is_member: (profile as any).is_member || false,
         membership_card_number: (profile as any).membership_card_number || '',
         gender: (profile as any).gender || '',
+        date_of_birth: (profile as any).date_of_birth || '',
       });
     }
   }, [profile]);

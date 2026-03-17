@@ -160,6 +160,31 @@ const LocalOffice = () => {
       }
     }
 
+    // Now load all directorate members (is_member or membership_verified) and merge with saved cards
+    if (profile?.directorate) {
+      const { data: dirMembers } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, employee_number')
+        .eq('directorate', profile.directorate)
+        .or('is_member.eq.true,membership_verified.eq.true');
+
+      if (dirMembers && dirMembers.length > 0) {
+        setCards(prev => {
+          const existingIds = new Set(prev.map(c => c.member_user_id));
+          const newCards = dirMembers
+            .filter(p => !existingIds.has(p.user_id))
+            .map(p => ({
+              member_user_id: p.user_id,
+              card_number: '',
+              is_paid: false,
+              full_name: p.full_name || '',
+              employee_number: p.employee_number || '',
+            }));
+          return [...prev, ...newCards];
+        });
+      }
+    }
+
     setLoading(false);
   };
 
@@ -417,7 +442,7 @@ const LocalOffice = () => {
               <Users className="w-4 h-4" />
               {t.officeFormation}
             </TabsTrigger>
-            <TabsTrigger value="cards" className="gap-2" onClick={loadDirectorateMembers}>
+            <TabsTrigger value="cards" className="gap-2">
               <CreditCard className="w-4 h-4" />
               {t.membershipCards}
             </TabsTrigger>

@@ -237,6 +237,7 @@ export type Database = {
           email: string | null
           employee_number: string | null
           full_name: string | null
+          gender: string | null
           id: string
           institution: string | null
           is_member: boolean | null
@@ -256,6 +257,7 @@ export type Database = {
           email?: string | null
           employee_number?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
           institution?: string | null
           is_member?: boolean | null
@@ -275,6 +277,7 @@ export type Database = {
           email?: string | null
           employee_number?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
           institution?: string | null
           is_member?: boolean | null

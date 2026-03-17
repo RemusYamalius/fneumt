@@ -575,22 +575,26 @@ const DatabaseDashboard = () => {
                 <p className="text-xs text-muted-foreground">
                   {t.showingResults} {((currentPage - 1) * PAGE_SIZE) + 1}-{Math.min(currentPage * PAGE_SIZE, sortedProfiles.length)} {t.of} {sortedProfiles.length}
                 </p>
+                <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={handleExportExcel}>
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  {t.exportToExcel}
+                </Button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="w-full text-xs" dir={dir}>
                   <thead className="bg-muted/50 text-muted-foreground">
                     <tr>
-                      <SortHeader field="full_name">{t.fullNameLabel}</SortHeader>
-                      <SortHeader field="gender">{t.genderLabel}</SortHeader>
-                      <SortHeader field="date_of_birth">{t.dateOfBirthLabel}</SortHeader>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.employeeNumberLabel}</th>
-                      <SortHeader field="mission">{t.missionLabel}</SortHeader>
-                      <SortHeader field="academy">{t.academyLabel}</SortHeader>
-                      <SortHeader field="directorate">{t.directorateLabel}</SortHeader>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.institutionLabel}</th>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.phoneLabel}</th>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.membershipFilter}</th>
                       <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.roleLabel}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.membershipFilter}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.phoneLabel}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.institutionLabel}</th>
+                      <SortHeader field="directorate">{t.directorateLabel}</SortHeader>
+                      <SortHeader field="academy">{t.academyLabel}</SortHeader>
+                      <SortHeader field="mission">{t.missionLabel}</SortHeader>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.employeeNumberLabel}</th>
+                      <SortHeader field="date_of_birth">{t.dateOfBirthLabel}</SortHeader>
+                      <SortHeader field="gender">{t.genderLabel}</SortHeader>
+                      <SortHeader field="full_name">{t.fullNameLabel}</SortHeader>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
@@ -599,19 +603,19 @@ const DatabaseDashboard = () => {
                       const age = getAge(p.date_of_birth);
                       return (
                         <tr key={p.id} className={i % 2 === 0 ? '' : 'bg-muted/20'}>
-                          <td className="px-3 py-2.5 font-medium whitespace-nowrap">{p.full_name || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.gender === 'male' ? t.genderMale : p.gender === 'female' ? t.genderFemale : '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.date_of_birth || '—'}{age !== null ? ` (${age})` : ''}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap font-mono">{p.employee_number || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.mission ? (t as any)[p.mission] || p.mission : '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.academy?.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '') || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.directorate || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.institution || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap font-mono text-[11px]">{p.phone || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getRoleName(p.user_id)}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${badge.color}`}>{badge.label}</span>
                           </td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getRoleName(p.user_id)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono text-[11px]">{p.phone || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.institution || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.directorate || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.academy?.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '') || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getMissionLabel(p.mission)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono">{p.employee_number || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.date_of_birth || '—'}{age !== null ? ` (${age})` : ''}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.gender === 'male' ? t.genderMale : p.gender === 'female' ? t.genderFemale : '—'}</td>
+                          <td className="px-3 py-2.5 font-medium whitespace-nowrap">{p.full_name || '—'}</td>
                         </tr>
                       );
                     })}

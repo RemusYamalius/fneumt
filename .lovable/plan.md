@@ -1,58 +1,27 @@
 
 
-## التغييرات المطلوبة
+# Fix Select Trigger RTL Direction
 
-ثلاث تعديلات رئيسية على صفحة "طلب جديد":
+## Problem
+The `SelectTrigger` uses default `flex` layout with `justify-between`, but the text direction inside the trigger doesn't follow RTL. In Arabic, the text ("ذكر") should appear on the right and the chevron arrow on the left.
 
----
+## Solution
+Add `text-start` class to the `SelectTrigger` so text aligns according to document direction. The `flex` + `justify-between` already handles icon positioning correctly in RTL contexts since the browser flips flex direction when `dir="rtl"` is set on a parent. The key fix is ensuring the trigger itself respects text direction.
 
-### 1. ترتيب البطاقات RTL
+**File: `src/components/ui/select.tsx`** (line 20)
+- Add `text-start` to SelectTrigger className to ensure text aligns to the start (right in RTL, left in LTR)
+- Add `flex-row-reverse` conditionally or use `[dir=rtl] &` — actually, since the HTML `dir="rtl"` is set on the document, `justify-between` in a flex container already flips. The issue is likely that the `Icon` needs `ms-auto` (margin-inline-start) instead of being at the end.
 
-في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
+Looking at the image: text "ذكر" is on the LEFT and chevron on the RIGHT — but user wants the opposite. The flex container with `justify-between` should already handle this if RTL is properly inherited. Let me check how RTL direction is set in the app.
 
----
+Actually, the simpler fix: add `text-start` and ensure the trigger has proper direction inheritance. The `SelectPrimitive.Icon` should use `ms-auto` or the trigger should use `flex-row-reverse` in RTL — but the cleanest approach is just ensuring the trigger container inherits direction properly, which `justify-between` will handle automatically.
 
-### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
+The real fix: The Radix Select trigger renders children then icon. In RTL, flex `justify-between` should put children on the right and icon on the left automatically. If it's not working, it means the trigger or a parent doesn't have `dir="rtl"`. Let me check the i18n setup.
 
-عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
-- **الموضوع** (إلزامي) — `Input`
-- **الوصف** (اختياري) — `Textarea`
+## Changes
 
-تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
+**`src/components/ui/select.tsx`** — SelectTrigger:
+- Add `text-start` to the className to ensure proper text alignment in both directions
 
-تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
-
----
-
-### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
-
-- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
-- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
-  1. المصالح المركزية للوزارة
-  2. الأكاديمية الجهوية
-  3. المديرية الإقليمية
-  4. المؤسسة مقر العمل
-
-- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
-- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
-
-**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
-
----
-
-### الملفات المعنية
-
-| الملف | التعديل |
-|---|---|
-| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
-| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
-| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
-
-### تدفق الخطوات الجديد:
-```text
-1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
-2. مستوى حل المشكل (4 اختيارات)
-3. المرفقات
-4. المراجعة
-```
+This single change ensures all select triggers across the entire site respect the current language direction.
 

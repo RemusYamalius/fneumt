@@ -83,6 +83,8 @@ const translations: Record<Lang, Record<string, string>> = {
     role_deputy_local_high: 'نائب(ة) منسق(ة) محلي(ة) - ثانوي تأهيلي',
     role_teacher: 'أستاذ(ة)',
     role_union_officer: 'مسؤول(ة) نقابي(ة)',
+    role_national_secretary: 'الكاتب العام الوطني',
+    role_deputy_national_secretary: 'مساعد الكاتب العام الوطني',
     // Admin
     userManagement: 'إدارة المستخدمين',
     userManagementDesc: 'عرض وتعديل أدوار المستخدمين',

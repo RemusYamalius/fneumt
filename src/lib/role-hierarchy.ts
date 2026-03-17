@@ -38,7 +38,9 @@ export const PROMOTER_ROLES: AppRole[] = [
 export function getAllowedPromotions(promoterRole: AppRole): AppRole[] {
   switch (promoterRole) {
     case 'admin':
-      // Admin can assign any role
+    case 'national_secretary':
+    case 'deputy_national_secretary':
+      // Admin-level can assign any role
       return [
         'regional_supervisor',
         'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',

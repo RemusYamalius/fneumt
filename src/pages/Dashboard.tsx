@@ -147,6 +147,7 @@ const Dashboard = () => {
     ...(isDeputyLocal ? [{ icon: UserCheck, title: t.membershipVerification || 'التحقق من الانخراط', desc: t.membershipVerificationDesc || '', to: '/membership-verification', color: 'from-[hsl(160,60%,38%)] to-[hsl(160,60%,50%)]', badge: 0 }] : []),
     ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', color: cardColors.supervisorDashboard }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
+    ...(isLocalCoordinator ? [{ icon: Building2, title: t.localOffice, desc: t.localOfficeDesc, to: '/local-office', color: 'from-[hsl(45,80%,45%)] to-[hsl(45,80%,58%)]' }] : []),
   ];
 
   // Simple layout for regular users (teacher/union_officer)

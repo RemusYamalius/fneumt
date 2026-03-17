@@ -786,6 +786,7 @@ const translations: Record<Lang, Record<string, string>> = {
     pendingStatus: 'En attente',
     noData: 'Aucune donnée',
     exportData: 'Exporter',
+    exportToExcel: 'Exporter en Excel',
     showingResults: 'Affichage',
     of: 'sur',
     page: 'Page',

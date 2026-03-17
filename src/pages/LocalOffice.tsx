@@ -368,7 +368,7 @@ const LocalOffice = () => {
       .from('profiles')
       .select('user_id, full_name, employee_number')
       .eq('directorate', profile.directorate)
-      .eq('is_member', true);
+      .or('is_member.eq.true,membership_verified.eq.true');
 
     if (data) {
       const existingCardUserIds = new Set(cards.map(c => c.member_user_id));

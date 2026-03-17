@@ -198,6 +198,109 @@ export type Database = {
         }
         Relationships: []
       }
+      local_office_members: {
+        Row: {
+          created_at: string
+          id: string
+          office_id: string
+          position: Database["public"]["Enums"]["office_position"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          office_id: string
+          position: Database["public"]["Enums"]["office_position"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          office_id?: string
+          position?: Database["public"]["Enums"]["office_position"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "local_office_members_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "local_offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      local_offices: {
+        Row: {
+          academy: string | null
+          coordinator_id: string
+          created_at: string
+          directorate: string | null
+          id: string
+          office_name: string | null
+          secretary_photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          academy?: string | null
+          coordinator_id: string
+          created_at?: string
+          directorate?: string | null
+          id?: string
+          office_name?: string | null
+          secretary_photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          academy?: string | null
+          coordinator_id?: string
+          created_at?: string
+          directorate?: string | null
+          id?: string
+          office_name?: string | null
+          secretary_photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      membership_cards: {
+        Row: {
+          card_number: string | null
+          created_at: string
+          id: string
+          is_paid: boolean
+          member_user_id: string
+          office_id: string
+          updated_at: string
+        }
+        Insert: {
+          card_number?: string | null
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          member_user_id: string
+          office_id: string
+          updated_at?: string
+        }
+        Update: {
+          card_number?: string | null
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          member_user_id?: string
+          office_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_cards_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "local_offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -227,6 +330,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      office_finances: {
+        Row: {
+          id: string
+          office_id: string
+          paid_to_provincial: number
+          remaining: number
+          total_collected: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          office_id: string
+          paid_to_provincial?: number
+          remaining?: number
+          total_collected?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          office_id?: string
+          paid_to_provincial?: number
+          remaining?: number
+          total_collected?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_finances_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: true
+            referencedRelation: "local_offices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -451,6 +589,10 @@ export type Database = {
         Args: { _request_id: string; _user_id: string }
         Returns: boolean
       }
+      is_office_coordinator: {
+        Args: { _office_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_promoter: { Args: { _user_id: string }; Returns: boolean }
       is_request_owner: {
         Args: { _request_id: string; _user_id: string }
@@ -498,6 +640,16 @@ export type Database = {
         | "national_secretary"
         | "deputy_national_secretary"
       corps_type: "primary" | "middle_school" | "high_school" | "administrative"
+      office_position:
+        | "local_secretary"
+        | "deputy_secretary_primary"
+        | "deputy_secretary_middle"
+        | "deputy_secretary_high"
+        | "treasurer"
+        | "deputy_treasurer"
+        | "rapporteur"
+        | "deputy_rapporteur"
+        | "advisor"
       request_category:
         | "medical_file"
         | "mohammed_vi_foundation"
@@ -670,6 +822,17 @@ export const Constants = {
         "deputy_national_secretary",
       ],
       corps_type: ["primary", "middle_school", "high_school", "administrative"],
+      office_position: [
+        "local_secretary",
+        "deputy_secretary_primary",
+        "deputy_secretary_middle",
+        "deputy_secretary_high",
+        "treasurer",
+        "deputy_treasurer",
+        "rapporteur",
+        "deputy_rapporteur",
+        "advisor",
+      ],
       request_category: [
         "medical_file",
         "mohammed_vi_foundation",

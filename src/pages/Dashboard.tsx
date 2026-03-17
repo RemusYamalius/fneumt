@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2 } from 'lucide-react';
+import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -148,6 +148,7 @@ const Dashboard = () => {
     ...(showSupervisorDashboard ? [{ icon: BarChart3, title: t.supervisorDashboard, desc: t.supervisorDashboardDesc, to: '/supervisor', color: cardColors.supervisorDashboard }] : []),
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
     ...(isLocalCoordinator ? [{ icon: Building2, title: t.localOffice, desc: t.localOfficeDesc, to: '/local-office', color: 'from-[hsl(45,80%,45%)] to-[hsl(45,80%,58%)]' }] : []),
+    ...(isAdminLike ? [{ icon: Database, title: t.databaseTitle, desc: t.databaseDesc, to: '/database', color: 'from-[hsl(180,60%,35%)] to-[hsl(195,70%,50%)]' }] : []),
   ];
 
   // Simple layout for regular users (teacher/union_officer)

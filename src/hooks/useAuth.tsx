@@ -18,6 +18,7 @@ interface Profile {
   mission: string | null;
   is_member: boolean | null;
   membership_verified: boolean | null;
+  date_of_birth: string | null;
 }
 
 export type { AppRole };

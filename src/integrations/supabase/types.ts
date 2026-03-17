@@ -233,6 +233,7 @@ export type Database = {
           academy: string | null
           corps: Database["public"]["Enums"]["corps_type"] | null
           created_at: string
+          date_of_birth: string | null
           directorate: string | null
           email: string | null
           employee_number: string | null
@@ -253,6 +254,7 @@ export type Database = {
           academy?: string | null
           corps?: Database["public"]["Enums"]["corps_type"] | null
           created_at?: string
+          date_of_birth?: string | null
           directorate?: string | null
           email?: string | null
           employee_number?: string | null
@@ -273,6 +275,7 @@ export type Database = {
           academy?: string | null
           corps?: Database["public"]["Enums"]["corps_type"] | null
           created_at?: string
+          date_of_birth?: string | null
           directorate?: string | null
           email?: string | null
           employee_number?: string | null

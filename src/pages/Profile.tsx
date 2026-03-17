@@ -3,8 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, ArrowLeft, Save, Loader2, User, Phone, Hash, Building2, MapPin,
   Briefcase, GraduationCap, CreditCard, Mail, ChevronLeft, ChevronRight, Eye,
-  Trash2, AlertTriangle
+  Trash2, AlertTriangle, CalendarDays
 } from 'lucide-react';
+import { format, parse } from 'date-fns';
+import { ar } from 'date-fns/locale';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useI18n } from '@/lib/i18n';
@@ -63,7 +67,7 @@ interface CardField {
   key: string;
   label: string;
   icon: typeof User;
-  type: 'text' | 'select' | 'membership';
+  type: 'text' | 'select' | 'membership' | 'datepicker';
   options?: { value: string; label: string }[];
   readOnly?: boolean;
   dir?: string;
@@ -84,7 +88,7 @@ const Profile = () => {
     full_name: '', phone: '', employee_number: '', corps: '',
     institution: '', zone: '', directorate: '', academy: '',
     mission: '', is_member: false, membership_card_number: '',
-    gender: '',
+    gender: '', date_of_birth: '',
   });
 
 
@@ -109,6 +113,7 @@ const Profile = () => {
         is_member: (profile as any).is_member || false,
         membership_card_number: (profile as any).membership_card_number || '',
         gender: (profile as any).gender || '',
+        date_of_birth: (profile as any).date_of_birth || '',
       });
     }
   }, [profile]);
@@ -170,6 +175,7 @@ const Profile = () => {
   const cards: CardField[] = useMemo(() => [
     { key: 'full_name', label: t.fullNameLabel, icon: User, type: 'text' },
     { key: 'gender', label: t.genderLabel, icon: User, type: 'select', options: genderOptions },
+    { key: 'date_of_birth', label: t.dateOfBirthLabel, icon: CalendarDays, type: 'datepicker' },
     { key: 'employee_number', label: t.employeeNumberLabel, icon: Hash, type: 'text', dir: 'ltr' },
     { key: 'mission', label: t.missionLabel, icon: Briefcase, type: 'select', options: missionOptions },
     { key: 'academy', label: t.academyLabel, icon: GraduationCap, type: 'select', options: ACADEMIES.map(a => ({ value: a.label, label: a.label })) },
@@ -220,6 +226,13 @@ const Profile = () => {
     if (key === 'membership') {
       return form.is_member ? `${t.isMember}${form.membership_card_number ? ` - ${form.membership_card_number}` : ''}` : t.isNotMember;
     }
+    if (key === 'date_of_birth') {
+      if (!form.date_of_birth) return '';
+      try {
+        const d = parse(form.date_of_birth, 'yyyy-MM-dd', new Date());
+        return format(d, 'yyyy/MM/dd');
+      } catch { return form.date_of_birth; }
+    }
     const val = (form as any)[key];
     if (!val) return '';
     if (key === 'corps') return corpsOptions.find(o => o.value === val)?.label || val;
@@ -254,6 +267,7 @@ const Profile = () => {
         is_member: form.is_member,
         membership_card_number: form.is_member ? (form.membership_card_number.trim() || null) : null,
         gender: form.gender || null,
+        date_of_birth: form.date_of_birth || null,
       } as any)
       .eq('user_id', user.id);
 
@@ -354,6 +368,44 @@ const Profile = () => {
             </motion.div>
           )}
         </div>
+      );
+    }
+
+    if (card.type === 'datepicker') {
+      const dateValue = form.date_of_birth
+        ? parse(form.date_of_birth, 'yyyy-MM-dd', new Date())
+        : undefined;
+      return (
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className="profile-input h-12 w-full flex items-center justify-between px-3 rounded-xl text-sm"
+              style={{
+                background: 'rgba(255 255 255 / 0.06)',
+                border: '1px solid rgba(255 255 255 / 0.15)',
+                color: dateValue ? 'rgba(255 255 255 / 0.9)' : 'rgba(255 255 255 / 0.4)',
+              }}
+            >
+              <span>{dateValue ? format(dateValue, 'yyyy/MM/dd') : t.pickDate}</span>
+              <CalendarDays className="w-4 h-4 opacity-50" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              mode="single"
+              selected={dateValue}
+              onSelect={(d) => {
+                if (d) handleChange('date_of_birth', format(d, 'yyyy-MM-dd'));
+              }}
+              disabled={(date) => date > new Date() || date < new Date('1940-01-01')}
+              initialFocus
+              className="p-3 pointer-events-auto"
+              captionLayout="dropdown-buttons"
+              fromYear={1940}
+              toYear={new Date().getFullYear()}
+            />
+          </PopoverContent>
+        </Popover>
       );
     }
 

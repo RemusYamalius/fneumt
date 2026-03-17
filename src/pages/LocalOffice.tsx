@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
-import { Users, CreditCard, Upload, X, Search, Save, Loader2, Trash2 } from 'lucide-react';
+import { Users, CreditCard, Upload, X, Search, Save, Loader2, Trash2, Filter, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 

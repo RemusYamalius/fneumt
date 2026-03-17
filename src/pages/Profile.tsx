@@ -84,6 +84,7 @@ const Profile = () => {
     full_name: '', phone: '', employee_number: '', corps: '',
     institution: '', zone: '', directorate: '', academy: '',
     mission: '', is_member: false, membership_card_number: '',
+    gender: '',
   });
 
 
@@ -107,6 +108,7 @@ const Profile = () => {
         mission: (profile as any).mission || '',
         is_member: (profile as any).is_member || false,
         membership_card_number: (profile as any).membership_card_number || '',
+        gender: (profile as any).gender || '',
       });
     }
   }, [profile]);
@@ -132,32 +134,52 @@ const Profile = () => {
   ];
 
   const missionOptions = [
-    { value: 'teacher', label: t.missionTeacher },
-    { value: 'support_staff', label: t.missionSupportStaff },
+    { value: 'teacher_primary', label: t.missionTeacherPrimary },
+    { value: 'teacher_middle', label: t.missionTeacherMiddle },
+    { value: 'teacher_high', label: t.missionTeacherHigh },
+    { value: 'specialist_educational', label: t.missionSpecialistEducational },
+    { value: 'specialist_social', label: t.missionSpecialistSocial },
+    { value: 'specialist_admin_econ', label: t.missionSpecialistAdminEcon },
+    { value: 'admin_director', label: t.missionAdminDirector },
+    { value: 'admin_guard_ext', label: t.missionAdminGuardExt },
+    { value: 'admin_guard_int', label: t.missionAdminGuardInt },
+    { value: 'admin_nazir', label: t.missionAdminNazir },
+    { value: 'admin_work_chief', label: t.missionAdminWorkChief },
+    { value: 'admin_study_dir', label: t.missionAdminStudyDir },
+    { value: 'admin_cross_sector', label: t.missionAdminCrossSector },
+    { value: 'admin_ministry', label: t.missionAdminMinistry },
     { value: 'supplier', label: t.missionSupplier },
-    { value: 'educational_advisor', label: t.missionEducationalAdvisor },
-    { value: 'guard', label: t.missionGuard },
-    { value: 'director', label: t.missionDirector },
-    { value: 'administrator', label: t.missionAdministrator },
-    { value: 'educational_inspector', label: t.missionEducationalInspector },
-    { value: 'tech_assistant', label: t.missionTechAssistant },
+    { value: 'editor', label: t.missionEditor },
+    { value: 'educational_assistant', label: t.missionEducationalAssistant },
+    { value: 'technician', label: t.missionTechnician },
+    { value: 'inspector_primary', label: t.missionInspectorPrimary },
+    { value: 'inspector_middle', label: t.missionInspectorMiddle },
+    { value: 'inspector_high', label: t.missionInspectorHigh },
+    { value: 'inspector_guidance', label: t.missionInspectorGuidance },
+    { value: 'inspector_planning', label: t.missionInspectorPlanning },
+    { value: 'inspector_finance', label: t.missionInspectorFinance },
     { value: 'economy_admin', label: t.missionEconomyAdmin },
-    { value: 'treasurer', label: t.missionTreasurer },
+    { value: 'doctor', label: t.missionDoctor },
     { value: 'other', label: t.missionOther },
+  ];
+
+  const genderOptions = [
+    { value: 'male', label: t.genderMale },
+    { value: 'female', label: t.genderFemale },
   ];
 
   const cards: CardField[] = useMemo(() => [
     { key: 'full_name', label: t.fullNameLabel, icon: User, type: 'text' },
-    { key: 'phone', label: t.phoneLabel, icon: Phone, type: 'text', dir: 'ltr' },
+    { key: 'gender', label: t.genderLabel, icon: User, type: 'select', options: genderOptions },
     { key: 'employee_number', label: t.employeeNumberLabel, icon: Hash, type: 'text', dir: 'ltr' },
+    { key: 'mission', label: t.missionLabel, icon: Briefcase, type: 'select', options: missionOptions },
     { key: 'academy', label: t.academyLabel, icon: GraduationCap, type: 'select', options: ACADEMIES.map(a => ({ value: a.label, label: a.label })) },
     { key: 'directorate', label: t.directorateLabel, icon: MapPin, type: 'select', options: directorates.map(d => ({ value: d, label: d })) },
-    { key: 'mission', label: t.missionLabel, icon: Briefcase, type: 'select', options: missionOptions },
-    { key: 'corps', label: t.corpsLabel, icon: GraduationCap, type: 'select', options: corpsOptions },
     { key: 'institution', label: t.institutionLabel, icon: Building2, type: 'text' },
     { key: 'membership', label: t.membershipLabel, icon: CreditCard, type: 'membership' },
+    { key: 'phone', label: t.phoneLabel, icon: Phone, type: 'text', dir: 'ltr' },
     { key: 'email', label: t.emailLabel, icon: Mail, type: 'text', readOnly: true },
-  ], [t, directorates, corpsOptions, missionOptions]);
+  ], [t, directorates, genderOptions, missionOptions]);
 
   // Embla carousel
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -201,9 +223,9 @@ const Profile = () => {
     }
     const val = (form as any)[key];
     if (!val) return '';
-    // Translate select values
     if (key === 'corps') return corpsOptions.find(o => o.value === val)?.label || val;
     if (key === 'mission') return missionOptions.find(o => o.value === val)?.label || val;
+    if (key === 'gender') return genderOptions.find(o => o.value === val)?.label || val;
     return val;
   };
 
@@ -232,6 +254,7 @@ const Profile = () => {
         mission: form.mission || null,
         is_member: form.is_member,
         membership_card_number: form.is_member ? (form.membership_card_number.trim() || null) : null,
+        gender: form.gender || null,
       } as any)
       .eq('user_id', user.id);
 

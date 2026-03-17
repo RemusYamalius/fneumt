@@ -702,6 +702,8 @@ const translations: Record<Lang, Record<string, string>> = {
     cardsSaved: "Cartes d'adhésion enregistrées avec succès",
     positionTaken: 'Ce poste est déjà occupé',
     memberAlreadyAdded: 'Ce membre est déjà ajouté',
+    allGenders: 'Tous',
+    clearFilter: 'Effacer le filtre',
   },
 };
 

@@ -65,7 +65,7 @@ const Index = () => {
             <br /><br />
             الاتحاد المغربي للشغل
           </h1>
-          <p className="text-base md:text-lg text-white/70 mb-2 font-light">
+          <p className="text-base text-white/70 mb-2 md:text-4xl font-mono font-extrabold">
             {t.platformSubtitle}
           </p>
           <div className="w-16 h-1 bg-accent mx-auto rounded-full my-6" />
@@ -91,34 +91,34 @@ const Index = () => {
           <div className="relative flex flex-col md:flex-row items-center md:items-start justify-center gap-8 md:gap-0" style={{ direction: dir === 'rtl' ? 'rtl' : 'ltr' }}>
             
 
-            {actions.map((action, index) => (
-              <motion.div
-                key={action.to}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}
-                className="flex-1 flex flex-col items-center relative"
-              >
+            {actions.map((action, index) =>
+            <motion.div
+              key={action.to}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeOut' }}
+              className="flex-1 flex flex-col items-center relative">
+              
                 <Link to={action.to} className="flex flex-col items-center text-center group">
-                  {index === 1 ? (
-                    <>
+                  {index === 1 ?
+                <>
                       {/* Mobile: normal layout */}
                       <div className="flex flex-col items-center md:hidden">
                         <div
-                          className="w-28 h-14 border-4 border-b-0 rounded-t-full"
-                          style={{ borderColor: action.color }}
-                        />
+                      className="w-28 h-14 border-4 border-b-0 rounded-t-full"
+                      style={{ borderColor: action.color }} />
+                    
                         <div
-                          className="w-14 h-14 bg-white rounded-full shadow-xl -mt-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-                          style={{ border: `3px solid ${action.color}` }}
-                        >
+                      className="w-14 h-14 bg-white rounded-full shadow-xl -mt-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                      style={{ border: `3px solid ${action.color}` }}>
+                      
                           <action.icon className="w-6 h-6" style={{ color: action.color }} />
                         </div>
                         <div className="w-0.5 h-8 bg-gray-300 my-1" />
                         <div
-                          className="w-3 h-3 rounded-full mb-4 z-10"
-                          style={{ backgroundColor: action.color }}
-                        />
+                      className="w-3 h-3 rounded-full mb-4 z-10"
+                      style={{ backgroundColor: action.color }} />
+                    
                         <h2 className="text-lg font-bold text-foreground mb-1 group-hover:opacity-80 transition-opacity">{action.title}</h2>
                         <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{action.desc}</p>
                       </div>
@@ -126,48 +126,48 @@ const Index = () => {
                       {/* Desktop: inverted layout */}
                       <div className="hidden md:flex flex-col items-center">
                         <div
-                          className="w-3 h-3 rounded-full mb-0 z-10"
-                          style={{ backgroundColor: action.color }}
-                        />
+                      className="w-3 h-3 rounded-full mb-0 z-10"
+                      style={{ backgroundColor: action.color }} />
+                    
                         <div className="w-0.5 h-8 bg-gray-300 my-1" />
                         <div
-                          className="w-14 h-14 bg-white rounded-full shadow-xl -mb-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-                          style={{ border: `3px solid ${action.color}` }}
-                        >
+                      className="w-14 h-14 bg-white rounded-full shadow-xl -mb-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                      style={{ border: `3px solid ${action.color}` }}>
+                      
                           <action.icon className="w-6 h-6" style={{ color: action.color }} />
                         </div>
                         <div
-                          className="w-28 h-14 border-4 border-t-0 rounded-b-full"
-                          style={{ borderColor: action.color }}
-                        />
+                      className="w-28 h-14 border-4 border-t-0 rounded-b-full"
+                      style={{ borderColor: action.color }} />
+                    
                         <h2 className="text-lg font-bold text-foreground mb-1 mt-4 group-hover:opacity-80 transition-opacity">{action.title}</h2>
                         <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{action.desc}</p>
                       </div>
-                    </>
-                  ) : (
-                    <>
+                    </> :
+
+                <>
                       <div
-                        className="w-28 h-14 border-4 border-b-0 rounded-t-full"
-                        style={{ borderColor: action.color }}
-                      />
+                    className="w-28 h-14 border-4 border-b-0 rounded-t-full"
+                    style={{ borderColor: action.color }} />
+                  
                       <div
-                        className="w-14 h-14 bg-white rounded-full shadow-xl -mt-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-                        style={{ border: `3px solid ${action.color}` }}
-                      >
+                    className="w-14 h-14 bg-white rounded-full shadow-xl -mt-7 z-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                    style={{ border: `3px solid ${action.color}` }}>
+                    
                         <action.icon className="w-6 h-6" style={{ color: action.color }} />
                       </div>
                       <div className="w-0.5 h-8 bg-gray-300 my-1" />
                       <div
-                        className="w-3 h-3 rounded-full mb-4 z-10"
-                        style={{ backgroundColor: action.color }}
-                      />
+                    className="w-3 h-3 rounded-full mb-4 z-10"
+                    style={{ backgroundColor: action.color }} />
+                  
                       <h2 className="text-lg font-bold text-foreground mb-1 group-hover:opacity-80 transition-opacity">{action.title}</h2>
                       <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{action.desc}</p>
                     </>
-                  )}
+                }
                 </Link>
               </motion.div>
-            ))}
+            )}
           </div>
         </div>
       </main>

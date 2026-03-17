@@ -390,6 +390,8 @@ const translations: Record<Lang, Record<string, string>> = {
     role_deputy_local_high: 'Adjoint(e) local(e) - Lycée',
     role_teacher: 'Enseignant(e)',
     role_union_officer: 'Responsable syndical(e)',
+    role_national_secretary: 'Secrétaire Général National',
+    role_deputy_national_secretary: 'Secrétaire Général Adjoint',
     // Admin
     userManagement: 'Gestion des utilisateurs',
     userManagementDesc: 'Afficher et modifier les rôles des utilisateurs',

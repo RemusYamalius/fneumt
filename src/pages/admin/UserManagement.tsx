@@ -70,7 +70,7 @@ const UserManagement = () => {
     return users.filter(u => {
       if (u.user_id === user?.id) return false;
 
-      if (myRole === 'admin') {
+      if (['admin', 'national_secretary', 'deputy_national_secretary'].includes(myRole)) {
         if (filterAcademy !== 'all' && u.academy !== filterAcademy) return false;
         if (filterDirectorate !== 'all' && u.directorate !== filterDirectorate) return false;
         return true;
@@ -152,7 +152,7 @@ const UserManagement = () => {
         </div>
 
         {/* Filters */}
-        {myRole === 'admin' && (
+        {myRole && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(myRole) && (
           <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gradient-to-br from-slate-100/80 to-blue-50/50 rounded-xl border border-white/60 shadow-sm">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
@@ -226,7 +226,7 @@ const UserManagement = () => {
                                 {getRoleLabel(r)}
                               </SelectItem>
                             ))}
-                          {u.role !== 'teacher' && !allowedPromotions.includes('teacher') && myRole === 'admin' && (
+                          {u.role !== 'teacher' && !allowedPromotions.includes('teacher') && myRole && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(myRole) && (
                             <SelectItem value="teacher">{getRoleLabel('teacher')}</SelectItem>
                           )}
                         </SelectContent>

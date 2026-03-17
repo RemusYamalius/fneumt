@@ -492,6 +492,8 @@ export type Database = {
         | "deputy_local_primary"
         | "deputy_local_middle"
         | "deputy_local_high"
+        | "national_secretary"
+        | "deputy_national_secretary"
       corps_type: "primary" | "middle_school" | "high_school" | "administrative"
       request_category:
         | "medical_file"
@@ -661,6 +663,8 @@ export const Constants = {
         "deputy_local_primary",
         "deputy_local_middle",
         "deputy_local_high",
+        "national_secretary",
+        "deputy_national_secretary",
       ],
       corps_type: ["primary", "middle_school", "high_school", "administrative"],
       request_category: [

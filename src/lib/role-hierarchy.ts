@@ -2,6 +2,8 @@
 
 export type AppRole =
   | 'admin'
+  | 'national_secretary'
+  | 'deputy_national_secretary'
   | 'regional_supervisor'
   | 'deputy_regional_primary'
   | 'deputy_regional_middle'
@@ -19,6 +21,8 @@ export type AppRole =
 // All roles that have promotion powers
 export const PROMOTER_ROLES: AppRole[] = [
   'admin',
+  'national_secretary',
+  'deputy_national_secretary',
   'regional_supervisor',
   'deputy_regional_primary',
   'deputy_regional_middle',
@@ -34,7 +38,9 @@ export const PROMOTER_ROLES: AppRole[] = [
 export function getAllowedPromotions(promoterRole: AppRole): AppRole[] {
   switch (promoterRole) {
     case 'admin':
-      // Admin can assign any role
+    case 'national_secretary':
+    case 'deputy_national_secretary':
+      // Admin-level can assign any role
       return [
         'regional_supervisor',
         'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
@@ -67,7 +73,7 @@ export function getAllowedPromotions(promoterRole: AppRole): AppRole[] {
 export type GeoConstraint = 'none' | 'academy' | 'directorate';
 
 export function getGeoConstraint(promoterRole: AppRole): GeoConstraint {
-  if (promoterRole === 'admin') return 'none';
+  if (['admin', 'national_secretary', 'deputy_national_secretary'].includes(promoterRole)) return 'none';
   if (['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'].includes(promoterRole)) {
     return 'academy';
   }
@@ -80,6 +86,8 @@ export function isPromoterRole(role: AppRole): boolean {
 
 export const ALL_ROLES: AppRole[] = [
   'admin',
+  'national_secretary',
+  'deputy_national_secretary',
   'regional_supervisor',
   'deputy_regional_primary',
   'deputy_regional_middle',

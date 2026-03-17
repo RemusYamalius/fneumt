@@ -28,11 +28,13 @@ const Dashboard = () => {
     }
   }, [loading, user, navigate]);
 
+  const isAdminLike = role && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(role);
+
   const showIncomingRequests = role && [
     'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
-  ].includes(role);
+  ].includes(role) || isAdminLike;
 
-  const isDeputyLocal = role && ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role);
+  const isDeputyLocal = role && ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role) || isAdminLike;
 
   useEffect(() => {
     if (!user || !showIncomingRequests) return;
@@ -104,7 +106,7 @@ const Dashboard = () => {
   const isLocalCoordinator = role === 'local_coordinator';
 
   const isPromoterRole = role && [
-    'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
+    'admin', 'national_secretary', 'deputy_national_secretary', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
     'local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high',
   ].includes(role);
@@ -112,13 +114,13 @@ const Dashboard = () => {
   
 
   const showUserManagement = role && [
-    'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
+    'admin', 'national_secretary', 'deputy_national_secretary', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
     'local_coordinator',
   ].includes(role);
 
   const showSupervisorDashboard = role && [
-    'admin', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
+    'admin', 'national_secretary', 'deputy_national_secretary', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high',
     'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high',
     'local_coordinator',
   ].includes(role);

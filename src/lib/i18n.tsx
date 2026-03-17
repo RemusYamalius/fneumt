@@ -83,6 +83,8 @@ const translations: Record<Lang, Record<string, string>> = {
     role_deputy_local_high: 'نائب(ة) منسق(ة) محلي(ة) - ثانوي تأهيلي',
     role_teacher: 'أستاذ(ة)',
     role_union_officer: 'مسؤول(ة) نقابي(ة)',
+    role_national_secretary: 'الكاتب العام الوطني',
+    role_deputy_national_secretary: 'مساعد الكاتب العام الوطني',
     // Admin
     userManagement: 'إدارة المستخدمين',
     userManagementDesc: 'عرض وتعديل أدوار المستخدمين',
@@ -277,6 +279,7 @@ const translations: Record<Lang, Record<string, string>> = {
     badge_black: 'قيد التحقق',
     badge_blue: 'منخرط مفعّل',
     badge_gold: 'مسؤول نقابي',
+    badge_green: 'الكاتب العام الوطني',
     downloadFormTitle: 'استمارة المعلومات والمشاكل',
     downloadFormDesc: 'قم بتحميل الاستمارة، اطبعها، املأها بمعلوماتك ووقّعها، ثم أرفقها مع طلبك.',
     downloadFormButton: 'تحميل الاستمارة',
@@ -387,6 +390,8 @@ const translations: Record<Lang, Record<string, string>> = {
     role_deputy_local_high: 'Adjoint(e) local(e) - Lycée',
     role_teacher: 'Enseignant(e)',
     role_union_officer: 'Responsable syndical(e)',
+    role_national_secretary: 'Secrétaire Général National',
+    role_deputy_national_secretary: 'Secrétaire Général Adjoint',
     // Admin
     userManagement: 'Gestion des utilisateurs',
     userManagementDesc: 'Afficher et modifier les rôles des utilisateurs',
@@ -580,6 +585,7 @@ const translations: Record<Lang, Record<string, string>> = {
     badge_black: 'En cours de vérification',
     badge_blue: 'Adhérent vérifié',
     badge_gold: 'Responsable syndical',
+    badge_green: 'Secrétaire Général',
     downloadFormTitle: "Formulaire d'informations et de problèmes",
     downloadFormDesc: "Téléchargez le formulaire, imprimez-le, remplissez-le avec vos informations et signez-le, puis joignez-le à votre demande.",
     downloadFormButton: 'Télécharger le formulaire',

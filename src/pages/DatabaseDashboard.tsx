@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, UserCheck, UserX, Building2, BarChart3, Clock, Filter, RotateCcw, ChevronDown, ChevronUp, Search, ArrowUpDown, ChevronLeft, ChevronRight, Eye, DollarSign, MapPin, Phone, Hash, Briefcase, X } from 'lucide-react';
+import { Users, UserCheck, UserX, Building2, BarChart3, Clock, Filter, RotateCcw, ChevronDown, ChevronUp, Search, ArrowUpDown, ChevronLeft, ChevronRight, Eye, DollarSign, MapPin, Phone, Hash, Briefcase, X, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,17 +27,47 @@ const CHART_COLORS = [
   'hsl(280, 50%, 50%)', 'hsl(210, 70%, 35%)', 'hsl(170, 60%, 35%)',
 ];
 
-const MISSIONS_LIST = [
-  'missionTeacherPrimary', 'missionTeacherMiddle', 'missionTeacherHigh',
-  'missionSpecialistEducational', 'missionSpecialistSocial', 'missionSpecialistAdminEcon',
-  'missionAdminDirector', 'missionAdminGuardExt', 'missionAdminGuardInt',
-  'missionAdminNazir', 'missionAdminWorkChief', 'missionAdminStudyDir',
-  'missionAdminCrossSector', 'missionAdminMinistry', 'missionSupplier',
-  'missionEditor', 'missionEducationalAssistant', 'missionTechnician',
-  'missionInspectorPrimary', 'missionInspectorMiddle', 'missionInspectorHigh',
-  'missionInspectorGuidance', 'missionInspectorPlanning', 'missionInspectorFinance',
-  'missionEconomyAdmin', 'missionDoctor',
+// Map DB mission values to i18n keys
+const MISSION_DB_VALUES = [
+  'teacher_primary', 'teacher_middle', 'teacher_high',
+  'specialist_educational', 'specialist_social', 'specialist_admin_econ',
+  'admin_director', 'admin_guard_ext', 'admin_guard_int',
+  'admin_nazir', 'admin_work_chief', 'admin_study_dir',
+  'admin_cross_sector', 'admin_ministry', 'supplier',
+  'editor', 'educational_assistant', 'technician',
+  'inspector_primary', 'inspector_middle', 'inspector_high',
+  'inspector_guidance', 'inspector_planning', 'inspector_finance',
+  'economy_admin', 'doctor',
 ];
+
+const MISSION_VALUE_TO_KEY: Record<string, string> = {
+  teacher_primary: 'missionTeacherPrimary',
+  teacher_middle: 'missionTeacherMiddle',
+  teacher_high: 'missionTeacherHigh',
+  specialist_educational: 'missionSpecialistEducational',
+  specialist_social: 'missionSpecialistSocial',
+  specialist_admin_econ: 'missionSpecialistAdminEcon',
+  admin_director: 'missionAdminDirector',
+  admin_guard_ext: 'missionAdminGuardExt',
+  admin_guard_int: 'missionAdminGuardInt',
+  admin_nazir: 'missionAdminNazir',
+  admin_work_chief: 'missionAdminWorkChief',
+  admin_study_dir: 'missionAdminStudyDir',
+  admin_cross_sector: 'missionAdminCrossSector',
+  admin_ministry: 'missionAdminMinistry',
+  supplier: 'missionSupplier',
+  editor: 'missionEditor',
+  educational_assistant: 'missionEducationalAssistant',
+  technician: 'missionTechnician',
+  inspector_primary: 'missionInspectorPrimary',
+  inspector_middle: 'missionInspectorMiddle',
+  inspector_high: 'missionInspectorHigh',
+  inspector_guidance: 'missionInspectorGuidance',
+  inspector_planning: 'missionInspectorPlanning',
+  inspector_finance: 'missionInspectorFinance',
+  economy_admin: 'missionEconomyAdmin',
+  doctor: 'missionDoctor',
+};
 
 const PAGE_SIZE = 15;
 
@@ -100,6 +131,12 @@ const DatabaseDashboard = () => {
       setLoadingData(false);
     });
   }, [user]);
+
+  const getMissionLabel = (val: string | null) => {
+    if (!val) return '—';
+    const key = MISSION_VALUE_TO_KEY[val];
+    return key ? (t as any)[key] || val : val;
+  };
 
   const getAge = (dob: string | null) => {
     if (!dob) return null;
@@ -205,7 +242,7 @@ const DatabaseDashboard = () => {
     const counts: Record<string, number> = {};
     filteredProfiles.forEach(p => { if (p.mission) counts[p.mission] = (counts[p.mission] || 0) + 1; });
     return Object.entries(counts)
-      .map(([name, value]) => ({ name: (t as any)[name] || name, value }))
+      .map(([name, value]) => ({ name: getMissionLabel(name), value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
   }, [filteredProfiles, t]);
@@ -232,6 +269,31 @@ const DatabaseDashboard = () => {
     const ur = userRoles.find(r => r.user_id === userId);
     if (!ur) return '';
     return (t as any)[`role_${ur.role}`] || ur.role;
+  };
+
+  const handleExportExcel = () => {
+    const data = filteredProfiles.map(p => {
+      const badge = getMembershipBadge(p);
+      return {
+        [t.fullNameLabel]: p.full_name || '',
+        [t.genderLabel]: p.gender === 'male' ? t.genderMale : p.gender === 'female' ? t.genderFemale : '',
+        [t.dateOfBirthLabel]: p.date_of_birth || '',
+        [t.employeeNumberLabel]: p.employee_number || '',
+        [t.missionLabel]: getMissionLabel(p.mission),
+        [t.academyLabel]: p.academy || '',
+        [t.directorateLabel]: p.directorate || '',
+        [t.institutionLabel]: p.institution || '',
+        [t.phoneLabel]: p.phone || '',
+        [t.membershipFilter]: badge.label,
+        [t.roleLabel]: getRoleName(p.user_id),
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = Object.keys(data[0] || {}).map(() => ({ wch: 25 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, t.registeredUsers);
+    const date = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `database-export-${date}.xlsx`);
   };
 
   if (loading || loadingData) {
@@ -384,7 +446,7 @@ const DatabaseDashboard = () => {
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__all__">{t.allMissions}</SelectItem>
-                        {MISSIONS_LIST.map(m => <SelectItem key={m} value={m}>{(t as any)[m] || m}</SelectItem>)}
+                        {MISSION_DB_VALUES.map(m => <SelectItem key={m} value={m}>{getMissionLabel(m)}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -538,22 +600,26 @@ const DatabaseDashboard = () => {
                 <p className="text-xs text-muted-foreground">
                   {t.showingResults} {((currentPage - 1) * PAGE_SIZE) + 1}-{Math.min(currentPage * PAGE_SIZE, sortedProfiles.length)} {t.of} {sortedProfiles.length}
                 </p>
+                <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={handleExportExcel}>
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  {t.exportToExcel}
+                </Button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="w-full text-xs" dir={dir}>
                   <thead className="bg-muted/50 text-muted-foreground">
                     <tr>
-                      <SortHeader field="full_name">{t.fullNameLabel}</SortHeader>
-                      <SortHeader field="gender">{t.genderLabel}</SortHeader>
-                      <SortHeader field="date_of_birth">{t.dateOfBirthLabel}</SortHeader>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.employeeNumberLabel}</th>
-                      <SortHeader field="mission">{t.missionLabel}</SortHeader>
-                      <SortHeader field="academy">{t.academyLabel}</SortHeader>
-                      <SortHeader field="directorate">{t.directorateLabel}</SortHeader>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.institutionLabel}</th>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.phoneLabel}</th>
-                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.membershipFilter}</th>
                       <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.roleLabel}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.membershipFilter}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.phoneLabel}</th>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.institutionLabel}</th>
+                      <SortHeader field="directorate">{t.directorateLabel}</SortHeader>
+                      <SortHeader field="academy">{t.academyLabel}</SortHeader>
+                      <SortHeader field="mission">{t.missionLabel}</SortHeader>
+                      <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.employeeNumberLabel}</th>
+                      <SortHeader field="date_of_birth">{t.dateOfBirthLabel}</SortHeader>
+                      <SortHeader field="gender">{t.genderLabel}</SortHeader>
+                      <SortHeader field="full_name">{t.fullNameLabel}</SortHeader>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
@@ -562,19 +628,19 @@ const DatabaseDashboard = () => {
                       const age = getAge(p.date_of_birth);
                       return (
                         <tr key={p.id} className={i % 2 === 0 ? '' : 'bg-muted/20'}>
-                          <td className="px-3 py-2.5 font-medium whitespace-nowrap">{p.full_name || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.gender === 'male' ? t.genderMale : p.gender === 'female' ? t.genderFemale : '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.date_of_birth || '—'}{age !== null ? ` (${age})` : ''}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap font-mono">{p.employee_number || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.mission ? (t as any)[p.mission] || p.mission : '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.academy?.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '') || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap">{p.directorate || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.institution || '—'}</td>
-                          <td className="px-3 py-2.5 whitespace-nowrap font-mono text-[11px]">{p.phone || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getRoleName(p.user_id)}</td>
                           <td className="px-3 py-2.5 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${badge.color}`}>{badge.label}</span>
                           </td>
-                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getRoleName(p.user_id)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono text-[11px]">{p.phone || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.institution || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.directorate || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.academy?.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '') || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{getMissionLabel(p.mission)}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono">{p.employee_number || '—'}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.date_of_birth || '—'}{age !== null ? ` (${age})` : ''}</td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">{p.gender === 'male' ? t.genderMale : p.gender === 'female' ? t.genderFemale : '—'}</td>
+                          <td className="px-3 py-2.5 font-medium whitespace-nowrap">{p.full_name || '—'}</td>
                         </tr>
                       );
                     })}

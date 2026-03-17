@@ -6,7 +6,7 @@ import {
   Trash2, AlertTriangle, CalendarDays
 } from 'lucide-react';
 import { format, parse } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { ar, fr } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';

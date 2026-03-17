@@ -442,7 +442,7 @@ const LocalOffice = () => {
               <Users className="w-4 h-4" />
               {t.officeFormation}
             </TabsTrigger>
-            <TabsTrigger value="cards" className="gap-2" onClick={loadDirectorateMembers}>
+            <TabsTrigger value="cards" className="gap-2">
               <CreditCard className="w-4 h-4" />
               {t.membershipCards}
             </TabsTrigger>

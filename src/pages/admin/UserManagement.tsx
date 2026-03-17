@@ -114,8 +114,26 @@ const UserManagement = () => {
     return found?.directorates || [];
   }, [filterAcademy, myProfile]);
 
+  const isNationalRole = (role: AppRole) => role === 'national_secretary' || role === 'deputy_national_secretary';
+
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
     if (!user) return;
+
+    // Check uniqueness for national roles
+    if (isNationalRole(newRole)) {
+      const currentHolder = users.find(u => u.role === newRole && u.user_id !== userId);
+      if (currentHolder) {
+        toast({
+          title: t.error || 'خطأ',
+          description: dir === 'rtl'
+            ? `هذا المنصب مشغول بالفعل من طرف ${currentHolder.full_name || 'مستخدم آخر'}`
+            : `Ce poste est déjà occupé par ${currentHolder.full_name || 'un autre utilisateur'}`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     setSaving(userId);
     const { error } = await supabase
       .from('user_roles')
@@ -125,6 +143,14 @@ const UserManagement = () => {
     if (error) {
       toast({ title: t.error || 'خطأ', description: error.message, variant: 'destructive' });
     } else {
+      // Update occupied national roles tracking
+      const oldRole = users.find(u => u.user_id === userId)?.role;
+      setOccupiedNationalRoles(prev => {
+        const next = new Set(prev);
+        if (oldRole && isNationalRole(oldRole)) next.delete(oldRole);
+        if (isNationalRole(newRole)) next.add(newRole);
+        return next;
+      });
       toast({ title: t.roleUpdated });
       setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, role: newRole, promoted_by: user.id } : u));
     }

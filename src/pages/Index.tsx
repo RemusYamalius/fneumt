@@ -66,7 +66,8 @@ const Index = () => {
             الاتحاد المغربي للشغل
           </h1>
           <p className="text-base text-white/70 mb-2 md:text-4xl font-mono font-extrabold">
-            {t.platformSubtitle}
+            <br />
+            UMT
           </p>
           <div className="w-16 h-1 bg-accent mx-auto rounded-full my-6" />
           <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">

@@ -92,7 +92,7 @@ export function getBadgeStatus(
   membershipVerified: boolean | null,
 ): BadgeStatus {
   // National secretary roles get green
-  if (role && ['national_secretary', 'deputy_national_secretary'].includes(role)) return 'green';
+  if (role && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(role)) return 'green';
   // Role holders (non-teacher, non-union_officer) get gold
   if (role && !['teacher', 'union_officer'].includes(role)) return 'gold';
   // Verified member

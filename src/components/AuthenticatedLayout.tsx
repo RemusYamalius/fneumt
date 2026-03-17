@@ -66,7 +66,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
                   <span className="flex items-center"><VerifiedBadge status={badgeStatus} size={22} /></span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{t[`badge_${badgeStatus}`]}</p>
+                  <p>{badgeStatus === 'green' && role ? (t[`role_${role}`] || t[`badge_${badgeStatus}`]) : t[`badge_${badgeStatus}`]}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

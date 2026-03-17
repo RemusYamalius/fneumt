@@ -132,6 +132,12 @@ const DatabaseDashboard = () => {
     });
   }, [user]);
 
+  const getMissionLabel = (val: string | null) => {
+    if (!val) return '—';
+    const key = MISSION_VALUE_TO_KEY[val];
+    return key ? (t as any)[key] || val : val;
+  };
+
   const getAge = (dob: string | null) => {
     if (!dob) return null;
     const diff = Date.now() - new Date(dob).getTime();

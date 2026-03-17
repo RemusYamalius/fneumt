@@ -21,6 +21,8 @@ export type AppRole =
 // All roles that have promotion powers
 export const PROMOTER_ROLES: AppRole[] = [
   'admin',
+  'national_secretary',
+  'deputy_national_secretary',
   'regional_supervisor',
   'deputy_regional_primary',
   'deputy_regional_middle',

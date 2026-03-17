@@ -351,6 +351,8 @@ const translations: Record<Lang, Record<string, string>> = {
     cardsSaved: 'تم حفظ بطائق الانخراط بنجاح',
     positionTaken: 'هذه الصفة مشغولة بالفعل',
     memberAlreadyAdded: 'هذا العضو مضاف بالفعل',
+    allGenders: 'الكل',
+    clearFilter: 'مسح الفلتر',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT',

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, UserCheck, UserX, Building2, BarChart3, Clock, Filter, RotateCcw, ChevronDown, ChevronUp, Search, ArrowUpDown, ChevronLeft, ChevronRight, Eye, DollarSign, MapPin, Phone, Hash, Briefcase, X, FileSpreadsheet } from 'lucide-react';
+import { Users, UserCheck, UserX, Building2, BarChart3, Clock, Filter, RotateCcw, ChevronDown, ChevronUp, Search, ArrowUpDown, ChevronLeft, ChevronRight, Eye, DollarSign, MapPin, Phone, Hash, Briefcase, X, FileSpreadsheet, ArrowRight, ArrowLeft } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -337,6 +337,18 @@ const DatabaseDashboard = () => {
   return (
     <AuthenticatedLayout>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        {/* Back Button */}
+        <motion.div initial={{ opacity: 0, x: dir === 'rtl' ? 20 : -20 }} animate={{ opacity: 1, x: 0 }} className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/dashboard')}
+            className="rounded-full bg-gradient-to-r from-[hsl(217,70%,25%)] to-[hsl(217,60%,35%)] text-white hover:from-[hsl(217,70%,30%)] hover:to-[hsl(217,60%,40%)] shadow-md px-5 h-10 text-sm gap-2"
+          >
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            {dir === 'rtl' ? 'العودة للوحة التحكم' : 'Retour au tableau de bord'}
+          </Button>
+        </motion.div>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

@@ -12,6 +12,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import NewRequest from "./pages/NewRequest";
+import LocalOffice from "./pages/LocalOffice";
 import IncomingRequests from "./pages/IncomingRequests";
 import TrackRequest from "./pages/TrackRequest";
 import UserManagement from "./pages/admin/UserManagement";

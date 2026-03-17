@@ -67,8 +67,8 @@ const translations: Record<Lang, Record<string, string>> = {
     // Roles (14 roles)
     roleTeacher: 'أستاذ(ة)',
     roleOfficer: 'مسؤول(ة) نقابي(ة)',
-    roleAdmin: 'مدير(ة)',
-    role_admin: 'مدير(ة)',
+    roleAdmin: 'أدمين',
+    role_admin: 'أدمين',
     role_regional_supervisor: 'مشرف(ة) جهوي(ة)',
     role_deputy_regional_primary: 'نائب(ة) مشرف(ة) جهوي(ة) - ابتدائي',
     role_deputy_regional_middle: 'نائب(ة) مشرف(ة) جهوي(ة) - ثانوي إعدادي',
@@ -374,8 +374,8 @@ const translations: Record<Lang, Record<string, string>> = {
     // Roles (14 roles)
     roleTeacher: 'Enseignant(e)',
     roleOfficer: 'Responsable syndical(e)',
-    roleAdmin: 'Administrateur(trice)',
-    role_admin: 'Administrateur(trice)',
+    roleAdmin: 'Admin',
+    role_admin: 'Admin',
     role_regional_supervisor: 'Superviseur(e) régional(e)',
     role_deputy_regional_primary: 'Adjoint(e) régional(e) - Primaire',
     role_deputy_regional_middle: 'Adjoint(e) régional(e) - Collège',

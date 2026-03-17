@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX unique_national_secretary ON public.user_roles (role) WHERE role = 'national_secretary';
+CREATE UNIQUE INDEX unique_deputy_national_secretary ON public.user_roles (role) WHERE role = 'deputy_national_secretary';

@@ -257,6 +257,7 @@ const UserManagement = () => {
                           </SelectItem>
                           {allowedPromotions
                             .filter(r => r !== u.role)
+                            .filter(r => !isNationalRole(r) || !occupiedNationalRoles.has(r))
                             .map(r => (
                               <SelectItem key={r} value={r}>
                                 {getRoleLabel(r)}

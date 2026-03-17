@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, UserCheck, UserX, Building2, BarChart3, Clock, Filter, RotateCcw, ChevronDown, ChevronUp, Search, ArrowUpDown, ChevronLeft, ChevronRight, Eye, DollarSign, MapPin, Phone, Hash, Briefcase, X, FileSpreadsheet } from 'lucide-react';
+import { Users, UserCheck, UserX, Building2, BarChart3, Clock, Filter, RotateCcw, ChevronDown, ChevronUp, Search, ArrowUpDown, ChevronLeft, ChevronRight, Eye, DollarSign, MapPin, Phone, Hash, Briefcase, X, FileSpreadsheet, ArrowRight, ArrowLeft } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';

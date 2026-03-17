@@ -630,56 +630,88 @@ const LocalOffice = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {cards.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-4 text-center">{t.noMembers}</p>
-                ) : (
-                  <div className="border rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t.fullNameLabel}</TableHead>
-                          <TableHead>{t.employeeNumberLabel}</TableHead>
-                          <TableHead>{t.cardNumber}</TableHead>
-                          <TableHead>{t.paymentStatus}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {cards.map((card, idx) => (
-                          <TableRow key={card.member_user_id}>
-                            <TableCell className="font-medium">{card.full_name}</TableCell>
-                            <TableCell>{card.employee_number}</TableCell>
-                            <TableCell>
-                              <Input
-                                value={card.card_number}
-                                onChange={e => {
-                                  const updated = [...cards];
-                                  updated[idx] = { ...updated[idx], card_number: e.target.value };
-                                  setCards(updated);
-                                }}
-                                className="h-8 w-32"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={card.is_paid}
-                                  onCheckedChange={checked => {
-                                    const updated = [...cards];
-                                    updated[idx] = { ...updated[idx], is_paid: !!checked };
-                                    setCards(updated);
-                                  }}
-                                />
-                                <span className={`text-xs font-medium ${card.is_paid ? 'text-green-600' : 'text-muted-foreground'}`}>
-                                  {card.is_paid ? t.paid : t.unpaid}
-                                </span>
-                              </div>
-                            </TableCell>
+                {/* Filter */}
+                <div className="relative">
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={cardFilter}
+                    onChange={e => setCardFilter(e.target.value)}
+                    placeholder={t.searchByNameOrPPR || 'بحث بالاسم أو رقم التأجير أو المؤسسة...'}
+                    className="ps-9"
+                  />
+                </div>
+
+                {(() => {
+                  const filtered = cards.filter(c => {
+                    if (!cardFilter) return true;
+                    const q = cardFilter.toLowerCase();
+                    return (
+                      c.full_name?.toLowerCase().includes(q) ||
+                      c.employee_number?.includes(q) ||
+                      c.institution?.toLowerCase().includes(q)
+                    );
+                  });
+
+                  return filtered.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-4 text-center">{t.noMembers}</p>
+                  ) : (
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-start">{t.fullNameLabel}</TableHead>
+                            <TableHead className="text-start">{t.employeeNumberLabel}</TableHead>
+                            <TableHead className="text-center">{t.genderLabel}</TableHead>
+                            <TableHead className="text-start">{t.institutionLabel}</TableHead>
+                            <TableHead className="text-start">{t.cardNumber}</TableHead>
+                            <TableHead className="text-center">{t.paymentStatus}</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
+                        </TableHeader>
+                        <TableBody>
+                          {filtered.map((card) => {
+                            const realIdx = cards.findIndex(c => c.member_user_id === card.member_user_id);
+                            return (
+                              <TableRow key={card.member_user_id}>
+                                <TableCell className="text-start font-medium">{card.full_name}</TableCell>
+                                <TableCell className="text-start">{card.employee_number}</TableCell>
+                                <TableCell className="text-center text-sm">
+                                  {card.gender === 'male' ? t.genderMale : card.gender === 'female' ? t.genderFemale : '-'}
+                                </TableCell>
+                                <TableCell className="text-start text-sm">{card.institution || '-'}</TableCell>
+                                <TableCell className="text-start">
+                                  <Input
+                                    value={card.card_number}
+                                    onChange={e => {
+                                      const updated = [...cards];
+                                      updated[realIdx] = { ...updated[realIdx], card_number: e.target.value };
+                                      setCards(updated);
+                                    }}
+                                    className="h-8 w-32"
+                                  />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <Checkbox
+                                      checked={card.is_paid}
+                                      onCheckedChange={checked => {
+                                        const updated = [...cards];
+                                        updated[realIdx] = { ...updated[realIdx], is_paid: !!checked };
+                                        setCards(updated);
+                                      }}
+                                    />
+                                    <span className={`text-xs font-medium ${card.is_paid ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                      {card.is_paid ? t.paid : t.unpaid}
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                })()}
 
                 {/* Financial summary */}
                 <div className="space-y-3">

@@ -122,6 +122,7 @@ const SelectItem = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Item
     ref={ref}
+    dir={getDocumentDirection()}
     className={cn(
       "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 ps-8 pe-2 text-sm outline-none text-start data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground",
       className,
@@ -134,7 +135,7 @@ const SelectItem = React.forwardRef<
       </SelectPrimitive.ItemIndicator>
     </span>
 
-    <SelectPrimitive.ItemText className="block w-full whitespace-normal break-words leading-snug">{children}</SelectPrimitive.ItemText>
+    <SelectPrimitive.ItemText className="block w-full whitespace-normal break-words text-start leading-snug">{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
 ));
 SelectItem.displayName = SelectPrimitive.Item.displayName;

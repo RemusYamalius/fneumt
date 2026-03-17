@@ -52,6 +52,15 @@ const UserManagement = () => {
         promoted_by: roleMap.get(p.user_id)?.promoted_by || null,
       }));
       setUsers(merged);
+
+      // Track which national roles are already occupied
+      const occupied = new Set<string>();
+      for (const r of rolesRes.data) {
+        if (r.role === 'national_secretary' || r.role === 'deputy_national_secretary') {
+          occupied.add(r.role);
+        }
+      }
+      setOccupiedNationalRoles(occupied);
     }
     setLoading(false);
   };

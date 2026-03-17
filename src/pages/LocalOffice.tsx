@@ -45,6 +45,8 @@ interface MembershipCard {
   is_paid: boolean;
   full_name?: string;
   employee_number?: string;
+  gender?: string;
+  institution?: string;
 }
 
 const LocalOffice = () => {

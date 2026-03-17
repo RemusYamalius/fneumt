@@ -223,9 +223,9 @@ const Profile = () => {
     }
     const val = (form as any)[key];
     if (!val) return '';
-    // Translate select values
     if (key === 'corps') return corpsOptions.find(o => o.value === val)?.label || val;
     if (key === 'mission') return missionOptions.find(o => o.value === val)?.label || val;
+    if (key === 'gender') return genderOptions.find(o => o.value === val)?.label || val;
     return val;
   };
 

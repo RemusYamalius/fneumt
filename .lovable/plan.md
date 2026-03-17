@@ -1,58 +1,59 @@
 
 
-## التغييرات المطلوبة
+# Add Two New National Roles: Secretary General & Deputy Secretary General
 
-ثلاث تعديلات رئيسية على صفحة "طلب جديد":
+## Overview
+Add two new top-level roles (`national_secretary` and `deputy_national_secretary`) with admin-equivalent permissions, a green shimmering badge, and full integration across the app.
 
----
+## Changes Required
 
-### 1. ترتيب البطاقات RTL
-
-في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
-
----
-
-### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
-
-عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
-- **الموضوع** (إلزامي) — `Input`
-- **الوصف** (اختياري) — `Textarea`
-
-تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
-
-تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
-
----
-
-### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
-
-- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
-- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
-  1. المصالح المركزية للوزارة
-  2. الأكاديمية الجهوية
-  3. المديرية الإقليمية
-  4. المؤسسة مقر العمل
-
-- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
-- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
-
-**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
-
----
-
-### الملفات المعنية
-
-| الملف | التعديل |
-|---|---|
-| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
-| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
-| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
-
-### تدفق الخطوات الجديد:
-```text
-1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
-2. مستوى حل المشكل (4 اختيارات)
-3. المرفقات
-4. المراجعة
+### 1. Database Migration
+Add two new values to the `app_role` enum:
+```sql
+ALTER TYPE app_role ADD VALUE IF NOT EXISTS 'national_secretary';
+ALTER TYPE app_role ADD VALUE IF NOT EXISTS 'deputy_national_secretary';
 ```
+
+Update the `is_promoter` function to include these roles (they have admin-like powers).
+
+### 2. Role Hierarchy (`src/lib/role-hierarchy.ts`)
+- Add `'national_secretary'` and `'deputy_national_secretary'` to the `AppRole` type
+- Add them to `PROMOTER_ROLES` and `ALL_ROLES`
+- In `getAllowedPromotions`, give them the same promotions as `'admin'`
+- In `getGeoConstraint`, return `'none'` for both (no geographic restriction)
+
+### 3. Badge System (`src/components/VerifiedBadge.tsx`)
+- Add a new `BadgeStatus`: `'green'`
+- Green color: `fill: '#16a34a'`, `inner: '#15803d'`
+- Add a shimmer animation (CSS `@keyframes`) that sweeps across the badge every 5 seconds
+- Update `getBadgeStatus`: if role is `national_secretary` or `deputy_national_secretary`, return `'green'`
+
+### 4. CSS Animation (`src/App.css` or `src/index.css`)
+Add a shimmer keyframe animation for the green badge SVG overlay.
+
+### 5. Translations (`src/lib/i18n.tsx`)
+Arabic:
+- `role_national_secretary`: 'الكاتب العام الوطني'
+- `role_deputy_national_secretary`: 'مساعد الكاتب العام الوطني'
+- `badge_green`: 'الكاتب العام الوطني' (or appropriate label)
+
+French:
+- `role_national_secretary`: 'Secrétaire Général National'
+- `role_deputy_national_secretary`: 'Secrétaire Général Adjoint'
+- `badge_green`: 'Secrétaire Général'
+
+### 6. Route Guards (`src/App.tsx`)
+Add `'national_secretary'` and `'deputy_national_secretary'` to every `allowedRoles` array that includes `'admin'`.
+
+### 7. Dashboard (`src/pages/Dashboard.tsx`)
+Add these roles to the `showIncomingRequests` and `isDeputyLocal`-like checks wherever `'admin'` is referenced, so they see the same admin interface.
+
+### 8. Other Admin Checks
+In `UserManagement.tsx` and `SupervisorDashboard.tsx`, treat these roles identically to `'admin'` in all conditional checks (`myRole === 'admin'` becomes `['admin', 'national_secretary', 'deputy_national_secretary'].includes(myRole)`).
+
+### 9. Authenticated Layout (`src/components/AuthenticatedLayout.tsx`)
+No special geographic suffix for these roles (same as admin).
+
+## Technical Detail: Shimmer Effect
+The green badge will use an SVG `<rect>` with a linear gradient mask animated via CSS keyframes, creating a shine sweep every 5 seconds. This keeps the effect self-contained within the badge component.
 

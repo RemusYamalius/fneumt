@@ -67,6 +67,13 @@ const MISSION_VALUE_TO_KEY: Record<string, string> = {
   inspector_finance: 'missionInspectorFinance',
   economy_admin: 'missionEconomyAdmin',
   doctor: 'missionDoctor',
+  // Legacy/fallback values that may exist in DB
+  teaching: 'missionTeacherPrimary',
+  teacher: 'missionTeacherPrimary',
+  teacher_middle_school: 'missionTeacherMiddle',
+  teacher_high_school: 'missionTeacherHigh',
+  administrative: 'missionAdminDirector',
+  inspector: 'missionInspectorPrimary',
 };
 
 const PAGE_SIZE = 15;

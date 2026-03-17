@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
-import { Users, CreditCard, Upload, X, Search, Save, Loader2, Trash2 } from 'lucide-react';
+import { Users, CreditCard, Upload, X, Search, Save, Loader2, Trash2, Filter, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -71,7 +71,13 @@ const LocalOffice = () => {
   // Membership cards state
   const [cards, setCards] = useState<MembershipCard[]>([]);
   const [savingCards, setSavingCards] = useState(false);
-  const [cardFilter, setCardFilter] = useState('');
+  const [columnFilters, setColumnFilters] = useState({
+    full_name: '',
+    employee_number: '',
+    gender: '' as '' | 'male' | 'female',
+    institution: '',
+  });
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [totalCollected, setTotalCollected] = useState(0);
   const [remaining, setRemaining] = useState(0);
   const [paidToProvincial, setPaidToProvincial] = useState(0);
@@ -457,14 +463,14 @@ const LocalOffice = () => {
 
           {/* === Formation Tab === */}
           <TabsContent value="formation">
-            <Card>
-              <CardHeader>
+            <Card className="border-blue-200">
+              <CardHeader className="bg-blue-50/50 rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
+                  <Users className="w-5 h-5 text-blue-600" />
                   {t.officeFormation}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 pt-6">
                 {/* Office name */}
                 <div className="space-y-2">
                   <Label>{t.officeName}</Label>
@@ -483,7 +489,7 @@ const LocalOffice = () => {
                       <img
                         src={secretaryPhotoUrl}
                         alt="Secretary"
-                        className="w-20 h-20 rounded-xl object-cover border-2 border-primary/20"
+                        className="w-20 h-20 rounded-xl object-cover border-2 border-blue-200"
                       />
                     )}
                     <label className="cursor-pointer">
@@ -572,40 +578,46 @@ const LocalOffice = () => {
                   {members.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4 text-center">{t.noMembers}</p>
                   ) : (
-                    <div className="border rounded-lg overflow-hidden">
+                    <div className="border border-blue-200 rounded-lg overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow>
-                            <TableHead>{t.fullNameLabel}</TableHead>
-                            <TableHead>{t.employeeNumberLabel}</TableHead>
-                            <TableHead>{t.institutionLabel}</TableHead>
-                            <TableHead>{t.selectPosition}</TableHead>
+                          <TableRow className="bg-blue-50/50">
+                            <TableHead className="text-start">{t.fullNameLabel}</TableHead>
+                            <TableHead className="text-start">{t.employeeNumberLabel}</TableHead>
+                            <TableHead className="text-start">{t.institutionLabel}</TableHead>
+                            <TableHead className="text-start">{t.selectPosition}</TableHead>
                             <TableHead className="w-20"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {members.map(member => (
-                            <TableRow key={member.user_id}>
-                              <TableCell className="font-medium">{member.full_name}</TableCell>
-                              <TableCell>{member.employee_number}</TableCell>
-                              <TableCell>{member.institution}</TableCell>
-                              <TableCell>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                  {positionLabel(member.position)}
-                                </span>
-                              </TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeMember(member.user_id)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {members.map((member, idx) => {
+                            const posColor = member.position.includes('secretary') ? 'bg-blue-100 text-blue-700' :
+                              member.position.includes('treasurer') ? 'bg-amber-100 text-amber-700' :
+                              member.position.includes('rapporteur') ? 'bg-purple-100 text-purple-700' :
+                              'bg-muted text-muted-foreground';
+                            return (
+                              <TableRow key={member.user_id} className={idx % 2 === 0 ? '' : 'bg-blue-50/20'}>
+                                <TableCell className="font-medium text-start">{member.full_name}</TableCell>
+                                <TableCell className="text-start">{member.employee_number}</TableCell>
+                                <TableCell className="text-start">{member.institution}</TableCell>
+                                <TableCell className="text-start">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${posColor}`}>
+                                    {positionLabel(member.position)}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeMember(member.user_id)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>
@@ -622,56 +634,179 @@ const LocalOffice = () => {
 
           {/* === Membership Cards Tab === */}
           <TabsContent value="cards">
-            <Card>
-              <CardHeader>
+            <Card className="border-emerald-200">
+              <CardHeader className="bg-emerald-50/50 rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-primary" />
+                  <CreditCard className="w-5 h-5 text-emerald-600" />
                   {t.membershipCards}
+                  {(columnFilters.full_name || columnFilters.employee_number || columnFilters.gender || columnFilters.institution) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setColumnFilters({ full_name: '', employee_number: '', gender: '', institution: '' });
+                        setActiveFilter(null);
+                      }}
+                      className="text-xs text-muted-foreground hover:text-destructive ms-auto gap-1"
+                    >
+                      <X className="w-3 h-3" />
+                      {t.clearFilter}
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Filter */}
-                <div className="relative">
-                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={cardFilter}
-                    onChange={e => setCardFilter(e.target.value)}
-                    placeholder={t.searchByNameOrPPR || 'بحث بالاسم أو رقم التأجير أو المؤسسة...'}
-                    className="ps-9"
-                  />
-                </div>
+              <CardContent className="space-y-6 pt-6">
 
                 {(() => {
                   const filtered = cards.filter(c => {
-                    if (!cardFilter) return true;
-                    const q = cardFilter.toLowerCase();
-                    return (
-                      c.full_name?.toLowerCase().includes(q) ||
-                      c.employee_number?.includes(q) ||
-                      c.institution?.toLowerCase().includes(q)
-                    );
+                    if (columnFilters.full_name && !c.full_name?.toLowerCase().includes(columnFilters.full_name.toLowerCase())) return false;
+                    if (columnFilters.employee_number && !c.employee_number?.includes(columnFilters.employee_number)) return false;
+                    if (columnFilters.gender && c.gender !== columnFilters.gender) return false;
+                    if (columnFilters.institution && !c.institution?.toLowerCase().includes(columnFilters.institution.toLowerCase())) return false;
+                    return true;
                   });
 
-                  return filtered.length === 0 ? (
+                  // Get unique institutions for suggestions
+                  const uniqueInstitutions = [...new Set(cards.map(c => c.institution).filter(Boolean))] as string[];
+
+                  return filtered.length === 0 && (columnFilters.full_name || columnFilters.employee_number || columnFilters.gender || columnFilters.institution) ? (
                     <p className="text-sm text-muted-foreground py-4 text-center">{t.noMembers}</p>
                   ) : (
-                    <div className="border rounded-lg overflow-hidden">
+                    <div className="border border-emerald-200 rounded-lg overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-start">{t.fullNameLabel}</TableHead>
-                            <TableHead className="text-start">{t.employeeNumberLabel}</TableHead>
-                            <TableHead className="text-center">{t.genderLabel}</TableHead>
-                            <TableHead className="text-start">{t.institutionLabel}</TableHead>
+                          <TableRow className="bg-emerald-50/50">
+                            {/* Name header */}
+                            <TableHead className="text-start">
+                              <button
+                                onClick={() => setActiveFilter(activeFilter === 'name' ? null : 'name')}
+                                className={`flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer ${
+                                  columnFilters.full_name ? 'text-blue-600 font-bold' : ''
+                                }`}
+                              >
+                                {t.fullNameLabel}
+                                {columnFilters.full_name ? <Filter className="w-3 h-3 fill-current" /> : <Filter className="w-3 h-3 opacity-40" />}
+                              </button>
+                              {activeFilter === 'name' && (
+                                <Input
+                                  autoFocus
+                                  value={columnFilters.full_name}
+                                  onChange={e => setColumnFilters(f => ({ ...f, full_name: e.target.value }))}
+                                  placeholder="..."
+                                  className="h-7 mt-1 text-xs border-blue-300 focus-visible:ring-blue-400"
+                                  onClick={e => e.stopPropagation()}
+                                />
+                              )}
+                            </TableHead>
+                            {/* PPR header */}
+                            <TableHead className="text-start">
+                              <button
+                                onClick={() => setActiveFilter(activeFilter === 'ppr' ? null : 'ppr')}
+                                className={`flex items-center gap-1 hover:text-amber-600 transition-colors cursor-pointer ${
+                                  columnFilters.employee_number ? 'text-amber-600 font-bold' : ''
+                                }`}
+                              >
+                                {t.employeeNumberLabel}
+                                {columnFilters.employee_number ? <Filter className="w-3 h-3 fill-current" /> : <Filter className="w-3 h-3 opacity-40" />}
+                              </button>
+                              {activeFilter === 'ppr' && (
+                                <Input
+                                  autoFocus
+                                  value={columnFilters.employee_number}
+                                  onChange={e => setColumnFilters(f => ({ ...f, employee_number: e.target.value }))}
+                                  placeholder="..."
+                                  className="h-7 mt-1 text-xs border-amber-300 focus-visible:ring-amber-400"
+                                  onClick={e => e.stopPropagation()}
+                                />
+                              )}
+                            </TableHead>
+                            {/* Gender header */}
+                            <TableHead className="text-center">
+                              <button
+                                onClick={() => setActiveFilter(activeFilter === 'gender' ? null : 'gender')}
+                                className={`flex items-center justify-center gap-1 mx-auto hover:text-purple-600 transition-colors cursor-pointer ${
+                                  columnFilters.gender ? 'text-purple-600 font-bold' : ''
+                                }`}
+                              >
+                                {t.genderLabel}
+                                <ChevronDown className="w-3 h-3" />
+                              </button>
+                              {activeFilter === 'gender' && (
+                                <div className="flex flex-col gap-0.5 mt-1" onClick={e => e.stopPropagation()}>
+                                  {[
+                                    { value: '' as const, label: t.allGenders },
+                                    { value: 'male' as const, label: t.genderMale },
+                                    { value: 'female' as const, label: t.genderFemale },
+                                  ].map(opt => (
+                                    <button
+                                      key={opt.value}
+                                      onClick={() => {
+                                        setColumnFilters(f => ({ ...f, gender: opt.value }));
+                                        setActiveFilter(null);
+                                      }}
+                                      className={`text-xs px-2 py-1 rounded transition-colors ${
+                                        columnFilters.gender === opt.value
+                                          ? 'bg-purple-100 text-purple-700 font-medium'
+                                          : 'hover:bg-purple-50'
+                                      }`}
+                                    >
+                                      {opt.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </TableHead>
+                            {/* Institution header */}
+                            <TableHead className="text-start">
+                              <button
+                                onClick={() => setActiveFilter(activeFilter === 'institution' ? null : 'institution')}
+                                className={`flex items-center gap-1 hover:text-emerald-600 transition-colors cursor-pointer ${
+                                  columnFilters.institution ? 'text-emerald-600 font-bold' : ''
+                                }`}
+                              >
+                                {t.institutionLabel}
+                                {columnFilters.institution ? <Filter className="w-3 h-3 fill-current" /> : <Filter className="w-3 h-3 opacity-40" />}
+                              </button>
+                              {activeFilter === 'institution' && (
+                                <div className="relative" onClick={e => e.stopPropagation()}>
+                                  <Input
+                                    autoFocus
+                                    value={columnFilters.institution}
+                                    onChange={e => setColumnFilters(f => ({ ...f, institution: e.target.value }))}
+                                    placeholder="..."
+                                    className="h-7 mt-1 text-xs border-emerald-300 focus-visible:ring-emerald-400"
+                                  />
+                                  {columnFilters.institution && uniqueInstitutions.filter(i => i.toLowerCase().includes(columnFilters.institution.toLowerCase())).length > 0 && (
+                                    <div className="absolute z-10 top-full mt-1 w-full bg-background border border-emerald-200 rounded-md shadow-lg max-h-32 overflow-auto">
+                                      {uniqueInstitutions
+                                        .filter(i => i.toLowerCase().includes(columnFilters.institution.toLowerCase()))
+                                        .slice(0, 5)
+                                        .map(inst => (
+                                          <button
+                                            key={inst}
+                                            onClick={() => {
+                                              setColumnFilters(f => ({ ...f, institution: inst }));
+                                              setActiveFilter(null);
+                                            }}
+                                            className="w-full text-start px-2 py-1.5 text-xs hover:bg-emerald-50 transition-colors"
+                                          >
+                                            {inst}
+                                          </button>
+                                        ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </TableHead>
                             <TableHead className="text-start">{t.cardNumber}</TableHead>
                             <TableHead className="text-center">{t.paymentStatus}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filtered.map((card) => {
+                          {filtered.map((card, idx) => {
                             const realIdx = cards.findIndex(c => c.member_user_id === card.member_user_id);
                             return (
-                              <TableRow key={card.member_user_id}>
+                              <TableRow key={card.member_user_id} className={idx % 2 === 0 ? '' : 'bg-emerald-50/20'}>
                                 <TableCell className="text-start font-medium">{card.full_name}</TableCell>
                                 <TableCell className="text-start">{card.employee_number}</TableCell>
                                 <TableCell className="text-center text-sm">
@@ -699,7 +834,9 @@ const LocalOffice = () => {
                                         setCards(updated);
                                       }}
                                     />
-                                    <span className={`text-xs font-medium ${card.is_paid ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                      card.is_paid ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'
+                                    }`}>
                                       {card.is_paid ? t.paid : t.unpaid}
                                     </span>
                                   </div>
@@ -717,28 +854,31 @@ const LocalOffice = () => {
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">{t.financialSummary}</Label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t.totalCollected}</Label>
+                    <div className="space-y-1 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                      <Label className="text-xs text-emerald-700">{t.totalCollected}</Label>
                       <Input
                         type="number"
                         value={totalCollected}
                         onChange={e => setTotalCollected(Number(e.target.value))}
+                        className="border-emerald-300"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t.remaining}</Label>
+                    <div className="space-y-1 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                      <Label className="text-xs text-amber-700">{t.remaining}</Label>
                       <Input
                         type="number"
                         value={remaining}
                         onChange={e => setRemaining(Number(e.target.value))}
+                        className="border-amber-300"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t.paidToProvincial}</Label>
+                    <div className="space-y-1 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <Label className="text-xs text-blue-700">{t.paidToProvincial}</Label>
                       <Input
                         type="number"
                         value={paidToProvincial}
                         onChange={e => setPaidToProvincial(Number(e.target.value))}
+                        className="border-blue-300"
                       />
                     </div>
                   </div>

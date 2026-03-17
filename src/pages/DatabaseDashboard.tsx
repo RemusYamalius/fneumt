@@ -249,7 +249,7 @@ const DatabaseDashboard = () => {
     { icon: UserCheck, label: t.totalMembers, value: totalMembersCount, gradient: 'from-[hsl(160,60%,38%)] to-[hsl(160,60%,50%)]' },
     { icon: UserX, label: t.totalNonMembers, value: totalNonMembers, gradient: 'from-[hsl(30,90%,45%)] to-[hsl(30,90%,58%)]' },
     { icon: Building2, label: t.totalOffices, value: offices.length, gradient: 'from-[hsl(260,60%,50%)] to-[hsl(260,60%,62%)]' },
-    { icon: BarChart3, label: t.genderRatio, value: femalesCount ? `${(malesCount / (femalesCount || 1)).toFixed(1)}`, gradient: 'from-[hsl(340,65%,47%)] to-[hsl(340,65%,58%)]' },
+    { icon: BarChart3, label: t.genderRatio, value: femalesCount ? `${(malesCount / femalesCount).toFixed(1)}` : '—', gradient: 'from-[hsl(340,65%,47%)] to-[hsl(340,65%,58%)]' },
     { icon: Clock, label: t.averageAge, value: `${avgAge} ${t.years}`, gradient: 'from-[hsl(195,70%,38%)] to-[hsl(195,70%,52%)]' },
   ];
 

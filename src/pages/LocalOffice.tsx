@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
-import { Users, CreditCard, Upload, X, Search, Save, Loader2, Trash2, Filter, ChevronDown } from 'lucide-react';
+import { Users, CreditCard, Upload, X, Search, Save, Loader2, Trash2, Filter, ChevronDown, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -52,6 +53,7 @@ interface MembershipCard {
 const LocalOffice = () => {
   const { t, dir } = useI18n();
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
 
   // Office state
   const [officeId, setOfficeId] = useState<string | null>(null);
@@ -441,13 +443,22 @@ const LocalOffice = () => {
   return (
     <AuthenticatedLayout>
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <motion.h1
-          className="text-2xl font-bold text-foreground mb-6"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {t.localOffice}
-        </motion.h1>
+        <div className="flex items-center justify-between mb-6">
+          <motion.h1
+            className="text-2xl font-bold text-foreground"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {t.localOffice}
+          </motion.h1>
+          <Button
+            onClick={() => navigate('/dashboard')}
+            className="rounded-full bg-gradient-to-r from-[hsl(207,78%,28%)] to-[hsl(207,78%,38%)] text-white hover:from-[hsl(207,78%,24%)] hover:to-[hsl(207,78%,34%)] hover:text-white px-5 py-2 gap-2 shadow-md"
+          >
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            {t.backToDashboard}
+          </Button>
+        </div>
 
         <Tabs defaultValue="formation" dir={dir}>
           <TabsList className="grid w-full grid-cols-2 mb-6">

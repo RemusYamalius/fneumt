@@ -173,6 +173,7 @@ const Dashboard = () => {
   const allCards = [
     ...personalCards,
     ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', color: cardColors.incomingRequests, badge: pendingCount }] : []),
+    ...communicationCards,
   ];
 
 

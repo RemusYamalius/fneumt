@@ -97,7 +97,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
     if (filters.academy) query = query.eq('academy', filters.academy);
     if (filters.directorate) query = query.eq('directorate', filters.directorate);
     if (filters.institution) query = query.ilike('institution', `%${filters.institution}%`);
-    if (filters.corps) query = query.eq('corps', filters.corps);
+    if (filters.corps) query = query.eq('corps', filters.corps as any);
     if (filters.gender) query = query.eq('gender', filters.gender);
     if (filters.name) query = query.ilike('full_name', `%${filters.name}%`);
     if (filters.ppr) query = query.eq('employee_number', filters.ppr);

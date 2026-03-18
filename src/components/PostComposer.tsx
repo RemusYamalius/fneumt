@@ -135,6 +135,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
     if (filterPPR) filters.ppr = filterPPR;
     if (filterAgeMin) filters.ageMin = filterAgeMin;
     if (filterAgeMax) filters.ageMax = filterAgeMax;
+    if (filterLocalOffice) filters.localOffice = filterLocalOffice;
     return filters;
   };
 

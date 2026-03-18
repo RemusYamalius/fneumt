@@ -427,7 +427,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {/* Academy */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.academyLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.academyLabel}</Label>
                     <Select value={filterAcademy} onValueChange={v => { setFilterAcademy(v === '_all' ? '' : v); setFilterDirectorate(''); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allAcademies} /></SelectTrigger>
                       <SelectContent>
@@ -439,7 +439,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Directorate */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.directorateLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.directorateLabel}</Label>
                     <Select value={filterDirectorate} onValueChange={v => setFilterDirectorate(v === '_all' ? '' : v)} disabled={!filterAcademy}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDirectorates} /></SelectTrigger>
                       <SelectContent>
@@ -451,7 +451,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Local Office */}
                   <div>
-                    <Label className="text-xs mb-1 block">{lang === 'ar' ? 'المكتب المحلي' : 'Bureau local'}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{lang === 'ar' ? 'المكتب المحلي' : 'Bureau local'}</Label>
                     <Select value={filterLocalOffice} onValueChange={v => setFilterLocalOffice(v === '_all' ? '' : v)}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={lang === 'ar' ? 'كل المكاتب' : 'Tous les bureaux'} /></SelectTrigger>
                       <SelectContent>
@@ -463,7 +463,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Institution */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.institutionLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.institutionLabel}</Label>
                     <Input
                       value={filterInstitution}
                       onChange={e => setFilterInstitution(e.target.value)}
@@ -474,7 +474,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Mission */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.missionFilter}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.missionFilter}</Label>
                     <Select value={filterMission} onValueChange={v => setFilterMission(v === '_all' ? '' : v)}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
                       <SelectContent>
@@ -488,7 +488,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Gender */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.genderLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.genderLabel}</Label>
                     <Select value={filterGender} onValueChange={v => setFilterGender(v === '_all' ? '' : v)}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allGenders} /></SelectTrigger>
                       <SelectContent>
@@ -501,7 +501,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Membership */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.membershipFilter}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.membershipFilter}</Label>
                     <Select value={filterMembership} onValueChange={v => setFilterMembership(v === '_all' ? '' : v)}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>
@@ -514,7 +514,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Name */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.fullNameLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.fullNameLabel}</Label>
                     <Input
                       value={filterName}
                       onChange={e => setFilterName(e.target.value)}
@@ -525,7 +525,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* PPR */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.employeeNumberLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.employeeNumberLabel}</Label>
                     <Input
                       value={filterPPR}
                       onChange={e => setFilterPPR(e.target.value)}
@@ -536,7 +536,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Age Range */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.ageRange || (lang === 'ar' ? 'الفئة العمرية' : "Tranche d'âge")}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.ageRange || (lang === 'ar' ? 'الفئة العمرية' : "Tranche d'âge")}</Label>
                     <div className="flex gap-2">
                       <Input
                         type="number"
@@ -562,11 +562,11 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                 <div className="flex items-center gap-3 pt-2">
                   <Button
-                    variant="outline"
                     size="sm"
                     onClick={countRecipients}
                     disabled={loadingCount}
-                    className="text-xs"
+                    className="text-xs text-white border-0 shadow-md"
+                    style={{ background: 'linear-gradient(135deg, hsl(225,70%,45%), hsl(225,80%,35%))' }}
                   >
                     {loadingCount ? <Loader2 className="w-3 h-3 animate-spin" /> : <Users className="w-3 h-3" />}
                     {lang === 'ar' ? 'حساب العدد' : 'Compter'}
@@ -577,7 +577,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                       animate={{ scale: 1 }}
                       className="text-sm font-bold text-[hsl(225,70%,45%)]"
                     >
-                      {recipientCount} {lang === 'ar' ? 'مستلم' : 'destinataire(s)'}
+                      {recipientCount} {lang === 'ar' ? (recipientCount === 1 ? 'مستلم' : 'مستلمين') : (recipientCount === 1 ? 'destinataire' : 'destinataires')}
                     </motion.span>
                   )}
                 </div>

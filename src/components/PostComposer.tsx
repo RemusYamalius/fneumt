@@ -402,17 +402,16 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                     />
                   </div>
 
-                  {/* Corps */}
+                  {/* Mission */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.corpsLabel}</Label>
-                    <Select value={filterCorps} onValueChange={v => setFilterCorps(v === '_all' ? '' : v)}>
-                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.selectCorps} /></SelectTrigger>
+                    <Label className="text-xs mb-1 block">{t.missionFilter}</Label>
+                    <Select value={filterMission} onValueChange={v => setFilterMission(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="_all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                        <SelectItem value="primary">{t.corpsPrimary}</SelectItem>
-                        <SelectItem value="middle_school">{t.corpsMiddle}</SelectItem>
-                        <SelectItem value="high_school">{t.corpsHigh}</SelectItem>
-                        <SelectItem value="administrative">{t.corpsAdmin}</SelectItem>
+                        <SelectItem value="_all">{t.allMissions}</SelectItem>
+                        {MISSION_DB_VALUES.map(m => (
+                          <SelectItem key={m} value={m}>{getMissionLabel(m)}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

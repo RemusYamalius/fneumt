@@ -46,6 +46,11 @@ interface AttachmentPreview {
 
 const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const { t, lang, dir } = useI18n();
+
+  const getMissionLabel = (val: string) => {
+    const key = MISSION_VALUE_TO_KEY[val];
+    return key ? (t as any)[key] || val : val;
+  };
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

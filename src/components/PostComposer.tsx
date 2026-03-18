@@ -239,9 +239,23 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
       }
 
       // Insert recipients in batches
+      const allRecipientIds = [...recipientIds];
+
+      // Add supreme accounts if toggle is on
+      if (showToSupreme) {
+        const { data: supremeRoles } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .in('role', ['admin', 'national_secretary', 'deputy_national_secretary']);
+        const supremeIds = (supremeRoles || [])
+          .map(r => r.user_id)
+          .filter(id => id !== user.id && !allRecipientIds.includes(id));
+        allRecipientIds.push(...supremeIds);
+      }
+
       const batchSize = 500;
-      for (let i = 0; i < recipientIds.length; i += batchSize) {
-        const batch = recipientIds.slice(i, i + batchSize).map(uid => ({
+      for (let i = 0; i < allRecipientIds.length; i += batchSize) {
+        const batch = allRecipientIds.slice(i, i + batchSize).map(uid => ({
           post_id: post.id,
           user_id: uid,
         }));

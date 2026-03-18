@@ -8,6 +8,7 @@ import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import PostComposer from '@/components/PostComposer';
 import PostFeed from '@/components/PostFeed';
 import PostStats from '@/components/PostStats';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const CommunicationHub = () => {
   const { t, lang, dir } = useI18n();

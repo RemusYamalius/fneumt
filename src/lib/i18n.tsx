@@ -213,7 +213,7 @@ const translations: Record<Lang, Record<string, string>> = {
     onlyPdfImages: 'يُقبل فقط PDF أو صور',
     invalidFileType: 'نوع الملف غير مقبول. يُقبل فقط PDF أو صور.',
     profileIncomplete: 'يرجى إكمال ملفك الشخصي أولاً',
-    profileIncompleteDesc: 'لتقديم طلب، يجب تعبئة الأكاديمية الجهوية والمديرية الإقليمية والسلك في ملفك الشخصي.',
+    profileIncompleteDesc: 'لتقديم طلب، يجب تعبئة جميع بيانات ملفك الشخصي.',
     completeProfile: 'إكمال الملف الشخصي',
     // Status change actions
     markViewed: 'مطلع عليه',

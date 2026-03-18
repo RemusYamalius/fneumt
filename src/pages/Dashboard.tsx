@@ -164,7 +164,10 @@ const Dashboard = () => {
 
   const communicationCards = [
     ...(isAdminLike
-      ? [{ icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'إنشاء منشورات وإحصائيات' : 'Créer des publications et statistiques', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]' }]
+      ? [
+          { icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'إنشاء منشورات وإحصائيات' : 'Créer des publications et statistiques', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]' },
+          { icon: Newspaper, title: lang === 'ar' ? 'منشورات القيادة' : 'Publications Direction', desc: lang === 'ar' ? 'منشورات الحسابات السامية' : 'Publications des comptes suprêmes', to: '/supreme-feed', color: 'from-[hsl(225,60%,55%)] to-[hsl(225,70%,40%)]' },
+        ]
       : [{ icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'المنشورات الداخلية' : 'Bulletin interne', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]', badge: unreadPostCount }]
     ),
   ];

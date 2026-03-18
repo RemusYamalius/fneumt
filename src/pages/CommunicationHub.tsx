@@ -110,25 +110,6 @@ const CommunicationHub = () => {
           )}
         </motion.div>
 
-        {/* Supreme Feed as standalone card */}
-        {isSupreme && (
-          <Card className="mt-6 border-[hsl(225,70%,45%)]/20 shadow-lg">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
-                  style={{ background: 'linear-gradient(135deg, hsl(225,70%,45%), hsl(225,80%,35%))' }}>
-                  <Newspaper className="w-5 h-5 text-white" />
-                </div>
-                <CardTitle className="text-lg">
-                  {lang === 'ar' ? 'منشورات القيادة' : 'Publications Direction'}
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <PostFeed mode="supreme" isAuthor={false} />
-            </CardContent>
-          </Card>
-        )}
       </main>
     </AuthenticatedLayout>
   );

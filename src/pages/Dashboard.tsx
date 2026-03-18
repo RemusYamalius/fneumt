@@ -213,7 +213,7 @@ const Dashboard = () => {
   );
 
   const renderGroupCard = (
-    group: 'personal' | 'professional',
+    group: 'personal' | 'professional' | 'communication',
     icon: typeof UserCircle,
     title: string,
     cards: any[],

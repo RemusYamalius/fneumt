@@ -463,6 +463,31 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                       className="h-9 text-xs"
                     />
                   </div>
+
+                  {/* Age Range */}
+                  <div>
+                    <Label className="text-xs mb-1 block">{t.ageRange || (lang === 'ar' ? 'الفئة العمرية' : "Tranche d'âge")}</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={filterAgeMin}
+                        onChange={e => setFilterAgeMin(e.target.value)}
+                        placeholder={lang === 'ar' ? 'من' : 'De'}
+                        className="h-9 text-xs w-1/2"
+                        min="18"
+                        max="70"
+                      />
+                      <Input
+                        type="number"
+                        value={filterAgeMax}
+                        onChange={e => setFilterAgeMax(e.target.value)}
+                        placeholder={lang === 'ar' ? 'إلى' : 'À'}
+                        className="h-9 text-xs w-1/2"
+                        min="18"
+                        max="70"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">

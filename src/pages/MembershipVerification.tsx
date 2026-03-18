@@ -18,6 +18,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
+import { useHierarchicalFilter } from '@/hooks/useHierarchicalFilter';
+import HierarchicalFilters from '@/components/HierarchicalFilters';
 
 interface UserProfile {
   id: string;
@@ -29,6 +31,8 @@ interface UserProfile {
   is_member: boolean | null;
   membership_verified: boolean | null;
   email: string | null;
+  academy: string | null;
+  directorate: string | null;
 }
 
 const CHART_COLORS = [
@@ -41,12 +45,14 @@ const PAGE_SIZE = 15;
 
 const MembershipVerification = () => {
   const { t, dir, lang } = useI18n();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, role } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const hierarchy = useHierarchicalFilter();
 
   // Filters
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -67,18 +73,40 @@ const MembershipVerification = () => {
     if (!loading && !user) navigate('/login');
   }, [loading, user, navigate]);
 
+  // Determine filtering scope
+  const effectiveAcademy = hierarchy.selectedAcademy || profile?.academy;
+  const effectiveDirectorate = hierarchy.selectedDirectorate || profile?.directorate;
+
   useEffect(() => {
-    if (!user || !profile?.academy || !profile?.directorate) return;
+    if (!user || !effectiveAcademy || !effectiveDirectorate) return;
     fetchUsers();
-  }, [user, profile]);
+  }, [user, effectiveAcademy, effectiveDirectorate]);
 
   const fetchUsers = async () => {
-    if (!profile?.academy || !profile?.directorate) return;
+    if (!effectiveAcademy || !effectiveDirectorate) return;
     setLoadingData(true);
+
+    let query = supabase
+      .from('profiles')
+      .select('id, user_id, full_name, employee_number, institution, membership_card_number, is_member, membership_verified, email, academy, directorate')
+      .neq('user_id', user!.id)
+      .order('full_name', { ascending: true });
+
+    // Apply scope
+    if (hierarchy.canSeeHierarchy && !hierarchy.selectedDirectorate && !hierarchy.isDeputy) {
+      // Broader scope - filter by academy only if selected
+      if (hierarchy.selectedAcademy) {
+        query = query.eq('academy', hierarchy.selectedAcademy);
+      }
+    } else {
+      query = query.eq('academy', effectiveAcademy).eq('directorate', effectiveDirectorate);
+    }
+
     const [{ data, error }, { data: promotedRoles }] = await Promise.all([
-      supabase.from('profiles').select('id, user_id, full_name, employee_number, institution, membership_card_number, is_member, membership_verified, email').eq('academy', profile.academy).eq('directorate', profile.directorate).neq('user_id', user!.id).order('full_name', { ascending: true }),
+      query,
       supabase.from('user_roles').select('user_id').neq('role', 'teacher'),
     ]);
+
     if (error) console.error(error);
     else {
       const promotedUserIds = new Set((promotedRoles || []).map(r => r.user_id));
@@ -236,6 +264,9 @@ const MembershipVerification = () => {
             {t.backToDashboard}
           </Button>
         </motion.div>
+
+        {/* Hierarchical Filters */}
+        <HierarchicalFilters {...hierarchy} />
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">

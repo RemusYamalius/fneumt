@@ -438,6 +438,12 @@ const translations: Record<Lang, Record<string, string>> = {
     cardNumberColumn: 'رقم البطاقة',
     membershipStatusColumn: 'حالة الانخراط',
     filterByMembership: 'حسب حالة الانخراط',
+    // Hierarchical Filters
+    hierarchyScope: 'نطاق العرض',
+    localOfficeLabel: 'المكتب المحلي',
+    allOffices: 'جميع المكاتب',
+    deputyLabel: 'نائب المنسق المحلي',
+    deputyProfileLabel: 'بيانات النائب',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT',
@@ -874,6 +880,12 @@ const translations: Record<Lang, Record<string, string>> = {
     cardNumberColumn: 'N° de carte',
     membershipStatusColumn: "Statut d'adhésion",
     filterByMembership: "Par statut d'adhésion",
+    // Hierarchical Filters
+    hierarchyScope: "Périmètre d'affichage",
+    localOfficeLabel: 'Bureau local',
+    allOffices: 'Tous les bureaux',
+    deputyLabel: 'Adjoint local',
+    deputyProfileLabel: "Profil de l'adjoint",
   },
 };
 

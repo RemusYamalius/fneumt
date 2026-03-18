@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useHierarchicalFilter } from '@/hooks/useHierarchicalFilter';
+import HierarchicalFilters from '@/components/HierarchicalFilters';
 
 interface ProfileInfo {
   full_name: string | null;
@@ -31,6 +33,7 @@ interface ProfileInfo {
 interface JoinRequest {
   id: string;
   user_id: string;
+  assigned_to: string | null;
   status: string;
   created_at: string;
   profile?: ProfileInfo;
@@ -65,6 +68,8 @@ const JoinRequests = () => {
   const [selectedProfile, setSelectedProfile] = useState<ProfileInfo | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const hierarchy = useHierarchicalFilter();
+
   // Filters
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [fStatus, setFStatus] = useState('');
@@ -83,23 +88,46 @@ const JoinRequests = () => {
   const fetchRequests = async () => {
     if (!user) return;
     setLoadingData(true);
-    const { data: joinData } = await supabase.from('join_requests').select('*').eq('assigned_to', user.id).order('created_at', { ascending: false });
+
+    let query = supabase.from('join_requests').select('*').order('created_at', { ascending: false });
+
+    const filter = hierarchy.getAssignedToFilter;
+    if (hierarchy.isDeputy) {
+      query = query.eq('assigned_to', user.id);
+    } else if (typeof filter === 'string' && filter) {
+      query = query.eq('assigned_to', filter);
+    } else if (Array.isArray(filter) && filter.length > 0) {
+      query = query.in('assigned_to', filter);
+    }
+
+    const { data: joinData } = await query;
+
     if (joinData && joinData.length > 0) {
       const userIds = joinData.map((j: any) => j.user_id);
       const { data: profilesData } = await supabase.from('profiles').select('user_id, full_name, employee_number, institution, phone, corps, academy, directorate, zone, email, mission').in('user_id', userIds);
       const profileMap = new Map((profilesData || []).map(p => [p.user_id, p]));
-      setRequests(joinData.map((j: any) => ({ ...j, profile: profileMap.get(j.user_id) || undefined })));
+      let enriched = joinData.map((j: any) => ({ ...j, profile: profileMap.get(j.user_id) || undefined }));
+
+      // Client-side academy/directorate filtering
+      if (hierarchy.selectedAcademy && !hierarchy.isDeputy) {
+        enriched = enriched.filter(r => r.profile?.academy === hierarchy.selectedAcademy);
+      }
+      if (hierarchy.selectedDirectorate && !hierarchy.isDeputy) {
+        enriched = enriched.filter(r => r.profile?.directorate === hierarchy.selectedDirectorate);
+      }
+
+      setRequests(enriched);
     } else { setRequests([]); }
     setLoadingData(false);
   };
 
-  useEffect(() => { if (user) fetchRequests(); }, [user]);
+  useEffect(() => { if (user) fetchRequests(); }, [user, hierarchy.getAssignedToFilter, hierarchy.selectedAcademy, hierarchy.selectedDirectorate]);
 
   useEffect(() => {
     if (!user) return;
-    const channel = supabase.channel('join-requests-page').on('postgres_changes', { event: '*', schema: 'public', table: 'join_requests', filter: `assigned_to=eq.${user.id}` }, () => { fetchRequests(); }).subscribe();
+    const channel = supabase.channel('join-requests-page').on('postgres_changes', { event: '*', schema: 'public', table: 'join_requests' }, () => { fetchRequests(); }).subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, hierarchy.getAssignedToFilter]);
 
   const updateStatus = async (id: string, newStatus: string) => {
     const { error } = await supabase.from('join_requests').update({ status: newStatus } as any).eq('id', id);
@@ -230,6 +258,9 @@ const JoinRequests = () => {
             {t.backToDashboard}
           </Button>
         </motion.div>
+
+        {/* Hierarchical Filters */}
+        <HierarchicalFilters {...hierarchy} />
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">

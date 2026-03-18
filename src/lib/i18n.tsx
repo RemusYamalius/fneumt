@@ -880,6 +880,12 @@ const translations: Record<Lang, Record<string, string>> = {
     cardNumberColumn: 'N° de carte',
     membershipStatusColumn: "Statut d'adhésion",
     filterByMembership: "Par statut d'adhésion",
+    // Hierarchical Filters
+    hierarchyScope: "Périmètre d'affichage",
+    localOfficeLabel: 'Bureau local',
+    allOffices: 'Tous les bureaux',
+    deputyLabel: 'Adjoint local',
+    deputyProfileLabel: "Profil de l'adjoint",
   },
 };
 

@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import { useHierarchicalFilter } from '@/hooks/useHierarchicalFilter';
+import HierarchicalFilters from '@/components/HierarchicalFilters';
 
 type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'cancelled';
 
@@ -35,10 +37,13 @@ interface IncomingRequest {
   created_at: string;
   updated_at: string;
   user_id: string;
+  assigned_to: string | null;
   resolution_level: string | null;
   sender_name: string | null;
   sender_email: string | null;
   sender_institution: string | null;
+  sender_academy: string | null;
+  sender_directorate: string | null;
 }
 
 const CHART_COLORS = [
@@ -51,7 +56,7 @@ const PAGE_SIZE = 15;
 
 const IncomingRequests = () => {
   const { t, dir, lang } = useI18n();
-  const { user, loading } = useAuth();
+  const { user, loading, role, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { refetch: refetchBadge } = useRealtimeNotifications(user?.id);
@@ -61,6 +66,8 @@ const IncomingRequests = () => {
   const [changingStatus, setChangingStatus] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
+
+  const hierarchy = useHierarchicalFilter();
 
   // Filters
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -81,39 +88,63 @@ const IncomingRequests = () => {
   useEffect(() => {
     if (!user) return;
     fetchRequests();
-  }, [user]);
+  }, [user, hierarchy.getAssignedToFilter, hierarchy.selectedAcademy, hierarchy.selectedDirectorate]);
 
   const fetchRequests = async () => {
     if (!user) return;
     setLoadingData(true);
-    const { data, error } = await supabase
+
+    let query = supabase
       .from('requests')
-      .select('id, tracking_number, category, subject, description, status, created_at, updated_at, user_id, resolution_level')
-      .eq('assigned_to', user.id)
+      .select('id, tracking_number, category, subject, description, status, created_at, updated_at, user_id, resolution_level, assigned_to')
       .order('created_at', { ascending: false });
 
+    // Apply scope filtering
+    const filter = hierarchy.getAssignedToFilter;
+    if (hierarchy.isDeputy) {
+      query = query.eq('assigned_to', user.id);
+    } else if (typeof filter === 'string' && filter) {
+      query = query.eq('assigned_to', filter);
+    } else if (Array.isArray(filter) && filter.length > 0) {
+      query = query.in('assigned_to', filter);
+    }
+    // For national/regional/provincial without specific deputy: RLS handles visibility
+
+    const { data, error } = await query;
     if (error) { console.error(error); setLoadingData(false); return; }
 
     const userIds = [...new Set((data || []).map(r => r.user_id))];
-    let profilesMap: Record<string, { full_name: string | null; email: string | null; institution: string | null }> = {};
+    let profilesMap: Record<string, { full_name: string | null; email: string | null; institution: string | null; academy: string | null; directorate: string | null }> = {};
     if (userIds.length > 0) {
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email, institution')
+        .select('user_id, full_name, email, institution, academy, directorate')
         .in('user_id', userIds);
       (profiles || []).forEach(p => {
-        profilesMap[p.user_id] = { full_name: p.full_name, email: p.email, institution: p.institution };
+        profilesMap[p.user_id] = { full_name: p.full_name, email: p.email, institution: p.institution, academy: p.academy, directorate: p.directorate };
       });
     }
 
-    setRequests((data || []).map(r => ({
+    let enriched = (data || []).map(r => ({
       ...r,
       status: r.status as RequestStatus,
       resolution_level: r.resolution_level || null,
       sender_name: profilesMap[r.user_id]?.full_name || null,
       sender_email: profilesMap[r.user_id]?.email || null,
       sender_institution: profilesMap[r.user_id]?.institution || null,
-    })));
+      sender_academy: profilesMap[r.user_id]?.academy || null,
+      sender_directorate: profilesMap[r.user_id]?.directorate || null,
+    }));
+
+    // Client-side academy/directorate filtering for broader scopes
+    if (hierarchy.selectedAcademy && !hierarchy.isDeputy) {
+      enriched = enriched.filter(r => r.sender_academy === hierarchy.selectedAcademy);
+    }
+    if (hierarchy.selectedDirectorate && !hierarchy.isDeputy) {
+      enriched = enriched.filter(r => r.sender_directorate === hierarchy.selectedDirectorate);
+    }
+
+    setRequests(enriched);
     setLoadingData(false);
   };
 
@@ -128,7 +159,7 @@ const IncomingRequests = () => {
     if (selectedRequest?.id === request.id) { setSelectedRequest(null); setAttachments([]); return; }
     setSelectedRequest(request);
     fetchAttachments(request.id);
-    if (request.status === 'submitted' && user) {
+    if (request.status === 'submitted' && user && request.assigned_to === user.id) {
       try {
         await supabase.from('requests').update({ status: 'viewed' as any }).eq('id', request.id);
         await supabase.from('request_status_history').insert({ request_id: request.id, old_status: 'submitted' as any, new_status: 'viewed' as any, changed_by: user.id, note: lang === 'ar' ? 'تم الاطلاع على الملف' : 'Dossier consulté' } as any);
@@ -310,6 +341,9 @@ const IncomingRequests = () => {
             {t.backToDashboard}
           </Button>
         </motion.div>
+
+        {/* Hierarchical Filters */}
+        <HierarchicalFilters {...hierarchy} />
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">

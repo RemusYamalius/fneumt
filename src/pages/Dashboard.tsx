@@ -18,9 +18,10 @@ const Dashboard = () => {
   const [joinPendingCount, setJoinPendingCount] = useState(0);
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
-  const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | null>(null);
+  const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | 'communication' | null>(null);
   const [hasJoinRequest, setHasJoinRequest] = useState(false);
   const [joiningLoading, setJoiningLoading] = useState(false);
+  const [unreadPostCount, setUnreadPostCount] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {

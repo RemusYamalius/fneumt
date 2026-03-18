@@ -501,7 +501,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Membership */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.membershipFilter}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.membershipFilter}</Label>
                     <Select value={filterMembership} onValueChange={v => setFilterMembership(v === '_all' ? '' : v)}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>

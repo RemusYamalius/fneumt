@@ -44,7 +44,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const [filterPPR, setFilterPPR] = useState('');
 
   const directorates = filterAcademy
-    ? ACADEMIES.find(a => a.name === filterAcademy)?.directorates || []
+    ? ACADEMIES.find(a => a.label === filterAcademy)?.directorates || []
     : [];
 
   const getFileType = (file: File): AttachmentPreview['type'] => {

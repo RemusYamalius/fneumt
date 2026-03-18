@@ -558,7 +558,20 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                         min="18"
                         max="70"
                       />
-                    </div>
+                </div>
+
+                {/* Show to supreme accounts toggle */}
+                <div className="flex items-center justify-between pt-2 border-t border-[hsl(225,70%,45%)]/10">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs font-bold text-[hsl(225,70%,45%)]">
+                      {lang === 'ar' ? 'إظهار للحسابات السامية' : 'Visible par la Direction'}
+                    </Label>
+                    <span className="text-[10px] text-muted-foreground">
+                      {lang === 'ar' ? '(الأدمين، الكاتب العام، مساعد الكاتب العام)' : '(Admin, Secrétaire, Adjoint)'}
+                    </span>
+                  </div>
+                  <Switch checked={showToSupreme} onCheckedChange={setShowToSupreme} />
+                </div>
                   </div>
                 </div>
 

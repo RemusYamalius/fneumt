@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Download, Image as ImageIcon, FileIcon, Building2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, CheckCircle2, User, Calendar, Tag, Eye, Inbox, Loader2, XCircle, Search, Download, Image as ImageIcon, FileIcon, Building2, Filter, RotateCcw, ChevronDown, ChevronUp, ArrowUpDown, ChevronLeft, ChevronRight, FileSpreadsheet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import * as XLSX from 'xlsx';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
@@ -31,28 +35,19 @@ interface IncomingRequest {
   created_at: string;
   updated_at: string;
   user_id: string;
+  resolution_level: string | null;
   sender_name: string | null;
   sender_email: string | null;
   sender_institution: string | null;
 }
 
-const STATUS_FILTERS: { key: RequestStatus | 'all' }[] = [
-  { key: 'all' },
-  { key: 'submitted' },
-  { key: 'viewed' },
-  { key: 'in_progress' },
-  { key: 'accepted' },
-  { key: 'cancelled' },
+const CHART_COLORS = [
+  'hsl(207, 62%, 45%)', 'hsl(160, 60%, 40%)', 'hsl(30, 90%, 50%)',
+  'hsl(260, 60%, 55%)', 'hsl(340, 65%, 50%)', 'hsl(195, 70%, 45%)',
+  'hsl(45, 80%, 50%)', 'hsl(120, 50%, 40%)', 'hsl(0, 70%, 55%)',
 ];
 
-const STATUS_THEME_CLASS: Record<RequestStatus | 'all', string> = {
-  all: 'request-theme-all',
-  submitted: 'request-theme-submitted',
-  viewed: 'request-theme-viewed',
-  in_progress: 'request-theme-in-progress',
-  accepted: 'request-theme-accepted',
-  cancelled: 'request-theme-cancelled',
-};
+const PAGE_SIZE = 15;
 
 const IncomingRequests = () => {
   const { t, dir, lang } = useI18n();
@@ -64,10 +59,20 @@ const IncomingRequests = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<IncomingRequest | null>(null);
   const [changingStatus, setChangingStatus] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<RequestStatus | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
+
+  // Filters
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [fStatus, setFStatus] = useState('');
+  const [fCategory, setFCategory] = useState('');
+  const [fResolution, setFResolution] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Table
+  const [sortField, setSortField] = useState('created_at');
+  const [sortDir2, setSortDir2] = useState<'asc' | 'desc'>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -87,11 +92,7 @@ const IncomingRequests = () => {
       .eq('assigned_to', user.id)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error(error);
-      setLoadingData(false);
-      return;
-    }
+    if (error) { console.error(error); setLoadingData(false); return; }
 
     const userIds = [...new Set((data || []).map(r => r.user_id))];
     let profilesMap: Record<string, { full_name: string | null; email: string | null; institution: string | null }> = {};
@@ -108,6 +109,7 @@ const IncomingRequests = () => {
     setRequests((data || []).map(r => ({
       ...r,
       status: r.status as RequestStatus,
+      resolution_level: r.resolution_level || null,
       sender_name: profilesMap[r.user_id]?.full_name || null,
       sender_email: profilesMap[r.user_id]?.email || null,
       sender_institution: profilesMap[r.user_id]?.institution || null,
@@ -117,50 +119,23 @@ const IncomingRequests = () => {
 
   const fetchAttachments = async (requestId: string) => {
     setLoadingAttachments(true);
-    const { data } = await supabase
-      .from('attachments')
-      .select('id, file_name, file_path, file_size, mime_type')
-      .eq('request_id', requestId);
+    const { data } = await supabase.from('attachments').select('id, file_name, file_path, file_size, mime_type').eq('request_id', requestId);
     setAttachments(data || []);
     setLoadingAttachments(false);
   };
 
   const handleSelectRequest = async (request: IncomingRequest) => {
-    if (selectedRequest?.id === request.id) {
-      setSelectedRequest(null);
-      setAttachments([]);
-      return;
-    }
+    if (selectedRequest?.id === request.id) { setSelectedRequest(null); setAttachments([]); return; }
     setSelectedRequest(request);
     fetchAttachments(request.id);
-
-    // Auto-mark as viewed if submitted
     if (request.status === 'submitted' && user) {
       try {
         await supabase.from('requests').update({ status: 'viewed' as any }).eq('id', request.id);
-        await supabase.from('request_status_history').insert({
-          request_id: request.id,
-          old_status: 'submitted' as any,
-          new_status: 'viewed' as any,
-          changed_by: user.id,
-          note: lang === 'ar' ? 'تم الاطلاع على الملف' : 'Dossier consulté',
-        } as any);
-
-        await supabase.from('notifications').insert({
-          user_id: request.user_id,
-          title: lang === 'ar' ? 'تم الاطلاع على ملفك' : 'Dossier consulté',
-          message: lang === 'ar'
-            ? `تم الاطلاع على ملفك رقم ${request.tracking_number}`
-            : `Votre dossier n° ${request.tracking_number} a été consulté`,
-          link: '/track',
-        });
-
-        const updated = { ...request, status: 'viewed' as RequestStatus };
+        await supabase.from('request_status_history').insert({ request_id: request.id, old_status: 'submitted' as any, new_status: 'viewed' as any, changed_by: user.id, note: lang === 'ar' ? 'تم الاطلاع على الملف' : 'Dossier consulté' } as any);
+        await supabase.from('notifications').insert({ user_id: request.user_id, title: lang === 'ar' ? 'تم الاطلاع على ملفك' : 'Dossier consulté', message: lang === 'ar' ? `تم الاطلاع على ملفك رقم ${request.tracking_number}` : `Votre dossier n° ${request.tracking_number} a été consulté`, link: '/track' });
         setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: 'viewed' as RequestStatus } : r));
-        setSelectedRequest(updated);
-      } catch (err) {
-        console.error(err);
-      }
+        setSelectedRequest({ ...request, status: 'viewed' as RequestStatus });
+      } catch (err) { console.error(err); }
     }
   };
 
@@ -169,96 +144,151 @@ const IncomingRequests = () => {
     setChangingStatus(`${request.id}:${newStatus}`);
     try {
       await supabase.from('requests').update({ status: newStatus as any }).eq('id', request.id);
-      await supabase.from('request_status_history').insert({
-        request_id: request.id,
-        old_status: request.status as any,
-        new_status: newStatus as any,
-        changed_by: user.id,
-      } as any);
-
+      await supabase.from('request_status_history').insert({ request_id: request.id, old_status: request.status as any, new_status: newStatus as any, changed_by: user.id } as any);
       const statusLabels: Record<string, { ar: string; fr: string }> = {
-        viewed: { ar: 'مطلع عليه', fr: 'Consulté' },
-        in_progress: { ar: 'قيد الإجراء', fr: 'En cours' },
-        accepted: { ar: 'مقبول', fr: 'Accepté' },
-        cancelled: { ar: 'ملغى', fr: 'Annulé' },
+        viewed: { ar: 'مطلع عليه', fr: 'Consulté' }, in_progress: { ar: 'قيد الإجراء', fr: 'En cours' },
+        accepted: { ar: 'مقبول', fr: 'Accepté' }, cancelled: { ar: 'ملغى', fr: 'Annulé' },
       };
       const label = statusLabels[newStatus];
       if (label) {
-        await supabase.from('notifications').insert({
-          user_id: request.user_id,
-          title: lang === 'ar' ? 'تحديث حالة ملفك' : 'Mise à jour de votre dossier',
-          message: lang === 'ar'
-            ? `تم تغيير حالة ملفك رقم ${request.tracking_number} إلى: ${label.ar}`
-            : `Le statut de votre dossier n° ${request.tracking_number} a été changé à : ${label.fr}`,
-          link: '/track',
-        });
+        await supabase.from('notifications').insert({ user_id: request.user_id, title: lang === 'ar' ? 'تحديث حالة ملفك' : 'Mise à jour de votre dossier', message: lang === 'ar' ? `تم تغيير حالة ملفك رقم ${request.tracking_number} إلى: ${label.ar}` : `Le statut de votre dossier n° ${request.tracking_number} a été changé à : ${label.fr}`, link: '/track' });
       }
-
       setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: newStatus } : r));
       setSelectedRequest(prev => prev ? { ...prev, status: newStatus } : null);
       toast({ title: t.statusChangedSuccess });
     } catch (err: any) {
       toast({ title: lang === 'ar' ? 'خطأ' : 'Erreur', description: err?.message, variant: 'destructive' });
-    } finally {
-      setChangingStatus(null);
-    }
+    } finally { setChangingStatus(null); }
   };
 
   const downloadAttachment = async (att: Attachment) => {
     try {
       const { data, error } = await supabase.storage.from('attachments').download(att.file_path);
-      if (error || !data) throw error || new Error(lang === 'ar' ? 'تعذر الوصول إلى الملف' : 'Fichier inaccessible');
-
+      if (error || !data) throw error || new Error('File inaccessible');
       const objectUrl = window.URL.createObjectURL(data);
       const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = att.file_name;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      link.href = objectUrl; link.download = att.file_name;
+      document.body.appendChild(link); link.click(); link.remove();
       window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1500);
     } catch (err: any) {
-      toast({
-        title: lang === 'ar' ? 'تعذر تحميل المرفق' : 'Téléchargement impossible',
-        description: err?.message || (lang === 'ar' ? 'تحقق من الصلاحيات ثم أعد المحاولة.' : 'Vérifiez les autorisations puis réessayez.'),
-        variant: 'destructive',
-      });
+      toast({ title: lang === 'ar' ? 'تعذر تحميل المرفق' : 'Téléchargement impossible', description: err?.message, variant: 'destructive' });
     }
   };
 
-  const formatDateTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString(lang === 'ar' ? 'ar-MA' : 'fr-FR', {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
-  };
-
+  const formatDateTime = (dateStr: string) => new Date(dateStr).toLocaleString(lang === 'ar' ? 'ar-MA' : 'fr-FR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   const categoryLabel = (key: string) => t[`cat_${key}`] || key;
   const statusLabel = (key: string) => t[`status_${key}`] || key;
-  const filterLabel = (key: string) => {
-    if (key === 'all') return t.filterAll;
-    const map: Record<string, string> = {
-      submitted: t.status_submitted || 'مقدّم',
-      viewed: t.filterViewed,
-      in_progress: t.filterInProgress,
-      accepted: t.filterAccepted,
-      cancelled: t.filterCancelled,
-    };
-    return map[key] || key;
-  };
-
-  const statusThemeClass = (status: RequestStatus | 'all') => {
-    return STATUS_THEME_CLASS[status] || STATUS_THEME_CLASS.all;
-  };
-
-  const filteredRequests = requests.filter(r => {
-    if (activeFilter !== 'all' && r.status !== activeFilter) return false;
-    if (searchQuery.trim() && !r.tracking_number.toLowerCase().includes(searchQuery.trim().toLowerCase())) return false;
-    return true;
-  });
-
+  const resolutionLabel = (key: string | null) => key ? (t[`level_${key}`] || key) : '—';
   const isFileImage = (mime: string | null) => mime?.startsWith('image/');
-  const isFilePdf = (mime: string | null) => mime === 'application/pdf';
+
+  // Filtered data
+  const filteredRequests = useMemo(() => {
+    let result = [...requests];
+    if (fStatus) result = result.filter(r => r.status === fStatus);
+    if (fCategory) result = result.filter(r => r.category === fCategory);
+    if (fResolution) result = result.filter(r => r.resolution_level === fResolution);
+    if (searchQuery.trim()) result = result.filter(r => r.tracking_number.toLowerCase().includes(searchQuery.trim().toLowerCase()));
+    return result;
+  }, [requests, fStatus, fCategory, fResolution, searchQuery]);
+
+  // Sorted data
+  const sortedRequests = useMemo(() => {
+    const sorted = [...filteredRequests].sort((a, b) => {
+      const va = (a as any)[sortField] || '';
+      const vb = (b as any)[sortField] || '';
+      if (sortField === 'created_at') return sortDir2 === 'asc' ? new Date(va).getTime() - new Date(vb).getTime() : new Date(vb).getTime() - new Date(va).getTime();
+      return sortDir2 === 'asc' ? String(va).localeCompare(String(vb), 'ar') : String(vb).localeCompare(String(va), 'ar');
+    });
+    return sorted;
+  }, [filteredRequests, sortField, sortDir2]);
+
+  const totalPages = Math.ceil(sortedRequests.length / PAGE_SIZE);
+  const paginatedRequests = sortedRequests.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const toggleSort = (field: string) => {
+    if (sortField === field) setSortDir2(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDir2('asc'); }
+    setCurrentPage(1);
+  };
+
+  const resetFilters = () => { setFStatus(''); setFCategory(''); setFResolution(''); setSearchQuery(''); setCurrentPage(1); };
+  const hasActiveFilter = fStatus || fCategory || fResolution || searchQuery;
+
+  // KPIs
+  const totalCount = requests.length;
+  const submittedCount = requests.filter(r => r.status === 'submitted' || r.status === 'viewed').length;
+  const inProgressCount = requests.filter(r => r.status === 'in_progress').length;
+  const acceptedCount = requests.filter(r => r.status === 'accepted').length;
+  const cancelledCount = requests.filter(r => r.status === 'cancelled').length;
+
+  // Charts
+  const statusChartData = useMemo(() => [
+    { name: t.incomingSubmitted, value: submittedCount },
+    { name: t.incomingInProgress, value: inProgressCount },
+    { name: t.incomingAccepted, value: acceptedCount },
+    { name: t.incomingCancelled, value: cancelledCount },
+  ].filter(d => d.value > 0), [submittedCount, inProgressCount, acceptedCount, cancelledCount, t]);
+
+  const categoryChartData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    requests.forEach(r => { counts[r.category] = (counts[r.category] || 0) + 1; });
+    return Object.entries(counts).map(([key, value]) => ({ name: categoryLabel(key), value })).sort((a, b) => b.value - a.value).slice(0, 10);
+  }, [requests, t]);
+
+  const resolutionChartData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    requests.forEach(r => { if (r.resolution_level) counts[r.resolution_level] = (counts[r.resolution_level] || 0) + 1; });
+    return Object.entries(counts).map(([key, value]) => ({ name: resolutionLabel(key), value })).sort((a, b) => b.value - a.value);
+  }, [requests, t]);
+
+  // Unique values for filters
+  const uniqueCategories = useMemo(() => [...new Set(requests.map(r => r.category))], [requests]);
+  const uniqueResolutions = useMemo(() => [...new Set(requests.map(r => r.resolution_level).filter(Boolean))] as string[], [requests]);
+
+  // Export
+  const handleExportExcel = () => {
+    const data = filteredRequests.map(r => ({
+      [t.trackingColumn]: r.tracking_number,
+      [t.senderColumn]: r.sender_name || '',
+      [t.institutionLabel]: r.sender_institution || '',
+      [t.categoryColumn]: categoryLabel(r.category),
+      [t.resolutionColumn]: resolutionLabel(r.resolution_level),
+      [t.dateColumn]: formatDateTime(r.created_at),
+      [t.statusColumn]: statusLabel(r.status),
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = Object.keys(data[0] || {}).map(() => ({ wch: 25 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, t.incomingRequests);
+    XLSX.writeFile(wb, `incoming-requests-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const kpiCards = [
+    { label: t.incomingTotal, value: totalCount, gradient: 'from-[hsl(207,62%,40%)] to-[hsl(207,62%,55%)]', icon: Inbox },
+    { label: t.incomingSubmitted, value: submittedCount, gradient: 'from-[hsl(45,80%,45%)] to-[hsl(45,80%,58%)]', icon: Clock },
+    { label: t.incomingInProgress, value: inProgressCount, gradient: 'from-[hsl(195,70%,38%)] to-[hsl(195,70%,52%)]', icon: Loader2 },
+    { label: t.incomingAccepted, value: acceptedCount, gradient: 'from-[hsl(160,60%,38%)] to-[hsl(160,60%,50%)]', icon: CheckCircle2 },
+    { label: t.incomingCancelled, value: cancelledCount, gradient: 'from-[hsl(0,70%,48%)] to-[hsl(0,70%,58%)]', icon: XCircle },
+  ];
+
+  const SortHeader = ({ field, children }: { field: string; children: React.ReactNode }) => (
+    <th className="px-3 py-3 text-start text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-muted/50 transition-colors select-none whitespace-nowrap" onClick={() => toggleSort(field)}>
+      <span className="inline-flex items-center gap-1">
+        {children}
+        <ArrowUpDown className={`w-3 h-3 ${sortField === field ? 'text-primary' : 'text-muted-foreground/50'}`} />
+      </span>
+    </th>
+  );
+
+  const getStatusBadgeColor = (status: RequestStatus) => {
+    switch (status) {
+      case 'submitted': return 'bg-amber-500/15 text-amber-700 border-amber-300';
+      case 'viewed': return 'bg-blue-500/15 text-blue-700 border-blue-300';
+      case 'in_progress': return 'bg-cyan-500/15 text-cyan-700 border-cyan-300';
+      case 'accepted': return 'bg-emerald-500/15 text-emerald-700 border-emerald-300';
+      case 'cancelled': return 'bg-red-500/15 text-red-700 border-red-300';
+    }
+  };
 
   if (loading || !user) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -268,213 +298,302 @@ const IncomingRequests = () => {
 
   return (
     <AuthenticatedLayout>
-
-      <div className="max-w-6xl mx-auto px-6 py-6">
-        {/* Top bar: back + search */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold text-foreground">{t.incomingRequests}</h1>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground start-3" />
-              <Input
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder={t.searchByTracking}
-                className="ps-9"
-              />
-            </div>
-            <button onClick={() => navigate('/dashboard')} className="futuristic-back-btn">
-              {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-              {t.backToDashboard}
-            </button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-foreground mb-1">{t.incomingRequests}</h1>
+            <p className="text-muted-foreground text-sm">{t.incomingRequestsDesc}</p>
           </div>
-        </div>
+          <Button variant="ghost" onClick={() => navigate('/dashboard')} className="rounded-full bg-gradient-to-r from-[hsl(217,70%,25%)] to-[hsl(217,60%,35%)] text-white hover:from-[hsl(217,70%,30%)] hover:to-[hsl(217,60%,40%)] shadow-md px-5 h-10 text-sm gap-2 shrink-0">
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            {t.backToDashboard}
+          </Button>
+        </motion.div>
 
-        {/* Status filter chips */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {STATUS_FILTERS.map(f => (
-            <motion.button
-              key={f.key}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => setActiveFilter(f.key)}
-              className={`request-filter-chip ${statusThemeClass(f.key)} px-4 py-2 rounded-full text-sm font-semibold ${
-                activeFilter === f.key
-                  ? 'request-filter-chip-active'
-                  : 'request-filter-chip-inactive'
-              }`}
-            >
-              {filterLabel(f.key)}
-              {f.key !== 'all' && (
-                <span className="ms-1.5 text-xs opacity-80">
-                  ({requests.filter(r => r.status === f.key).length})
-                </span>
-              )}
-            </motion.button>
+        {/* KPIs */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+          {kpiCards.map((kpi, i) => (
+            <motion.div key={kpi.label} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.06 }} className="relative overflow-hidden rounded-2xl p-4 shadow-md border border-border/50">
+              <div className={`absolute inset-0 bg-gradient-to-br ${kpi.gradient} opacity-10`} />
+              <div className="relative z-10">
+                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${kpi.gradient} flex items-center justify-center mb-2 shadow-sm`}>
+                  <kpi.icon className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-2xl font-extrabold text-foreground">{kpi.value}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{kpi.label}</p>
+              </div>
+            </motion.div>
           ))}
         </div>
 
+        {/* Charts */}
+        {requests.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-border/50 p-4 shadow-sm">
+              <h3 className="font-bold text-sm mb-3 text-foreground">{t.statusDistribution}</h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={statusChartData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                    {statusChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-2xl border border-border/50 p-4 shadow-sm">
+              <h3 className="font-bold text-sm mb-3 text-foreground">{t.categoryDistribution}</h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={categoryChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" tick={{ fontSize: 8 }} angle={-25} textAnchor="end" height={60} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    {categoryChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-2xl border border-border/50 p-4 shadow-sm">
+              <h3 className="font-bold text-sm mb-3 text-foreground">{t.resolutionDistribution}</h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={resolutionChartData} layout="vertical" margin={{ left: 10, right: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis type="number" tick={{ fontSize: 11 }} />
+                  <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 9 }} />
+                  <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                  <Bar dataKey="value" radius={[0, 6, 6, 0]}>
+                    {resolutionChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Filters */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6 rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <button onClick={() => setFiltersOpen(!filtersOpen)} className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-muted/30 transition-colors">
+            <span className="flex items-center gap-2 font-semibold text-foreground">
+              <Filter className="w-4 h-4" />
+              {t.advancedFilters}
+            </span>
+            <div className="flex items-center gap-2">
+              {hasActiveFilter && <Badge variant="secondary" className="text-[10px]">{t.filterLabel}</Badge>}
+              {filtersOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </div>
+          </button>
+          <AnimatePresence>
+            {filtersOpen && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.searchByTracking}</label>
+                    <Input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="REQ-..." className="h-9 text-xs" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByStatus}</label>
+                    <Select value={fStatus} onValueChange={v => { setFStatus(v === '__all__' ? '' : v); setCurrentPage(1); }}>
+                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__all__">{t.allStatuses}</SelectItem>
+                        {['submitted', 'viewed', 'in_progress', 'accepted', 'cancelled'].map(s => <SelectItem key={s} value={s}>{statusLabel(s)}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByCategory}</label>
+                    <Select value={fCategory} onValueChange={v => { setFCategory(v === '__all__' ? '' : v); setCurrentPage(1); }}>
+                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allCategories} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__all__">{t.allCategories}</SelectItem>
+                        {uniqueCategories.map(c => <SelectItem key={c} value={c}>{categoryLabel(c)}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByResolution}</label>
+                    <Select value={fResolution} onValueChange={v => { setFResolution(v === '__all__' ? '' : v); setCurrentPage(1); }}>
+                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allLevels} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__all__">{t.allLevels}</SelectItem>
+                        {uniqueResolutions.map(l => <SelectItem key={l} value={l}>{resolutionLabel(l)}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end">
+                    <Button variant="outline" size="sm" onClick={resetFilters} className="h-9 w-full text-xs gap-1">
+                      <RotateCcw className="w-3 h-3" />
+                      {t.resetFilters}
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Table */}
         {loadingData ? (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : filteredRequests.length === 0 ? (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card-premium p-12 text-center">
-            <Inbox className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-lg text-muted-foreground">{lang === 'ar' ? 'لا توجد طلبات' : 'Aucune demande'}</p>
-          </motion.div>
         ) : (
-          <div className="space-y-3">
-            {filteredRequests.map((req, index) => (
-              <motion.div
-                key={req.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: index * 0.05, ease: 'easeOut' }}
-              >
-                <div
-                  onClick={() => handleSelectRequest(req)}
-                  className={`request-card-shell ${statusThemeClass(req.status)} rounded-2xl p-5 cursor-pointer ${
-                    req.status === 'submitted' ? 'request-card-fresh' : ''
-                  } ${selectedRequest?.id === req.id ? 'request-card-open ring-2 ring-primary/30' : 'hover:-translate-y-0.5 hover:shadow-lg'}`}
-                >
-                  {/* Request row */}
-                  <div className="grid gap-4 md:grid-cols-[auto,minmax(0,1fr),auto] md:items-start">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <span className="font-mono text-sm font-bold text-primary">{req.tracking_number}</span>
-                      <span className={`request-status-badge ${statusThemeClass(req.status)} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
-                        {statusLabel(req.status)}
-                      </span>
-                      {req.status === 'submitted' && (
-                        <span className="request-status-pill-new flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium animate-pulse">
-                          <Clock className="w-3.5 h-3.5" />
-                          {lang === 'ar' ? 'جديد' : 'Nouveau'}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="request-owner-chip min-w-0 md:mx-auto">
-                      <div className="flex items-start gap-2">
-                        <div className="request-owner-icon mt-0.5">
-                          <User className="w-4 h-4" />
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-2xl border border-border/50 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 flex items-center justify-between border-b border-border/50 bg-muted/30">
+              <p className="text-xs text-muted-foreground">
+                {t.showingResults} {sortedRequests.length > 0 ? `${((currentPage - 1) * PAGE_SIZE) + 1}-${Math.min(currentPage * PAGE_SIZE, sortedRequests.length)}` : '0'} {t.of} {sortedRequests.length}
+              </p>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={handleExportExcel} disabled={filteredRequests.length === 0}>
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                {t.exportToExcel}
+              </Button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs" dir={dir}>
+                <thead className="bg-muted/50 text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.trackingColumn}</th>
+                    <SortHeader field="sender_name">{t.senderColumn}</SortHeader>
+                    <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.institutionLabel}</th>
+                    <SortHeader field="category">{t.categoryColumn}</SortHeader>
+                    <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.resolutionColumn}</th>
+                    <SortHeader field="created_at">{t.dateColumn}</SortHeader>
+                    <SortHeader field="status">{t.statusColumn}</SortHeader>
+                    <th className="px-3 py-3 text-start text-xs font-bold uppercase whitespace-nowrap">{t.actionsColumn}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {paginatedRequests.map((req, i) => (
+                    <tr key={req.id} className={`cursor-pointer hover:bg-muted/30 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/20'} ${selectedRequest?.id === req.id ? 'bg-primary/5 ring-1 ring-primary/20' : ''}`} onClick={() => handleSelectRequest(req)}>
+                      <td className="px-3 py-2.5 font-mono font-bold text-primary whitespace-nowrap">{req.tracking_number}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap">{req.sender_name || '—'}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{req.sender_institution || '—'}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{categoryLabel(req.category)}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{resolutionLabel(req.resolution_level)}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{formatDateTime(req.created_at)}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusBadgeColor(req.status)}`}>{statusLabel(req.status)}</span>
+                      </td>
+                      <td className="px-3 py-2.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                        <div className="flex gap-1">
+                          {(['in_progress', 'accepted', 'cancelled'] as RequestStatus[]).filter(s => s !== req.status).map(s => {
+                            const icons: Record<string, any> = { in_progress: Clock, accepted: CheckCircle2, cancelled: XCircle };
+                            const Icon = icons[s];
+                            return (
+                              <button key={s} onClick={() => handleStatusChange(req, s)} disabled={!!changingStatus} className="p-1.5 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors" title={statusLabel(s)}>
+                                {changingStatus === `${req.id}:${s}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5 text-muted-foreground" />}
+                              </button>
+                            );
+                          })}
                         </div>
-                        <div className="min-w-0">
-                          <p className="request-owner-name truncate">{req.sender_name || req.sender_email || '—'}</p>
-                          <div className="request-owner-org-wrap">
-                            <Building2 className="w-3.5 h-3.5 shrink-0" />
-                            <p className="request-owner-org truncate">{req.sender_institution || (lang === 'ar' ? 'المؤسسة غير محددة' : 'Établissement non renseigné')}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {paginatedRequests.length === 0 && (
+                    <tr><td colSpan={8} className="text-center py-12 text-muted-foreground">{t.noData}</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-                    <div className="request-view-icon md:justify-self-end">
-                      <Eye className="w-5 h-5 shrink-0 text-[color:var(--request-strong)]" />
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <h3 className="text-base font-semibold text-foreground mb-1 truncate">{(req as any).resolution_level ? (t[`level_${(req as any).resolution_level}`] || (req as any).resolution_level) : req.subject}</h3>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <Tag className="w-3.5 h-3.5" />
-                        {categoryLabel(req.category)}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {formatDateTime(req.created_at)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Expanded detail */}
-                  <AnimatePresence>
-                    {selectedRequest?.id === req.id && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="mt-4 pt-4 border-t border-border space-y-4">
-                          {/* Description */}
-                          {req.description && (
-                            <div className="bg-muted/50 rounded-xl p-4">
-                              <span className="text-xs font-medium text-muted-foreground">{t.descriptionLabel}</span>
-                              <p className="text-foreground mt-1">{req.description}</p>
-                            </div>
-                          )}
-
-                          {/* Attachments */}
-                          <div className="bg-muted/50 rounded-xl p-4">
-                            <span className="text-xs font-medium text-muted-foreground mb-2 block">{t.attachments}</span>
-                            {loadingAttachments ? (
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              </div>
-                            ) : attachments.length === 0 ? (
-                              <p className="text-sm text-muted-foreground">{t.noAttachments}</p>
-                            ) : (
-                              <div className="space-y-2">
-                                {attachments.map(att => (
-                                  <div key={att.id} className={`request-attachment-tile ${statusThemeClass(req.status)} flex items-center justify-between rounded-lg px-3 py-2`}>
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      {isFileImage(att.mime_type) ? <ImageIcon className="w-4 h-4 text-primary shrink-0" /> : <FileIcon className="w-4 h-4 text-primary shrink-0" />}
-                                      <span className="text-sm text-foreground truncate">{att.file_name}</span>
-                                      {att.file_size && <span className="text-xs text-muted-foreground shrink-0">({(att.file_size / 1024 / 1024).toFixed(1)} MB)</span>}
-                                    </div>
-                                    <Button size="sm" variant="ghost" className="request-download-btn" onClick={e => { e.stopPropagation(); downloadAttachment(att); }}>
-                                      <Download className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Status change buttons — always show all 4 statuses */}
-                          <div className="flex flex-wrap gap-2 pt-2" onClick={e => e.stopPropagation()}>
-                            <span className="text-sm font-medium text-muted-foreground self-center me-1">{t.changeStatus}:</span>
-                            {(['viewed', 'in_progress', 'accepted', 'cancelled'] as RequestStatus[]).map(s => {
-                              const isActive = req.status === s;
-                              const icons: Record<string, typeof Eye> = {
-                                viewed: Eye,
-                                in_progress: Clock,
-                                accepted: CheckCircle2,
-                                cancelled: XCircle,
-                              };
-                              const labels: Record<string, string> = {
-                                viewed: t.markViewed,
-                                in_progress: t.markInProgress,
-                                accepted: t.markAccepted,
-                                cancelled: t.markCancelled,
-                              };
-                              const Icon = icons[s];
-                              return (
-                                <Button
-                                  key={s}
-                                  size="sm"
-                                  variant={isActive ? 'default' : 'outline'}
-                                  className={isActive ? '' : `request-action-button ${statusThemeClass(s)}`}
-                                  disabled={isActive || !!changingStatus}
-                                  onClick={() => handleStatusChange(req, s)}
-                                >
-                                  {changingStatus === `${req.id}:${s}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
-                                  {labels[s]}
-                                </Button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-border/50 bg-muted/20">
+                <p className="text-xs text-muted-foreground">{t.page} {currentPage} {t.of} {totalPages}</p>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="sm" className="h-7 w-7 p-0" disabled={currentPage <= 1} onClick={() => setCurrentPage(p => p - 1)}>
+                    {dir === 'rtl' ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-7 w-7 p-0" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}>
+                    {dir === 'rtl' ? <ChevronLeft className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                  </Button>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              </div>
+            )}
+          </motion.div>
         )}
-      </div>
+
+        {/* Detail Panel */}
+        <AnimatePresence>
+          {selectedRequest && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="mt-4 rounded-2xl border border-border/50 p-5 shadow-sm bg-card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-sm font-bold text-primary">{selectedRequest.tracking_number}</span>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusBadgeColor(selectedRequest.status)}`}>{statusLabel(selectedRequest.status)}</span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => { setSelectedRequest(null); setAttachments([]); }}>
+                  <XCircle className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">{t.senderColumn}</p>
+                  <p className="text-sm font-medium">{selectedRequest.sender_name || '—'}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{selectedRequest.sender_institution || ''}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{t.categoryColumn}</p>
+                  <p className="text-sm font-medium">{categoryLabel(selectedRequest.category)}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{resolutionLabel(selectedRequest.resolution_level)}</p>
+                </div>
+              </div>
+
+              {selectedRequest.description && (
+                <div className="bg-muted/50 rounded-xl p-4 mb-4">
+                  <span className="text-xs font-medium text-muted-foreground">{t.descriptionLabel}</span>
+                  <p className="text-foreground mt-1">{selectedRequest.description}</p>
+                </div>
+              )}
+
+              {/* Attachments */}
+              <div className="bg-muted/50 rounded-xl p-4 mb-4">
+                <span className="text-xs font-medium text-muted-foreground mb-2 block">{t.attachments}</span>
+                {loadingAttachments ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : attachments.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t.noAttachments}</p>
+                ) : (
+                  <div className="space-y-2">
+                    {attachments.map(att => (
+                      <div key={att.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-background/50 border border-border/30">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {isFileImage(att.mime_type) ? <ImageIcon className="w-4 h-4 text-primary shrink-0" /> : <FileIcon className="w-4 h-4 text-primary shrink-0" />}
+                          <span className="text-sm truncate">{att.file_name}</span>
+                        </div>
+                        <Button size="sm" variant="ghost" onClick={() => downloadAttachment(att)}>
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Status change */}
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm font-medium text-muted-foreground self-center me-1">{t.changeStatus}:</span>
+                {(['viewed', 'in_progress', 'accepted', 'cancelled'] as RequestStatus[]).map(s => {
+                  const isActive = selectedRequest.status === s;
+                  const icons: Record<string, any> = { viewed: Eye, in_progress: Clock, accepted: CheckCircle2, cancelled: XCircle };
+                  const Icon = icons[s];
+                  return (
+                    <Button key={s} size="sm" variant={isActive ? 'default' : 'outline'} disabled={isActive || !!changingStatus} onClick={() => handleStatusChange(selectedRequest, s)}>
+                      {changingStatus === `${selectedRequest.id}:${s}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}
+                      {statusLabel(s)}
+                    </Button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
     </AuthenticatedLayout>
   );
 };

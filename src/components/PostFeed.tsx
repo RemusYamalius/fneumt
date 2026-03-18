@@ -19,7 +19,7 @@ interface Post {
   is_read: boolean;
 }
 
-const PostFeed = ({ isAuthor = false }: { isAuthor?: boolean }) => {
+const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; mode?: 'normal' | 'supreme' }) => {
   const { lang, dir } = useI18n();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);

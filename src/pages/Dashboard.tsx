@@ -69,6 +69,16 @@ const Dashboard = () => {
       .then(({ count }: any) => setHasJoinRequest((count || 0) > 0));
   }, [user, isNonMember]);
 
+  // Fetch unread post count
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('post_recipients')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_read', false)
+      .then(({ count }: any) => setUnreadPostCount(count || 0));
+  }, [user]);
 
   // Fetch user's own requests
   useEffect(() => {

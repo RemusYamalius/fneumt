@@ -451,7 +451,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Local Office */}
                   <div>
-                    <Label className="text-xs mb-1 block">{lang === 'ar' ? 'المكتب المحلي' : 'Bureau local'}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{lang === 'ar' ? 'المكتب المحلي' : 'Bureau local'}</Label>
                     <Select value={filterLocalOffice} onValueChange={v => setFilterLocalOffice(v === '_all' ? '' : v)}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={lang === 'ar' ? 'كل المكاتب' : 'Tous les bureaux'} /></SelectTrigger>
                       <SelectContent>

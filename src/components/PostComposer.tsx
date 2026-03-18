@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Smile, Paperclip, Image, FileText, Video, Link2, X, Users, ChevronDown, ChevronUp, Loader2, Filter } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
@@ -73,10 +73,25 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const [filterPPR, setFilterPPR] = useState('');
   const [filterAgeMin, setFilterAgeMin] = useState('');
   const [filterAgeMax, setFilterAgeMax] = useState('');
+  const [filterLocalOffice, setFilterLocalOffice] = useState('');
+  const [localOffices, setLocalOffices] = useState<{ id: string; office_name: string | null; academy: string | null; directorate: string | null }[]>([]);
 
   const directorates = filterAcademy
     ? ACADEMIES.find(a => a.label === filterAcademy)?.directorates || []
     : [];
+
+  // Fetch local offices based on selected academy/directorate
+  useEffect(() => {
+    const fetchOffices = async () => {
+      let query = supabase.from('local_offices').select('id, office_name, academy, directorate');
+      if (filterAcademy) query = query.eq('academy', filterAcademy);
+      if (filterDirectorate) query = query.eq('directorate', filterDirectorate);
+      const { data } = await query;
+      setLocalOffices(data || []);
+    };
+    fetchOffices();
+    setFilterLocalOffice('');
+  }, [filterAcademy, filterDirectorate]);
 
   const getFileType = (file: File): AttachmentPreview['type'] => {
     if (file.type.startsWith('image/')) return 'image';
@@ -120,13 +135,27 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
     if (filterPPR) filters.ppr = filterPPR;
     if (filterAgeMin) filters.ageMin = filterAgeMin;
     if (filterAgeMax) filters.ageMax = filterAgeMax;
+    if (filterLocalOffice) filters.localOffice = filterLocalOffice;
     return filters;
   };
 
   const fetchRecipientIds = async () => {
     const filters = buildFilters();
+
+    // If local office is selected, get member user_ids first
+    let officeMemberIds: string[] | null = null;
+    if (filters.localOffice) {
+      const { data: members } = await supabase
+        .from('local_office_members')
+        .select('user_id')
+        .eq('office_id', filters.localOffice);
+      officeMemberIds = (members || []).map(m => m.user_id);
+      if (officeMemberIds.length === 0) return [];
+    }
+
     let query = supabase.from('profiles').select('user_id, date_of_birth');
 
+    if (officeMemberIds) query = query.in('user_id', officeMemberIds);
     if (filters.academy) query = query.eq('academy', filters.academy);
     if (filters.directorate) query = query.eq('directorate', filters.directorate);
     if (filters.institution) query = query.ilike('institution', `%${filters.institution}%`);
@@ -416,6 +445,18 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                       <SelectContent>
                         <SelectItem value="_all">{t.allDirectorates}</SelectItem>
                         {directorates.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Local Office */}
+                  <div>
+                    <Label className="text-xs mb-1 block">{lang === 'ar' ? 'المكتب المحلي' : 'Bureau local'}</Label>
+                    <Select value={filterLocalOffice} onValueChange={v => setFilterLocalOffice(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={lang === 'ar' ? 'كل المكاتب' : 'Tous les bureaux'} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">{lang === 'ar' ? 'كل المكاتب' : 'Tous les bureaux'}</SelectItem>
+                        {localOffices.map(o => <SelectItem key={o.id} value={o.id}>{o.office_name || o.id}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

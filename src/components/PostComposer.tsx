@@ -73,6 +73,8 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const [filterPPR, setFilterPPR] = useState('');
   const [filterAgeMin, setFilterAgeMin] = useState('');
   const [filterAgeMax, setFilterAgeMax] = useState('');
+  const [filterLocalOffice, setFilterLocalOffice] = useState('');
+  const [localOffices, setLocalOffices] = useState<{ id: string; office_name: string | null; academy: string | null; directorate: string | null }[]>([]);
 
   const directorates = filterAcademy
     ? ACADEMIES.find(a => a.label === filterAcademy)?.directorates || []

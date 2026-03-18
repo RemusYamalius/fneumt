@@ -355,7 +355,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allAcademies} /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="_all">{t.allAcademies}</SelectItem>
-                        {ACADEMIES.map(a => <SelectItem key={a.name} value={a.name}>{a.name}</SelectItem>)}
+                        {ACADEMIES.map(a => <SelectItem key={a.label} value={a.label}>{a.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

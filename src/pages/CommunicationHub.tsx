@@ -105,6 +105,9 @@ const CommunicationHub = () => {
           {isSupreme && activeTab === 'stats' && (
             <PostStats />
           )}
+          {activeTab === 'supreme_feed' && isSupreme && (
+            <PostFeed mode="supreme" isAuthor={false} />
+          )}
           {(activeTab === 'feed' || !isSupreme) && (
             <PostFeed isAuthor={isSupreme || false} />
           )}

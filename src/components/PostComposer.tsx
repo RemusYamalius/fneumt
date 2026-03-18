@@ -463,7 +463,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Institution */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.institutionLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.institutionLabel}</Label>
                     <Input
                       value={filterInstitution}
                       onChange={e => setFilterInstitution(e.target.value)}

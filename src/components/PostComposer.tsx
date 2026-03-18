@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { ACADEMIES } from '@/lib/academies-data';
 
 const EMOJI_LIST = ['😀','😊','👍','❤️','🎉','🙏','💪','✅','⚠️','📢','📌','🔔','📋','🏫','📚','✍️','🤝','👏','💡','🌟','🔥','💯','📝','📎','🗓️','⏰','🎯','🏆','💼','📊'];
@@ -74,6 +75,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const [filterAgeMin, setFilterAgeMin] = useState('');
   const [filterAgeMax, setFilterAgeMax] = useState('');
   const [filterLocalOffice, setFilterLocalOffice] = useState('');
+  const [showToSupreme, setShowToSupreme] = useState(true);
   const [localOffices, setLocalOffices] = useState<{ id: string; office_name: string | null; academy: string | null; directorate: string | null }[]>([]);
 
   const directorates = filterAcademy
@@ -237,9 +239,23 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
       }
 
       // Insert recipients in batches
+      const allRecipientIds = [...recipientIds];
+
+      // Add supreme accounts if toggle is on
+      if (showToSupreme) {
+        const { data: supremeRoles } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .in('role', ['admin', 'national_secretary', 'deputy_national_secretary']);
+        const supremeIds = (supremeRoles || [])
+          .map(r => r.user_id)
+          .filter(id => id !== user.id && !allRecipientIds.includes(id));
+        allRecipientIds.push(...supremeIds);
+      }
+
       const batchSize = 500;
-      for (let i = 0; i < recipientIds.length; i += batchSize) {
-        const batch = recipientIds.slice(i, i + batchSize).map(uid => ({
+      for (let i = 0; i < allRecipientIds.length; i += batchSize) {
+        const batch = allRecipientIds.slice(i, i + batchSize).map(uid => ({
           post_id: post.id,
           user_id: uid,
         }));
@@ -556,7 +572,20 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                         min="18"
                         max="70"
                       />
-                    </div>
+                </div>
+
+                {/* Show to supreme accounts toggle */}
+                <div className="flex items-center justify-between pt-2 border-t border-[hsl(225,70%,45%)]/10">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs font-bold text-[hsl(225,70%,45%)]">
+                      {lang === 'ar' ? 'إظهار للحسابات السامية' : 'Visible par la Direction'}
+                    </Label>
+                    <span className="text-[10px] text-muted-foreground">
+                      {lang === 'ar' ? '(الأدمين، الكاتب العام، مساعد الكاتب العام)' : '(Admin, Secrétaire, Adjoint)'}
+                    </span>
+                  </div>
+                  <Switch checked={showToSupreme} onCheckedChange={setShowToSupreme} />
+                </div>
                   </div>
                 </div>
 

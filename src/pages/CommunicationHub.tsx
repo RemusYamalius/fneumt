@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, Send, BarChart3, ArrowRight, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Send, BarChart3, Newspaper, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
@@ -13,7 +13,7 @@ const CommunicationHub = () => {
   const { t, lang, dir } = useI18n();
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'compose' | 'stats' | 'feed'>('feed');
+  const [activeTab, setActiveTab] = useState<'compose' | 'stats' | 'feed' | 'supreme_feed'>('feed');
 
   const isSupreme = role && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(role);
 
@@ -73,6 +73,7 @@ const CommunicationHub = () => {
               { key: 'compose' as const, label: lang === 'ar' ? 'إنشاء منشور' : 'Créer', icon: Send },
               { key: 'stats' as const, label: lang === 'ar' ? 'إحصائيات' : 'Statistiques', icon: BarChart3 },
               { key: 'feed' as const, label: lang === 'ar' ? 'المنشورات' : 'Publications', icon: MessageSquare },
+              { key: 'supreme_feed' as const, label: lang === 'ar' ? 'منشورات القيادة' : 'Publications Direction', icon: Newspaper },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -103,6 +104,9 @@ const CommunicationHub = () => {
           )}
           {isSupreme && activeTab === 'stats' && (
             <PostStats />
+          )}
+          {activeTab === 'supreme_feed' && isSupreme && (
+            <PostFeed mode="supreme" isAuthor={false} />
           )}
           {(activeTab === 'feed' || !isSupreme) && (
             <PostFeed isAuthor={isSupreme || false} />

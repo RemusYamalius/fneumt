@@ -19,7 +19,7 @@ interface Post {
   is_read: boolean;
 }
 
-const PostFeed = ({ isAuthor = false }: { isAuthor?: boolean }) => {
+const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; mode?: 'normal' | 'supreme' }) => {
   const { lang, dir } = useI18n();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -32,16 +32,34 @@ const PostFeed = ({ isAuthor = false }: { isAuthor?: boolean }) => {
 
     let query = supabase.from('posts').select('*').order('created_at', { ascending: false });
 
+    // In supreme mode, only show posts from other supreme accounts
+    if (mode === 'supreme') {
+      query = query.neq('author_id', user.id);
+    }
+
     const { data: postsData } = await query;
     if (!postsData) { setLoading(false); return; }
 
-    const postIds = postsData.map(p => p.id);
+    // In supreme mode, filter to only supreme authors
+    let filteredPosts = postsData;
+    if (mode === 'supreme') {
+      const { data: supremeRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['admin', 'national_secretary', 'deputy_national_secretary']);
+      const supremeIds = new Set((supremeRoles || []).map(r => r.user_id));
+      filteredPosts = postsData.filter(p => supremeIds.has(p.author_id));
+    }
+
+    if (filteredPosts.length === 0) { setPosts([]); setLoading(false); return; }
+
+    const postIds = filteredPosts.map(p => p.id);
 
     // Fetch attachments, likes, author names, read status
     const [attachRes, likesRes, profilesRes, recipientRes] = await Promise.all([
       supabase.from('post_attachments').select('*').in('post_id', postIds),
       supabase.from('post_likes').select('*').in('post_id', postIds),
-      supabase.from('profiles').select('user_id, full_name').in('user_id', [...new Set(postsData.map(p => p.author_id))]),
+      supabase.from('profiles').select('user_id, full_name').in('user_id', [...new Set(filteredPosts.map(p => p.author_id))]),
       isAuthor ? Promise.resolve({ data: [] }) : supabase.from('post_recipients').select('post_id, is_read').eq('user_id', user.id).in('post_id', postIds),
     ]);
 
@@ -64,7 +82,7 @@ const PostFeed = ({ isAuthor = false }: { isAuthor?: boolean }) => {
     const readMap = new Map<string, boolean>();
     ((recipientRes as any).data || []).forEach((r: any) => readMap.set(r.post_id, r.is_read));
 
-    const enriched: Post[] = postsData.map(p => ({
+    const enriched: Post[] = filteredPosts.map(p => ({
       id: p.id,
       author_id: p.author_id,
       content: p.content || '',
@@ -90,7 +108,7 @@ const PostFeed = ({ isAuthor = false }: { isAuthor?: boolean }) => {
           .in('post_id', unreadIds);
       }
     }
-  }, [user, isAuthor]);
+  }, [user, isAuthor, mode]);
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 

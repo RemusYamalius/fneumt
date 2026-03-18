@@ -53,7 +53,7 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
 
     if (filteredPosts.length === 0) { setPosts([]); setLoading(false); return; }
 
-    const postIds = postsData.map(p => p.id);
+    const postIds = filteredPosts.map(p => p.id);
 
     // Fetch attachments, likes, author names, read status
     const [attachRes, likesRes, profilesRes, recipientRes] = await Promise.all([

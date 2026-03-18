@@ -141,8 +141,21 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
   const fetchRecipientIds = async () => {
     const filters = buildFilters();
+
+    // If local office is selected, get member user_ids first
+    let officeMemberIds: string[] | null = null;
+    if (filters.localOffice) {
+      const { data: members } = await supabase
+        .from('local_office_members')
+        .select('user_id')
+        .eq('office_id', filters.localOffice);
+      officeMemberIds = (members || []).map(m => m.user_id);
+      if (officeMemberIds.length === 0) return [];
+    }
+
     let query = supabase.from('profiles').select('user_id, date_of_birth');
 
+    if (officeMemberIds) query = query.in('user_id', officeMemberIds);
     if (filters.academy) query = query.eq('academy', filters.academy);
     if (filters.directorate) query = query.eq('directorate', filters.directorate);
     if (filters.institution) query = query.ilike('institution', `%${filters.institution}%`);

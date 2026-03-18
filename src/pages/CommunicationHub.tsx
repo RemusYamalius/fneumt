@@ -14,7 +14,7 @@ const CommunicationHub = () => {
   const { t, lang, dir } = useI18n();
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'compose' | 'stats' | 'feed' | 'supreme_feed'>('feed');
+  const [activeTab, setActiveTab] = useState<'compose' | 'stats' | 'feed'>('feed');
 
   const isSupreme = role && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(role);
 

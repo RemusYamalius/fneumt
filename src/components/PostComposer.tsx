@@ -562,11 +562,11 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                 <div className="flex items-center gap-3 pt-2">
                   <Button
-                    variant="outline"
                     size="sm"
                     onClick={countRecipients}
                     disabled={loadingCount}
-                    className="text-xs"
+                    className="text-xs text-white border-0 shadow-md"
+                    style={{ background: 'linear-gradient(135deg, hsl(225,70%,45%), hsl(225,80%,35%))' }}
                   >
                     {loadingCount ? <Loader2 className="w-3 h-3 animate-spin" /> : <Users className="w-3 h-3" />}
                     {lang === 'ar' ? 'حساب العدد' : 'Compter'}
@@ -577,7 +577,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                       animate={{ scale: 1 }}
                       className="text-sm font-bold text-[hsl(225,70%,45%)]"
                     >
-                      {recipientCount} {lang === 'ar' ? 'مستلم' : 'destinataire(s)'}
+                      {recipientCount} {lang === 'ar' ? (recipientCount === 1 ? 'مستلم' : 'مستلمين') : (recipientCount === 1 ? 'destinataire' : 'destinataires')}
                     </motion.span>
                   )}
                 </div>

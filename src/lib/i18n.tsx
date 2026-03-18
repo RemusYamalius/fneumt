@@ -438,6 +438,12 @@ const translations: Record<Lang, Record<string, string>> = {
     cardNumberColumn: 'رقم البطاقة',
     membershipStatusColumn: 'حالة الانخراط',
     filterByMembership: 'حسب حالة الانخراط',
+    // Hierarchical Filters
+    hierarchyScope: 'نطاق العرض',
+    localOfficeLabel: 'المكتب المحلي',
+    allOffices: 'جميع المكاتب',
+    deputyLabel: 'نائب المنسق المحلي',
+    deputyProfileLabel: 'بيانات النائب',
   },
   fr: {
     platformName: 'Plateforme FNE-UMT',

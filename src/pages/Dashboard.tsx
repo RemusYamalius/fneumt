@@ -162,6 +162,13 @@ const Dashboard = () => {
     ...(isAdminLike ? [{ icon: Database, title: t.databaseTitle, desc: t.databaseDesc, to: '/database', color: 'from-[hsl(180,60%,35%)] to-[hsl(195,70%,50%)]' }] : []),
   ];
 
+  const communicationCards = [
+    ...(isAdminLike
+      ? [{ icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'إنشاء منشورات وإحصائيات' : 'Créer des publications et statistiques', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]' }]
+      : [{ icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'المنشورات الداخلية' : 'Bulletin interne', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]', badge: unreadPostCount }]
+    ),
+  ];
+
   // Simple layout for regular users (teacher/union_officer)
   const allCards = [
     ...personalCards,

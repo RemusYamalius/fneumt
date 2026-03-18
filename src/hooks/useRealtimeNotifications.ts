@@ -14,7 +14,6 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
     if (!userId) return;
 
     if (isInboxRole) {
-      // Count requests assigned to this user that are still 'submitted'
       const { count } = await supabase
         .from('requests')
         .select('*', { count: 'exact', head: true })
@@ -22,7 +21,6 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
         .eq('status', 'submitted');
       setUnreadCount(count || 0);
     } else {
-      // For other roles, count unread notifications
       const { count } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
@@ -37,7 +35,6 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
     fetchUnreadCount();
 
     if (isInboxRole) {
-      // Subscribe to requests table changes for inbox roles
       const reqChannel = supabase
         .channel('requests-badge-realtime')
         .on(
@@ -50,7 +47,6 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
         )
         .subscribe();
 
-      // Also subscribe to join_requests for inbox roles
       const joinChannel = supabase
         .channel('join-requests-badge-realtime')
         .on(
@@ -68,7 +64,6 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
         supabase.removeChannel(joinChannel);
       };
     } else {
-      // Subscribe to notifications table for other roles
       const channel = supabase
         .channel('notifications-realtime')
         .on(
@@ -86,6 +81,48 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
       };
     }
   }, [userId, isInboxRole, fetchUnreadCount, play]);
+
+  // Post notifications - distinct sound using higher pitch
+  useEffect(() => {
+    if (!userId) return;
+    const postChannel = supabase
+      .channel('post-notifications-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'post_recipients', filter: `user_id=eq.${userId}` },
+        () => {
+          // Play a distinct notification using Web Audio API
+          try {
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 880;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.5);
+            // Second tone
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.frequency.value = 1100;
+            osc2.type = 'sine';
+            gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.15);
+            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+            osc2.start(ctx.currentTime + 0.15);
+            osc2.stop(ctx.currentTime + 0.6);
+          } catch {}
+          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(postChannel); };
+  }, [userId]);
 
   return { unreadCount, refetch: fetchUnreadCount };
 };

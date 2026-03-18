@@ -439,7 +439,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Directorate */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.directorateLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.directorateLabel}</Label>
                     <Select value={filterDirectorate} onValueChange={v => setFilterDirectorate(v === '_all' ? '' : v)} disabled={!filterAcademy}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDirectorates} /></SelectTrigger>
                       <SelectContent>

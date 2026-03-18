@@ -373,6 +373,7 @@ const Dashboard = () => {
           <div className="space-y-5 mb-10">
             {renderGroupCard('personal', UserCircle, t.personalSection, personalCards, 'from-[hsl(207,62%,40%)] to-[hsl(120,61%,34%)]')}
             {professionalCards.length > 0 && renderGroupCard('professional', Briefcase, t.professionalSection, professionalCards, 'from-[hsl(260,60%,50%)] to-[hsl(340,65%,47%)]')}
+            {renderGroupCard('communication', MessageSquare, lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', communicationCards, 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]')}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" style={{ direction: 'ltr' }}>

@@ -14,6 +14,30 @@ import { ACADEMIES } from '@/lib/academies-data';
 
 const EMOJI_LIST = ['😀','😊','👍','❤️','🎉','🙏','💪','✅','⚠️','📢','📌','🔔','📋','🏫','📚','✍️','🤝','👏','💡','🌟','🔥','💯','📝','📎','🗓️','⏰','🎯','🏆','💼','📊'];
 
+const MISSION_DB_VALUES = [
+  'teacher_primary', 'teacher_middle', 'teacher_high',
+  'specialist_educational', 'specialist_social', 'specialist_admin_econ',
+  'admin_director', 'admin_guard_ext', 'admin_guard_int',
+  'admin_nazir', 'admin_work_chief', 'admin_study_dir',
+  'admin_cross_sector', 'admin_ministry', 'supplier',
+  'editor', 'educational_assistant', 'technician',
+  'inspector_primary', 'inspector_middle', 'inspector_high',
+  'inspector_guidance', 'inspector_planning', 'inspector_finance',
+  'economy_admin', 'doctor',
+];
+
+const MISSION_VALUE_TO_KEY: Record<string, string> = {
+  teacher_primary: 'missionTeacherPrimary', teacher_middle: 'missionTeacherMiddle', teacher_high: 'missionTeacherHigh',
+  specialist_educational: 'missionSpecialistEducational', specialist_social: 'missionSpecialistSocial', specialist_admin_econ: 'missionSpecialistAdminEcon',
+  admin_director: 'missionAdminDirector', admin_guard_ext: 'missionAdminGuardExt', admin_guard_int: 'missionAdminGuardInt',
+  admin_nazir: 'missionAdminNazir', admin_work_chief: 'missionAdminWorkChief', admin_study_dir: 'missionAdminStudyDir',
+  admin_cross_sector: 'missionAdminCrossSector', admin_ministry: 'missionAdminMinistry', supplier: 'missionSupplier',
+  editor: 'missionEditor', educational_assistant: 'missionEducationalAssistant', technician: 'missionTechnician',
+  inspector_primary: 'missionInspectorPrimary', inspector_middle: 'missionInspectorMiddle', inspector_high: 'missionInspectorHigh',
+  inspector_guidance: 'missionInspectorGuidance', inspector_planning: 'missionInspectorPlanning', inspector_finance: 'missionInspectorFinance',
+  economy_admin: 'missionEconomyAdmin', doctor: 'missionDoctor',
+};
+
 interface AttachmentPreview {
   file: File;
   url: string;
@@ -22,6 +46,11 @@ interface AttachmentPreview {
 
 const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const { t, lang, dir } = useI18n();
+
+  const getMissionLabel = (val: string) => {
+    const key = MISSION_VALUE_TO_KEY[val];
+    return key ? (t as any)[key] || val : val;
+  };
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,11 +66,13 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const [filterAcademy, setFilterAcademy] = useState('');
   const [filterDirectorate, setFilterDirectorate] = useState('');
   const [filterInstitution, setFilterInstitution] = useState('');
-  const [filterCorps, setFilterCorps] = useState('');
+  const [filterMission, setFilterMission] = useState('');
   const [filterMembership, setFilterMembership] = useState('');
   const [filterGender, setFilterGender] = useState('');
   const [filterName, setFilterName] = useState('');
   const [filterPPR, setFilterPPR] = useState('');
+  const [filterAgeMin, setFilterAgeMin] = useState('');
+  const [filterAgeMax, setFilterAgeMax] = useState('');
 
   const directorates = filterAcademy
     ? ACADEMIES.find(a => a.label === filterAcademy)?.directorates || []
@@ -82,22 +113,24 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
     if (filterAcademy) filters.academy = filterAcademy;
     if (filterDirectorate) filters.directorate = filterDirectorate;
     if (filterInstitution) filters.institution = filterInstitution;
-    if (filterCorps) filters.corps = filterCorps;
+    if (filterMission) filters.mission = filterMission;
     if (filterMembership) filters.membership = filterMembership;
     if (filterGender) filters.gender = filterGender;
     if (filterName) filters.name = filterName;
     if (filterPPR) filters.ppr = filterPPR;
+    if (filterAgeMin) filters.ageMin = filterAgeMin;
+    if (filterAgeMax) filters.ageMax = filterAgeMax;
     return filters;
   };
 
   const fetchRecipientIds = async () => {
     const filters = buildFilters();
-    let query = supabase.from('profiles').select('user_id');
+    let query = supabase.from('profiles').select('user_id, date_of_birth');
 
     if (filters.academy) query = query.eq('academy', filters.academy);
     if (filters.directorate) query = query.eq('directorate', filters.directorate);
     if (filters.institution) query = query.ilike('institution', `%${filters.institution}%`);
-    if (filters.corps) query = query.eq('corps', filters.corps as any);
+    if (filters.mission) query = query.eq('mission', filters.mission);
     if (filters.gender) query = query.eq('gender', filters.gender);
     if (filters.name) query = query.ilike('full_name', `%${filters.name}%`);
     if (filters.ppr) query = query.eq('employee_number', filters.ppr);
@@ -108,7 +141,22 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
     }
 
     const { data } = await query;
-    return (data || []).map(p => p.user_id).filter(id => id !== user?.id);
+    let results = (data || []).filter(p => p.user_id !== user?.id);
+
+    // Client-side age filtering
+    if (filters.ageMin || filters.ageMax) {
+      const now = new Date();
+      results = results.filter(p => {
+        if (!p.date_of_birth) return false;
+        const birth = new Date(p.date_of_birth);
+        const age = now.getFullYear() - birth.getFullYear() - (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0);
+        if (filters.ageMin && age < parseInt(filters.ageMin)) return false;
+        if (filters.ageMax && age > parseInt(filters.ageMax)) return false;
+        return true;
+      });
+    }
+
+    return results.map(p => p.user_id);
   };
 
   const countRecipients = async () => {
@@ -383,17 +431,16 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                     />
                   </div>
 
-                  {/* Corps */}
+                  {/* Mission */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.corpsLabel}</Label>
-                    <Select value={filterCorps} onValueChange={v => setFilterCorps(v === '_all' ? '' : v)}>
-                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.selectCorps} /></SelectTrigger>
+                    <Label className="text-xs mb-1 block">{t.missionFilter}</Label>
+                    <Select value={filterMission} onValueChange={v => setFilterMission(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="_all">{lang === 'ar' ? 'الكل' : 'Tous'}</SelectItem>
-                        <SelectItem value="primary">{t.corpsPrimary}</SelectItem>
-                        <SelectItem value="middle_school">{t.corpsMiddle}</SelectItem>
-                        <SelectItem value="high_school">{t.corpsHigh}</SelectItem>
-                        <SelectItem value="administrative">{t.corpsAdmin}</SelectItem>
+                        <SelectItem value="_all">{t.allMissions}</SelectItem>
+                        {MISSION_DB_VALUES.map(m => (
+                          <SelectItem key={m} value={m}>{getMissionLabel(m)}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -444,6 +491,31 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                       placeholder={t.employeeNumberLabel}
                       className="h-9 text-xs"
                     />
+                  </div>
+
+                  {/* Age Range */}
+                  <div>
+                    <Label className="text-xs mb-1 block">{t.ageRange || (lang === 'ar' ? 'الفئة العمرية' : "Tranche d'âge")}</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={filterAgeMin}
+                        onChange={e => setFilterAgeMin(e.target.value)}
+                        placeholder={lang === 'ar' ? 'من' : 'De'}
+                        className="h-9 text-xs w-1/2"
+                        min="18"
+                        max="70"
+                      />
+                      <Input
+                        type="number"
+                        value={filterAgeMax}
+                        onChange={e => setFilterAgeMax(e.target.value)}
+                        placeholder={lang === 'ar' ? 'إلى' : 'À'}
+                        className="h-9 text-xs w-1/2"
+                        min="18"
+                        max="70"
+                      />
+                    </div>
                   </div>
                 </div>
 

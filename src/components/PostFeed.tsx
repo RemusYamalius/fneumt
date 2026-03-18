@@ -82,7 +82,7 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
     const readMap = new Map<string, boolean>();
     ((recipientRes as any).data || []).forEach((r: any) => readMap.set(r.post_id, r.is_read));
 
-    const enriched: Post[] = postsData.map(p => ({
+    const enriched: Post[] = filteredPosts.map(p => ({
       id: p.id,
       author_id: p.author_id,
       content: p.content || '',

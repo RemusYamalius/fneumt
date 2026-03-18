@@ -108,7 +108,7 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
           .in('post_id', unreadIds);
       }
     }
-  }, [user, isAuthor]);
+  }, [user, isAuthor, mode]);
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 

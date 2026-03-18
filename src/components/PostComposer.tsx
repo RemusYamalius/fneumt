@@ -525,7 +525,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* PPR */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.employeeNumberLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.employeeNumberLabel}</Label>
                     <Input
                       value={filterPPR}
                       onChange={e => setFilterPPR(e.target.value)}

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database } from 'lucide-react';
+import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,9 +18,10 @@ const Dashboard = () => {
   const [joinPendingCount, setJoinPendingCount] = useState(0);
   const [myRequests, setMyRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
-  const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | null>(null);
+  const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | 'communication' | null>(null);
   const [hasJoinRequest, setHasJoinRequest] = useState(false);
   const [joiningLoading, setJoiningLoading] = useState(false);
+  const [unreadPostCount, setUnreadPostCount] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -68,6 +69,16 @@ const Dashboard = () => {
       .then(({ count }: any) => setHasJoinRequest((count || 0) > 0));
   }, [user, isNonMember]);
 
+  // Fetch unread post count
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('post_recipients')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_read', false)
+      .then(({ count }: any) => setUnreadPostCount(count || 0));
+  }, [user]);
 
   // Fetch user's own requests
   useEffect(() => {
@@ -151,14 +162,22 @@ const Dashboard = () => {
     ...(isAdminLike ? [{ icon: Database, title: t.databaseTitle, desc: t.databaseDesc, to: '/database', color: 'from-[hsl(180,60%,35%)] to-[hsl(195,70%,50%)]' }] : []),
   ];
 
+  const communicationCards = [
+    ...(isAdminLike
+      ? [{ icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'إنشاء منشورات وإحصائيات' : 'Créer des publications et statistiques', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]' }]
+      : [{ icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'المنشورات الداخلية' : 'Bulletin interne', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]', badge: unreadPostCount }]
+    ),
+  ];
+
   // Simple layout for regular users (teacher/union_officer)
   const allCards = [
     ...personalCards,
     ...(showIncomingRequests ? [{ icon: Inbox, title: t.incomingRequests, desc: t.incomingRequestsDesc, to: '/incoming-requests', color: cardColors.incomingRequests, badge: pendingCount }] : []),
+    ...communicationCards,
   ];
 
 
-  const toggleGroup = (group: 'personal' | 'professional') => {
+  const toggleGroup = (group: 'personal' | 'professional' | 'communication') => {
     setExpandedGroup(prev => prev === group ? null : group);
   };
 
@@ -194,7 +213,7 @@ const Dashboard = () => {
   );
 
   const renderGroupCard = (
-    group: 'personal' | 'professional',
+    group: 'personal' | 'professional' | 'communication',
     icon: typeof UserCircle,
     title: string,
     cards: any[],
@@ -354,6 +373,7 @@ const Dashboard = () => {
           <div className="space-y-5 mb-10">
             {renderGroupCard('personal', UserCircle, t.personalSection, personalCards, 'from-[hsl(207,62%,40%)] to-[hsl(120,61%,34%)]')}
             {professionalCards.length > 0 && renderGroupCard('professional', Briefcase, t.professionalSection, professionalCards, 'from-[hsl(260,60%,50%)] to-[hsl(340,65%,47%)]')}
+            {renderGroupCard('communication', MessageSquare, lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', communicationCards, 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]')}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" style={{ direction: 'ltr' }}>

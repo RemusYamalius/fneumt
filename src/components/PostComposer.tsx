@@ -75,6 +75,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const [filterAgeMin, setFilterAgeMin] = useState('');
   const [filterAgeMax, setFilterAgeMax] = useState('');
   const [filterLocalOffice, setFilterLocalOffice] = useState('');
+  const [showToSupreme, setShowToSupreme] = useState(true);
   const [localOffices, setLocalOffices] = useState<{ id: string; office_name: string | null; academy: string | null; directorate: string | null }[]>([]);
 
   const directorates = filterAcademy

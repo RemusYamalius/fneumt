@@ -80,6 +80,19 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
     ? ACADEMIES.find(a => a.label === filterAcademy)?.directorates || []
     : [];
 
+  // Fetch local offices based on selected academy/directorate
+  useEffect(() => {
+    const fetchOffices = async () => {
+      let query = supabase.from('local_offices').select('id, office_name, academy, directorate');
+      if (filterAcademy) query = query.eq('academy', filterAcademy);
+      if (filterDirectorate) query = query.eq('directorate', filterDirectorate);
+      const { data } = await query;
+      setLocalOffices(data || []);
+    };
+    fetchOffices();
+    setFilterLocalOffice('');
+  }, [filterAcademy, filterDirectorate]);
+
   const getFileType = (file: File): AttachmentPreview['type'] => {
     if (file.type.startsWith('image/')) return 'image';
     if (file.type === 'application/pdf') return 'pdf';

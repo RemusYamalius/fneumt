@@ -427,7 +427,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {/* Academy */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.academyLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.academyLabel}</Label>
                     <Select value={filterAcademy} onValueChange={v => { setFilterAcademy(v === '_all' ? '' : v); setFilterDirectorate(''); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allAcademies} /></SelectTrigger>
                       <SelectContent>

@@ -84,11 +84,13 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
     if (filterAcademy) filters.academy = filterAcademy;
     if (filterDirectorate) filters.directorate = filterDirectorate;
     if (filterInstitution) filters.institution = filterInstitution;
-    if (filterCorps) filters.corps = filterCorps;
+    if (filterMission) filters.mission = filterMission;
     if (filterMembership) filters.membership = filterMembership;
     if (filterGender) filters.gender = filterGender;
     if (filterName) filters.name = filterName;
     if (filterPPR) filters.ppr = filterPPR;
+    if (filterAgeMin) filters.ageMin = filterAgeMin;
+    if (filterAgeMax) filters.ageMax = filterAgeMax;
     return filters;
   };
 

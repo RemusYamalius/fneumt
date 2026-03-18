@@ -488,7 +488,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Gender */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.genderLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.genderLabel}</Label>
                     <Select value={filterGender} onValueChange={v => setFilterGender(v === '_all' ? '' : v)}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allGenders} /></SelectTrigger>
                       <SelectContent>

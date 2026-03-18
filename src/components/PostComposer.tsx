@@ -449,6 +449,18 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
                     </Select>
                   </div>
 
+                  {/* Local Office */}
+                  <div>
+                    <Label className="text-xs mb-1 block">{lang === 'ar' ? 'المكتب المحلي' : 'Bureau local'}</Label>
+                    <Select value={filterLocalOffice} onValueChange={v => setFilterLocalOffice(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={lang === 'ar' ? 'كل المكاتب' : 'Tous les bureaux'} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">{lang === 'ar' ? 'كل المكاتب' : 'Tous les bureaux'}</SelectItem>
+                        {localOffices.map(o => <SelectItem key={o.id} value={o.id}>{o.office_name || o.id}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Institution */}
                   <div>
                     <Label className="text-xs mb-1 block">{t.institutionLabel}</Label>

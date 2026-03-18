@@ -32,8 +32,26 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
 
     let query = supabase.from('posts').select('*').order('created_at', { ascending: false });
 
+    // In supreme mode, only show posts from other supreme accounts
+    if (mode === 'supreme') {
+      query = query.neq('author_id', user.id);
+    }
+
     const { data: postsData } = await query;
     if (!postsData) { setLoading(false); return; }
+
+    // In supreme mode, filter to only supreme authors
+    let filteredPosts = postsData;
+    if (mode === 'supreme') {
+      const { data: supremeRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['admin', 'national_secretary', 'deputy_national_secretary']);
+      const supremeIds = new Set((supremeRoles || []).map(r => r.user_id));
+      filteredPosts = postsData.filter(p => supremeIds.has(p.author_id));
+    }
+
+    if (filteredPosts.length === 0) { setPosts([]); setLoading(false); return; }
 
     const postIds = postsData.map(p => p.id);
 

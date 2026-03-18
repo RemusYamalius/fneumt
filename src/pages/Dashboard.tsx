@@ -379,7 +379,7 @@ const Dashboard = () => {
             {renderGroupCard('communication', MessageSquare, lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', communicationCards, 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]')}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" style={{ direction: 'ltr' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10" dir={dir}>
             {allCards.map((action, index) => (
               <motion.div
                 key={action.to}

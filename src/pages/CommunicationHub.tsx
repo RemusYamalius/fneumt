@@ -58,7 +58,8 @@ const CommunicationHub = () => {
           </div>
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-medium shadow-lg hover:opacity-90 transition-opacity"
+            style={{ background: 'linear-gradient(135deg, hsl(217,70%,45%), hsl(217,80%,30%))' }}
           >
             <BackIcon className="w-4 h-4" />
             {t.backToDashboard}

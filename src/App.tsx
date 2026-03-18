@@ -13,6 +13,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import NewRequest from "./pages/NewRequest";
 import CommunicationHub from "./pages/CommunicationHub";
+import SupremeFeed from "./pages/SupremeFeed";
 import DatabaseDashboard from "./pages/DatabaseDashboard";
 import LocalOffice from "./pages/LocalOffice";
 import IncomingRequests from "./pages/IncomingRequests";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/track" element={<TrackRequest />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/communication" element={<CommunicationHub />} />
+              <Route path="/supreme-feed" element={<RoleGuard allowedRoles={['admin', 'national_secretary', 'deputy_national_secretary']}><SupremeFeed /></RoleGuard>} />
               <Route path="/incoming-requests" element={<RoleGuard allowedRoles={['admin', 'national_secretary', 'deputy_national_secretary', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high']}><IncomingRequests /></RoleGuard>} />
               <Route path="/supervisor" element={<RoleGuard allowedRoles={['admin', 'national_secretary', 'deputy_national_secretary', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high', 'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator']}><SupervisorDashboard /></RoleGuard>} />
               <Route path="/admin/users" element={<RoleGuard allowedRoles={['admin', 'national_secretary', 'deputy_national_secretary', 'regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high', 'provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator']}><UserManagement /></RoleGuard>} />

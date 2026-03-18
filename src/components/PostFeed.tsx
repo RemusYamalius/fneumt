@@ -43,7 +43,7 @@ const PostFeed = ({ isAuthor = false }: { isAuthor?: boolean }) => {
       supabase.from('post_likes').select('*').in('post_id', postIds),
       supabase.from('profiles').select('user_id, full_name').in('user_id', [...new Set(postsData.map(p => p.author_id))]),
       isAuthor ? Promise.resolve({ data: [] }) : supabase.from('post_recipients').select('post_id, is_read').eq('user_id', user.id).in('post_id', postIds),
-    ];
+    ]);
 
     const attachMap = new Map<string, any[]>();
     (attachRes.data || []).forEach(a => {

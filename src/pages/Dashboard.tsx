@@ -177,7 +177,7 @@ const Dashboard = () => {
   ];
 
 
-  const toggleGroup = (group: 'personal' | 'professional') => {
+  const toggleGroup = (group: 'personal' | 'professional' | 'communication') => {
     setExpandedGroup(prev => prev === group ? null : group);
   };
 

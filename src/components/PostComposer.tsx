@@ -96,12 +96,12 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
   const fetchRecipientIds = async () => {
     const filters = buildFilters();
-    let query = supabase.from('profiles').select('user_id');
+    let query = supabase.from('profiles').select('user_id, date_of_birth');
 
     if (filters.academy) query = query.eq('academy', filters.academy);
     if (filters.directorate) query = query.eq('directorate', filters.directorate);
     if (filters.institution) query = query.ilike('institution', `%${filters.institution}%`);
-    if (filters.corps) query = query.eq('corps', filters.corps as any);
+    if (filters.mission) query = query.eq('mission', filters.mission);
     if (filters.gender) query = query.eq('gender', filters.gender);
     if (filters.name) query = query.ilike('full_name', `%${filters.name}%`);
     if (filters.ppr) query = query.eq('employee_number', filters.ppr);
@@ -112,7 +112,22 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
     }
 
     const { data } = await query;
-    return (data || []).map(p => p.user_id).filter(id => id !== user?.id);
+    let results = (data || []).filter(p => p.user_id !== user?.id);
+
+    // Client-side age filtering
+    if (filters.ageMin || filters.ageMax) {
+      const now = new Date();
+      results = results.filter(p => {
+        if (!p.date_of_birth) return false;
+        const birth = new Date(p.date_of_birth);
+        const age = now.getFullYear() - birth.getFullYear() - (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0);
+        if (filters.ageMin && age < parseInt(filters.ageMin)) return false;
+        if (filters.ageMax && age > parseInt(filters.ageMax)) return false;
+        return true;
+      });
+    }
+
+    return results.map(p => p.user_id);
   };
 
   const countRecipients = async () => {

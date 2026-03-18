@@ -73,6 +73,7 @@ const CommunicationHub = () => {
               { key: 'compose' as const, label: lang === 'ar' ? 'إنشاء منشور' : 'Créer', icon: Send },
               { key: 'stats' as const, label: lang === 'ar' ? 'إحصائيات' : 'Statistiques', icon: BarChart3 },
               { key: 'feed' as const, label: lang === 'ar' ? 'المنشورات' : 'Publications', icon: MessageSquare },
+              { key: 'supreme_feed' as const, label: lang === 'ar' ? 'منشورات القيادة' : 'Publications Direction', icon: Newspaper },
             ].map(tab => (
               <button
                 key={tab.key}

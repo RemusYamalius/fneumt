@@ -355,8 +355,8 @@ const NewRequest = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from('profiles').select('academy, directorate, corps').eq('user_id', user.id).single()
-      .then(({ data }) => setProfileComplete(!!(data?.academy && data?.directorate && data?.corps)));
+    supabase.from('profiles').select('academy, directorate').eq('user_id', user.id).single()
+      .then(({ data }) => setProfileComplete(!!(data?.academy && data?.directorate)));
   }, [user]);
 
   if (loading || !user) return (

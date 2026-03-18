@@ -655,7 +655,7 @@ const translations: Record<Lang, Record<string, string>> = {
     onlyPdfImages: 'Seuls les PDF et images sont acceptés',
     invalidFileType: 'Type de fichier non accepté. Seuls les PDF et images sont autorisés.',
     profileIncomplete: 'Veuillez compléter votre profil',
-    profileIncompleteDesc: 'Pour soumettre une demande, vous devez remplir l\'académie, la direction provinciale et le corps dans votre profil.',
+    profileIncompleteDesc: 'Pour soumettre une demande, vous devez remplir toutes les informations de votre profil.',
     completeProfile: 'Compléter le profil',
     // Status change actions
     markViewed: 'Consultée',

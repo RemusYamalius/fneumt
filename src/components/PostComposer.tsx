@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Smile, Paperclip, Image, FileText, Video, Link2, X, Users, ChevronDown, ChevronUp, Loader2, Filter } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';

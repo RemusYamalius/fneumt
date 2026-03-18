@@ -514,7 +514,7 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
                   {/* Name */}
                   <div>
-                    <Label className="text-xs mb-1 block">{t.fullNameLabel}</Label>
+                    <Label className="text-xs mb-1 block font-bold text-[hsl(225,70%,45%)]">{t.fullNameLabel}</Label>
                     <Input
                       value={filterName}
                       onChange={e => setFilterName(e.target.value)}

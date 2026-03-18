@@ -37,11 +37,13 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const [filterAcademy, setFilterAcademy] = useState('');
   const [filterDirectorate, setFilterDirectorate] = useState('');
   const [filterInstitution, setFilterInstitution] = useState('');
-  const [filterCorps, setFilterCorps] = useState('');
+  const [filterMission, setFilterMission] = useState('');
   const [filterMembership, setFilterMembership] = useState('');
   const [filterGender, setFilterGender] = useState('');
   const [filterName, setFilterName] = useState('');
   const [filterPPR, setFilterPPR] = useState('');
+  const [filterAgeMin, setFilterAgeMin] = useState('');
+  const [filterAgeMax, setFilterAgeMax] = useState('');
 
   const directorates = filterAcademy
     ? ACADEMIES.find(a => a.label === filterAcademy)?.directorates || []

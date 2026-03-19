@@ -441,7 +441,7 @@ const DatabaseDashboard = () => {
 
                   {/* Institution */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.institutionFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-amber-100/60 text-amber-700 w-fit">{t.institutionFilter}</label>
                     <Input value={fInstitution} onChange={e => { setFInstitution(e.target.value); setCurrentPage(1); }} placeholder="..." className="h-9 text-xs" />
                   </div>
 

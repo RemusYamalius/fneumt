@@ -163,6 +163,11 @@ const DatabaseDashboard = () => {
   // Filtered profiles
   const filteredProfiles = useMemo(() => {
     let result = [...profiles];
+    // When offices category is selected, restrict to office members only
+    if (filterCategory === 'offices') {
+      const memberUserIds = new Set(officeMembers.map(m => m.user_id));
+      result = result.filter(p => memberUserIds.has(p.user_id));
+    }
     if (fAcademy) result = result.filter(p => p.academy === fAcademy);
     if (fDirectorate) result = result.filter(p => p.directorate === fDirectorate);
     if (fInstitution) result = result.filter(p => p.institution?.includes(fInstitution));
@@ -176,7 +181,7 @@ const DatabaseDashboard = () => {
     if (fEmployeeNumber) result = result.filter(p => p.employee_number?.includes(fEmployeeNumber));
     if (fPhone) result = result.filter(p => p.phone?.includes(fPhone));
     return result;
-  }, [profiles, fAcademy, fDirectorate, fInstitution, fGender, fMission, fMinAge, fMaxAge, fMembership, fEmployeeNumber, fPhone]);
+  }, [profiles, filterCategory, officeMembers, fAcademy, fDirectorate, fInstitution, fGender, fMission, fMinAge, fMaxAge, fMembership, fEmployeeNumber, fPhone]);
 
   // Sorted profiles
   const sortedProfiles = useMemo(() => {

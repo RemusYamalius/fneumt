@@ -387,19 +387,21 @@ const DatabaseDashboard = () => {
         >
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-muted/30 transition-colors"
+            className="w-full flex items-center justify-between px-5 py-3.5 transition-colors relative overflow-hidden rounded-t-2xl shadow-lg"
+            style={{ background: 'linear-gradient(135deg, hsl(207 75% 17%), hsl(207 62% 40%))' }}
           >
-            <span className="flex items-center gap-2 font-semibold text-foreground">
+            <span className="shimmer-filter-btn" />
+            <span className="flex items-center gap-2 font-bold text-white relative z-10">
               <Filter className="w-4 h-4" />
               {t.advancedFilters}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative z-10">
               {(fAcademy || fDirectorate || fGender || fMission || fMembership || fEmployeeNumber || fPhone || fInstitution || fMinAge || fMaxAge) && (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-[10px] bg-white/20 text-white border-white/30">
                   {t.filterLabel}
                 </Badge>
               )}
-              {filtersOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {filtersOpen ? <ChevronUp className="w-4 h-4 text-white" /> : <ChevronDown className="w-4 h-4 text-white" />}
             </div>
           </button>
 

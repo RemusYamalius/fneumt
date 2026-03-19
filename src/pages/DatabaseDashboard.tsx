@@ -429,7 +429,7 @@ const DatabaseDashboard = () => {
 
                   {/* Directorate */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.directorateFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-emerald-100/60 text-emerald-700 w-fit">{t.directorateFilter}</label>
                     <Select value={fDirectorate} onValueChange={v => { setFDirectorate(v === '__all__' ? '' : v); setCurrentPage(1); }} disabled={!fAcademy}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDirectorates} /></SelectTrigger>
                       <SelectContent>

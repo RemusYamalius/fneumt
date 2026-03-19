@@ -460,7 +460,7 @@ const DatabaseDashboard = () => {
 
                   {/* Mission */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.missionFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-purple-100/60 text-purple-700 w-fit">{t.missionFilter}</label>
                     <Select value={fMission} onValueChange={v => { setFMission(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
                       <SelectContent>

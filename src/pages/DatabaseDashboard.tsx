@@ -481,7 +481,7 @@ const DatabaseDashboard = () => {
 
                   {/* Membership */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.membershipFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-orange-100/60 text-orange-700 w-fit">{t.membershipFilter}</label>
                     <Select value={fMembership} onValueChange={v => { setFMembership(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>

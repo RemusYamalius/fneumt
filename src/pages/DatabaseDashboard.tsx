@@ -447,7 +447,7 @@ const DatabaseDashboard = () => {
 
                   {/* Gender */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.genderFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-pink-100/60 text-pink-700 w-fit">{t.genderFilter}</label>
                     <Select value={fGender} onValueChange={v => { setFGender(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allGenders} /></SelectTrigger>
                       <SelectContent>

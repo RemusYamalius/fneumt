@@ -472,7 +472,7 @@ const DatabaseDashboard = () => {
 
                   {/* Age Range */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.ageRange}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-cyan-100/60 text-cyan-700 w-fit">{t.ageRange}</label>
                     <div className="flex gap-1.5">
                       <Input type="number" value={fMinAge} onChange={e => { setFMinAge(e.target.value); setCurrentPage(1); }} placeholder="Min" className="h-9 text-xs w-1/2" />
                       <Input type="number" value={fMaxAge} onChange={e => { setFMaxAge(e.target.value); setCurrentPage(1); }} placeholder="Max" className="h-9 text-xs w-1/2" />

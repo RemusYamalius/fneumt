@@ -519,7 +519,7 @@ const DatabaseDashboard = () => {
         </motion.div>
 
         {/* Tabs */}
-        <Tabs defaultValue="users" className="w-full">
+        <Tabs defaultValue="users" className="w-full" dir={dir}>
           <TabsList className="w-full justify-start mb-6 bg-muted/50 rounded-xl p-1 h-auto">
             <TabsTrigger value="users" className="rounded-lg px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Users className="w-4 h-4 me-2" />

@@ -94,6 +94,8 @@ const DatabaseDashboard = () => {
 
   // Filter state
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filterCategory, setFilterCategory] = useState<'none' | 'users' | 'offices'>('none');
+  const [activeTab, setActiveTab] = useState('users');
   const [fAcademy, setFAcademy] = useState('');
   const [fDirectorate, setFDirectorate] = useState('');
   const [fInstitution, setFInstitution] = useState('');

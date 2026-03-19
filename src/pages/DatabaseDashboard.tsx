@@ -427,7 +427,7 @@ const DatabaseDashboard = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="px-5 py-8 flex items-center justify-center gap-6"
+                    className="px-5 py-8 grid grid-cols-2 gap-6 max-w-lg mx-auto"
                   >
                     <motion.button
                       whileHover={{ scale: 1.05 }}

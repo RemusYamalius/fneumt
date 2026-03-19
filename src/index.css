@@ -108,6 +108,17 @@
 }
 
 @layer utilities {
+  /* Force RTL text alignment — use on any text block inside dialogs/portals */
+  .rtl-text {
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: plaintext;
+  }
+  .ltr-text {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: plaintext;
+  }
   .shimmer-filter-btn {
     position: absolute;
     inset: 0;

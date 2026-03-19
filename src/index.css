@@ -108,6 +108,26 @@
 }
 
 @layer utilities {
+  .shimmer-filter-btn {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: shimmer-sweep 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes shimmer-sweep {
+    0% { transform: translateX(-100%); }
+    30% { transform: translateX(100%); }
+    100% { transform: translateX(100%); }
+  }
+
   .glass {
     @apply bg-white/70 backdrop-blur-xl border border-white/20;
   }

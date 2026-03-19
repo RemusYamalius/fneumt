@@ -387,19 +387,21 @@ const DatabaseDashboard = () => {
         >
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-muted/30 transition-colors"
+            className="w-full flex items-center justify-between px-5 py-3.5 transition-colors relative overflow-hidden rounded-t-2xl shadow-lg"
+            style={{ background: 'linear-gradient(135deg, hsl(207 75% 17%), hsl(207 62% 40%))' }}
           >
-            <span className="flex items-center gap-2 font-semibold text-foreground">
+            <span className="shimmer-filter-btn" />
+            <span className="flex items-center gap-2 font-bold text-white relative z-10">
               <Filter className="w-4 h-4" />
               {t.advancedFilters}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative z-10">
               {(fAcademy || fDirectorate || fGender || fMission || fMembership || fEmployeeNumber || fPhone || fInstitution || fMinAge || fMaxAge) && (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-[10px] bg-white/20 text-white border-white/30">
                   {t.filterLabel}
                 </Badge>
               )}
-              {filtersOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {filtersOpen ? <ChevronUp className="w-4 h-4 text-white" /> : <ChevronDown className="w-4 h-4 text-white" />}
             </div>
           </button>
 
@@ -415,7 +417,7 @@ const DatabaseDashboard = () => {
                 <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                   {/* Academy */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.academyFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-blue-100/60 text-blue-700 w-fit">{t.academyFilter}</label>
                     <Select value={fAcademy} onValueChange={v => { setFAcademy(v === '__all__' ? '' : v); setFDirectorate(''); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allAcademies} /></SelectTrigger>
                       <SelectContent>
@@ -427,7 +429,7 @@ const DatabaseDashboard = () => {
 
                   {/* Directorate */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.directorateFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-emerald-100/60 text-emerald-700 w-fit">{t.directorateFilter}</label>
                     <Select value={fDirectorate} onValueChange={v => { setFDirectorate(v === '__all__' ? '' : v); setCurrentPage(1); }} disabled={!fAcademy}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDirectorates} /></SelectTrigger>
                       <SelectContent>
@@ -439,13 +441,13 @@ const DatabaseDashboard = () => {
 
                   {/* Institution */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.institutionFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-amber-100/60 text-amber-700 w-fit">{t.institutionFilter}</label>
                     <Input value={fInstitution} onChange={e => { setFInstitution(e.target.value); setCurrentPage(1); }} placeholder="..." className="h-9 text-xs" />
                   </div>
 
                   {/* Gender */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.genderFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-pink-100/60 text-pink-700 w-fit">{t.genderFilter}</label>
                     <Select value={fGender} onValueChange={v => { setFGender(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allGenders} /></SelectTrigger>
                       <SelectContent>
@@ -458,7 +460,7 @@ const DatabaseDashboard = () => {
 
                   {/* Mission */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.missionFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-purple-100/60 text-purple-700 w-fit">{t.missionFilter}</label>
                     <Select value={fMission} onValueChange={v => { setFMission(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
                       <SelectContent>
@@ -470,7 +472,7 @@ const DatabaseDashboard = () => {
 
                   {/* Age Range */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.ageRange}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-cyan-100/60 text-cyan-700 w-fit">{t.ageRange}</label>
                     <div className="flex gap-1.5">
                       <Input type="number" value={fMinAge} onChange={e => { setFMinAge(e.target.value); setCurrentPage(1); }} placeholder="Min" className="h-9 text-xs w-1/2" />
                       <Input type="number" value={fMaxAge} onChange={e => { setFMaxAge(e.target.value); setCurrentPage(1); }} placeholder="Max" className="h-9 text-xs w-1/2" />
@@ -479,7 +481,7 @@ const DatabaseDashboard = () => {
 
                   {/* Membership */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.membershipFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-orange-100/60 text-orange-700 w-fit">{t.membershipFilter}</label>
                     <Select value={fMembership} onValueChange={v => { setFMembership(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>
@@ -493,13 +495,13 @@ const DatabaseDashboard = () => {
 
                   {/* Employee Number */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.employeeNumberFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-indigo-100/60 text-indigo-700 w-fit">{t.employeeNumberFilter}</label>
                     <Input value={fEmployeeNumber} onChange={e => { setFEmployeeNumber(e.target.value); setCurrentPage(1); }} placeholder="N°PPR" className="h-9 text-xs" />
                   </div>
 
                   {/* Phone */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.phoneFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-teal-100/60 text-teal-700 w-fit">{t.phoneFilter}</label>
                     <Input value={fPhone} onChange={e => { setFPhone(e.target.value); setCurrentPage(1); }} placeholder="06..." className="h-9 text-xs" />
                   </div>
 
@@ -517,7 +519,7 @@ const DatabaseDashboard = () => {
         </motion.div>
 
         {/* Tabs */}
-        <Tabs defaultValue="users" className="w-full">
+        <Tabs defaultValue="users" className="w-full" dir={dir}>
           <TabsList className="w-full justify-start mb-6 bg-muted/50 rounded-xl p-1 h-auto">
             <TabsTrigger value="users" className="rounded-lg px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Users className="w-4 h-4 me-2" />

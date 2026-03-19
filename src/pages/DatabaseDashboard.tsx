@@ -446,7 +446,7 @@ const DatabaseDashboard = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => { setFilterCategory('offices'); setActiveTab('offices'); }}
-                      className="flex flex-col items-center gap-3 px-10 py-8 rounded-2xl shadow-xl border border-border/50 bg-gradient-to-br from-[hsl(160,60%,93%)] to-[hsl(160,60%,85%)] hover:from-[hsl(160,60%,88%)] hover:to-[hsl(160,60%,78%)] transition-all cursor-pointer"
+                      className="flex flex-col items-center justify-center gap-3 py-8 rounded-2xl shadow-xl border border-border/50 bg-gradient-to-br from-[hsl(160,60%,93%)] to-[hsl(160,60%,85%)] hover:from-[hsl(160,60%,88%)] hover:to-[hsl(160,60%,78%)] transition-all cursor-pointer"
                     >
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[hsl(160,60%,38%)] to-[hsl(160,60%,50%)] flex items-center justify-center shadow-lg">
                         <Building2 className="w-7 h-7 text-white" />

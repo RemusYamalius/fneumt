@@ -239,7 +239,7 @@ const PostStats = () => {
                   </div>
                 ) : (
                   <div className="bg-muted/50 rounded-xl p-3">
-                    <p className="text-sm whitespace-pre-wrap">{posts.find(p => p.id === selectedPost)?.content}</p>
+                    <p className="text-sm whitespace-pre-wrap text-start">{posts.find(p => p.id === selectedPost)?.content}</p>
                   </div>
                 )}
 

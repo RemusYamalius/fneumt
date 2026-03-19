@@ -198,6 +198,7 @@ const DatabaseDashboard = () => {
     setFAcademy(''); setFDirectorate(''); setFInstitution(''); setFGender('');
     setFMission(''); setFMinAge(''); setFMaxAge(''); setFMembership('');
     setFEmployeeNumber(''); setFPhone(''); setCurrentPage(1);
+    setFilterCategory('none');
   };
 
   const toggleSort = (field: string) => {

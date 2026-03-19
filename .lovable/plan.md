@@ -1,58 +1,46 @@
 
 
-## التغييرات المطلوبة
+# خطة التعديلات الأربعة
 
-ثلاث تعديلات رئيسية على صفحة "طلب جديد":
+## 1. محاذاة تبويبات "المسجلون" و "المكاتب المحلية" لليمين في RTL
 
----
+### `src/pages/DatabaseDashboard.tsx` (سطر 521)
+تغيير `justify-start` إلى `justify-end rtl:justify-end ltr:justify-start` في `TabsList`، أو الأبسط: استخدام `justify-start` مع `dir={dir}` على العنصر الأب — لكن المشكلة أن `TabsList` لا يحترم `dir`. الحل: إضافة `dir={dir}` على `TabsList` أو تغيير `justify-start` إلى class يراعي الاتجاه.
 
-### 1. ترتيب البطاقات RTL
+**الحل**: تغيير `justify-start` في `TabsList` إلى فقط حذفها (أو استبدالها بـ `justify-start`) مع إضافة `dir={dir}` على عنصر `Tabs`.
 
-في `src/pages/NewRequest.tsx` السطر 218، الشبكة تستخدم `style={{ direction: 'ltr' }}` بشكل ثابت. يجب إزالة هذا وجعل الاتجاه يتبع اللغة الحالية (`dir` من `useI18n`). هذا يضمن أن البطاقات تُعرض من اليمين لليسار بالعربية ومن اليسار لليمين بالفرنسية.
+## 2. زر "فلاتر متقدمة" ملون مع بريق وظل
 
----
+### `src/pages/DatabaseDashboard.tsx` (سطر 388-404)
+- تحويل الزر إلى زر ملون بتدرج (gradient) مثل أزرار "العودة"
+- إضافة `shadow-lg` للظل البارز
+- إضافة تأثير بريق (shimmer) عبر CSS animation باستخدام `@keyframes shimmer` مع pseudo-element `::after` أو عبر كلاس Tailwind مخصص
 
-### 2. بطاقة "آخر" — إظهار خانتي الموضوع والوصف
+### `src/index.css`
+إضافة `@keyframes shimmer` animation يمر كل 3 ثوان.
 
-عند اختيار بطاقة `other` في الخطوة 1، تظهر خانتان أسفل البطاقات مباشرة (بدون الانتقال لخطوة أخرى):
-- **الموضوع** (إلزامي) — `Input`
-- **الوصف** (اختياري) — `Textarea`
+## 3. تلوين عناوين خانات الفلاتر بخلفيات مختلفة
 
-تُميَّز الخانتان بألوان بطاقة "آخر" (`slate/gray`): حدود وخلفية خفيفة بتدرج رمادي.
+### `src/pages/DatabaseDashboard.tsx` (سطور 417-504)
+تحويل كل `<label>` داخل الفلاتر من `text-xs font-medium text-muted-foreground` إلى نص أكبر (`text-sm font-bold`) مع خلفية ملونة خفيفة (`px-2 py-0.5 rounded-md`) بلون مختلف لكل فلتر:
+- الأكاديمية: `bg-blue-100/60 text-blue-700`
+- المديرية: `bg-emerald-100/60 text-emerald-700`
+- المؤسسة: `bg-amber-100/60 text-amber-700`
+- النوع: `bg-pink-100/60 text-pink-700`
+- المهمة: `bg-purple-100/60 text-purple-700`
+- السن: `bg-cyan-100/60 text-cyan-700`
+- الانخراط: `bg-orange-100/60 text-orange-700`
+- رقم التأجير: `bg-indigo-100/60 text-indigo-700`
+- الهاتف: `bg-teal-100/60 text-teal-700`
 
-تحديث `canNext`: عند `category === 'other'` في الخطوة 1، يُشترط أيضاً ملء حقل الموضوع.
+## 4. إصلاح محاذاة إحصائيات المنشور في PostStats (RTL)
 
----
+### `src/components/PostStats.tsx`
+- سطر 162: إضافة `dir={dir}` على الحاوية الرئيسية `<div className="space-y-4" dir={dir}>`
+- سطر 203: إضافة `flex-wrap` وتأكيد أن `flex` يحترم الاتجاه
 
-### 3. استبدال خطوة "التفاصيل" بخطوة "مستوى حل المشكل"
-
-- حذف الخطوة 2 (التفاصيل: الموضوع والوصف) نهائياً لجميع الفئات (ما عدا "آخر" التي ستظهر خانتاها في الخطوة 1)
-- استبدالها بخطوة جديدة: **"مستوى حل المشكل"** — اختيار واحد من:
-  1. المصالح المركزية للوزارة
-  2. الأكاديمية الجهوية
-  3. المديرية الإقليمية
-  4. المؤسسة مقر العمل
-
-- عرض الاختيارات كبطاقات أنيقة (مشابهة لبطاقات الفئة)
-- إضافة حقل `resolution_level` للـ state وإرساله مع الطلب
-
-**ملاحظة قاعدة البيانات:** يجب إضافة عمود `resolution_level` من نوع `text` لجدول `requests` عبر migration.
-
----
-
-### الملفات المعنية
-
-| الملف | التعديل |
-|---|---|
-| `src/lib/i18n.tsx` | إضافة ترجمات: `stepResolutionLevel`, `selectResolutionLevel`, `level_ministry`, `level_academy`, `level_directorate`, `level_institution`. تغيير `stepDetails` → `stepResolutionLevel` |
-| `src/pages/NewRequest.tsx` | إزالة `direction: 'ltr'` الثابتة، إضافة حقول "آخر" في الخطوة 1، استبدال الخطوة 2 بمستوى حل المشكل، تحديث `handleSubmit` لإرسال `resolution_level` و`subject`/`description` من الخطوة 1 عند اختيار "آخر" |
-| DB migration | `ALTER TABLE requests ADD COLUMN resolution_level text;` |
-
-### تدفق الخطوات الجديد:
-```text
-1. موضوع الطلب (+ خانتا الموضوع/الوصف إذا "آخر")
-2. مستوى حل المشكل (4 اختيارات)
-3. المرفقات
-4. المراجعة
-```
+## الملفات المتأثرة
+- `src/pages/DatabaseDashboard.tsx` — تبويبات + زر فلاتر + عناوين الخانات
+- `src/components/PostStats.tsx` — محاذاة RTL
+- `src/index.css` — animation shimmer
 

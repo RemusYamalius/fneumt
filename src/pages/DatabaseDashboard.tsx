@@ -495,7 +495,7 @@ const DatabaseDashboard = () => {
 
                   {/* Employee Number */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.employeeNumberFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-indigo-100/60 text-indigo-700 w-fit">{t.employeeNumberFilter}</label>
                     <Input value={fEmployeeNumber} onChange={e => { setFEmployeeNumber(e.target.value); setCurrentPage(1); }} placeholder="N°PPR" className="h-9 text-xs" />
                   </div>
 

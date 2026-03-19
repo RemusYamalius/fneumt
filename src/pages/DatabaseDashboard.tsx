@@ -609,7 +609,7 @@ const DatabaseDashboard = () => {
                       </Badge>
                     </div>
                     <div className="rounded-2xl bg-background/40 backdrop-blur-sm p-4 border border-border/30">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                         {/* Academy */}
                         <div className="shadow-md rounded-xl bg-background p-3">
                           <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-blue-100/60 text-blue-700 w-fit">{t.academyFilter}</label>
@@ -625,13 +625,79 @@ const DatabaseDashboard = () => {
                         {/* Directorate */}
                         <div className="shadow-md rounded-xl bg-background p-3">
                           <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-emerald-100/60 text-emerald-700 w-fit">{t.directorateFilter}</label>
-                          <Select value={fDirectorate} onValueChange={v => setFDirectorate(v === '__all__' ? '' : v)} disabled={!fAcademy}>
+                          <Select value={fDirectorate} onValueChange={v => { setFDirectorate(v === '__all__' ? '' : v); }} disabled={!fAcademy}>
                             <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDirectorates} /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="__all__">{t.allDirectorates}</SelectItem>
                               {availableDirectorates.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                             </SelectContent>
                           </Select>
+                        </div>
+
+                        {/* Institution */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-amber-100/60 text-amber-700 w-fit">{t.institutionFilter}</label>
+                          <Input value={fInstitution} onChange={e => setFInstitution(e.target.value)} placeholder="..." className="h-9 text-xs" />
+                        </div>
+
+                        {/* Gender */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-pink-100/60 text-pink-700 w-fit">{t.genderFilter}</label>
+                          <Select value={fGender} onValueChange={v => setFGender(v === '__all__' ? '' : v)}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allGenders} /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__all__">{t.allGenders}</SelectItem>
+                              <SelectItem value="male">{t.genderMale}</SelectItem>
+                              <SelectItem value="female">{t.genderFemale}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Mission */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-purple-100/60 text-purple-700 w-fit">{t.missionFilter}</label>
+                          <Select value={fMission} onValueChange={v => setFMission(v === '__all__' ? '' : v)}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__all__">{t.allMissions}</SelectItem>
+                              {MISSION_DB_VALUES.map(m => <SelectItem key={m} value={m}>{getMissionLabel(m)}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Age Range */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-cyan-100/60 text-cyan-700 w-fit">{t.ageRange}</label>
+                          <div className="flex gap-1.5">
+                            <Input type="number" value={fMinAge} onChange={e => setFMinAge(e.target.value)} placeholder="Min" className="h-9 text-xs w-1/2" />
+                            <Input type="number" value={fMaxAge} onChange={e => setFMaxAge(e.target.value)} placeholder="Max" className="h-9 text-xs w-1/2" />
+                          </div>
+                        </div>
+
+                        {/* Membership */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-orange-100/60 text-orange-700 w-fit">{t.membershipFilter}</label>
+                          <Select value={fMembership} onValueChange={v => setFMembership(v === '__all__' ? '' : v)}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__all__">{t.allStatuses}</SelectItem>
+                              <SelectItem value="member">{t.memberStatus}</SelectItem>
+                              <SelectItem value="non-member">{t.nonMemberStatus}</SelectItem>
+                              <SelectItem value="pending">{t.pendingStatus}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Employee Number */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-indigo-100/60 text-indigo-700 w-fit">{t.employeeNumberFilter}</label>
+                          <Input value={fEmployeeNumber} onChange={e => setFEmployeeNumber(e.target.value)} placeholder="N°PPR" className="h-9 text-xs" />
+                        </div>
+
+                        {/* Phone */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-teal-100/60 text-teal-700 w-fit">{t.phoneFilter}</label>
+                          <Input value={fPhone} onChange={e => setFPhone(e.target.value)} placeholder="06..." className="h-9 text-xs" />
                         </div>
 
                         {/* Search + Reset */}

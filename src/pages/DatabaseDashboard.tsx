@@ -501,7 +501,7 @@ const DatabaseDashboard = () => {
 
                   {/* Phone */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.phoneFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-teal-100/60 text-teal-700 w-fit">{t.phoneFilter}</label>
                     <Input value={fPhone} onChange={e => { setFPhone(e.target.value); setCurrentPage(1); }} placeholder="06..." className="h-9 text-xs" />
                   </div>
 

@@ -163,6 +163,11 @@ const DatabaseDashboard = () => {
   // Filtered profiles
   const filteredProfiles = useMemo(() => {
     let result = [...profiles];
+    // When offices category is selected, restrict to office members only
+    if (filterCategory === 'offices') {
+      const memberUserIds = new Set(officeMembers.map(m => m.user_id));
+      result = result.filter(p => memberUserIds.has(p.user_id));
+    }
     if (fAcademy) result = result.filter(p => p.academy === fAcademy);
     if (fDirectorate) result = result.filter(p => p.directorate === fDirectorate);
     if (fInstitution) result = result.filter(p => p.institution?.includes(fInstitution));
@@ -176,7 +181,7 @@ const DatabaseDashboard = () => {
     if (fEmployeeNumber) result = result.filter(p => p.employee_number?.includes(fEmployeeNumber));
     if (fPhone) result = result.filter(p => p.phone?.includes(fPhone));
     return result;
-  }, [profiles, fAcademy, fDirectorate, fInstitution, fGender, fMission, fMinAge, fMaxAge, fMembership, fEmployeeNumber, fPhone]);
+  }, [profiles, filterCategory, officeMembers, fAcademy, fDirectorate, fInstitution, fGender, fMission, fMinAge, fMaxAge, fMembership, fEmployeeNumber, fPhone]);
 
   // Sorted profiles
   const sortedProfiles = useMemo(() => {
@@ -422,13 +427,13 @@ const DatabaseDashboard = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="px-5 py-8 flex items-center justify-center gap-6"
+                    className="px-5 py-8 grid grid-cols-2 gap-6 max-w-lg mx-auto"
                   >
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => { setFilterCategory('users'); setActiveTab('users'); }}
-                      className="flex flex-col items-center gap-3 px-10 py-8 rounded-2xl shadow-xl border border-border/50 bg-gradient-to-br from-[hsl(207,62%,95%)] to-[hsl(207,62%,88%)] hover:from-[hsl(207,62%,90%)] hover:to-[hsl(207,62%,82%)] transition-all cursor-pointer"
+                      className="flex flex-col items-center justify-center gap-3 py-8 rounded-2xl shadow-xl border border-border/50 bg-gradient-to-br from-[hsl(207,62%,95%)] to-[hsl(207,62%,88%)] hover:from-[hsl(207,62%,90%)] hover:to-[hsl(207,62%,82%)] transition-all cursor-pointer"
                     >
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[hsl(207,62%,40%)] to-[hsl(207,62%,55%)] flex items-center justify-center shadow-lg">
                         <Users className="w-7 h-7 text-white" />
@@ -441,7 +446,7 @@ const DatabaseDashboard = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => { setFilterCategory('offices'); setActiveTab('offices'); }}
-                      className="flex flex-col items-center gap-3 px-10 py-8 rounded-2xl shadow-xl border border-border/50 bg-gradient-to-br from-[hsl(160,60%,93%)] to-[hsl(160,60%,85%)] hover:from-[hsl(160,60%,88%)] hover:to-[hsl(160,60%,78%)] transition-all cursor-pointer"
+                      className="flex flex-col items-center justify-center gap-3 py-8 rounded-2xl shadow-xl border border-border/50 bg-gradient-to-br from-[hsl(160,60%,93%)] to-[hsl(160,60%,85%)] hover:from-[hsl(160,60%,88%)] hover:to-[hsl(160,60%,78%)] transition-all cursor-pointer"
                     >
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[hsl(160,60%,38%)] to-[hsl(160,60%,50%)] flex items-center justify-center shadow-lg">
                         <Building2 className="w-7 h-7 text-white" />
@@ -604,7 +609,7 @@ const DatabaseDashboard = () => {
                       </Badge>
                     </div>
                     <div className="rounded-2xl bg-background/40 backdrop-blur-sm p-4 border border-border/30">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                         {/* Academy */}
                         <div className="shadow-md rounded-xl bg-background p-3">
                           <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-blue-100/60 text-blue-700 w-fit">{t.academyFilter}</label>
@@ -620,13 +625,79 @@ const DatabaseDashboard = () => {
                         {/* Directorate */}
                         <div className="shadow-md rounded-xl bg-background p-3">
                           <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-emerald-100/60 text-emerald-700 w-fit">{t.directorateFilter}</label>
-                          <Select value={fDirectorate} onValueChange={v => setFDirectorate(v === '__all__' ? '' : v)} disabled={!fAcademy}>
+                          <Select value={fDirectorate} onValueChange={v => { setFDirectorate(v === '__all__' ? '' : v); }} disabled={!fAcademy}>
                             <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDirectorates} /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="__all__">{t.allDirectorates}</SelectItem>
                               {availableDirectorates.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                             </SelectContent>
                           </Select>
+                        </div>
+
+                        {/* Institution */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-amber-100/60 text-amber-700 w-fit">{t.institutionFilter}</label>
+                          <Input value={fInstitution} onChange={e => setFInstitution(e.target.value)} placeholder="..." className="h-9 text-xs" />
+                        </div>
+
+                        {/* Gender */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-pink-100/60 text-pink-700 w-fit">{t.genderFilter}</label>
+                          <Select value={fGender} onValueChange={v => setFGender(v === '__all__' ? '' : v)}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allGenders} /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__all__">{t.allGenders}</SelectItem>
+                              <SelectItem value="male">{t.genderMale}</SelectItem>
+                              <SelectItem value="female">{t.genderFemale}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Mission */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-purple-100/60 text-purple-700 w-fit">{t.missionFilter}</label>
+                          <Select value={fMission} onValueChange={v => setFMission(v === '__all__' ? '' : v)}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allMissions} /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__all__">{t.allMissions}</SelectItem>
+                              {MISSION_DB_VALUES.map(m => <SelectItem key={m} value={m}>{getMissionLabel(m)}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Age Range */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-cyan-100/60 text-cyan-700 w-fit">{t.ageRange}</label>
+                          <div className="flex gap-1.5">
+                            <Input type="number" value={fMinAge} onChange={e => setFMinAge(e.target.value)} placeholder="Min" className="h-9 text-xs w-1/2" />
+                            <Input type="number" value={fMaxAge} onChange={e => setFMaxAge(e.target.value)} placeholder="Max" className="h-9 text-xs w-1/2" />
+                          </div>
+                        </div>
+
+                        {/* Membership */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-orange-100/60 text-orange-700 w-fit">{t.membershipFilter}</label>
+                          <Select value={fMembership} onValueChange={v => setFMembership(v === '__all__' ? '' : v)}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__all__">{t.allStatuses}</SelectItem>
+                              <SelectItem value="member">{t.memberStatus}</SelectItem>
+                              <SelectItem value="non-member">{t.nonMemberStatus}</SelectItem>
+                              <SelectItem value="pending">{t.pendingStatus}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Employee Number */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-indigo-100/60 text-indigo-700 w-fit">{t.employeeNumberFilter}</label>
+                          <Input value={fEmployeeNumber} onChange={e => setFEmployeeNumber(e.target.value)} placeholder="N°PPR" className="h-9 text-xs" />
+                        </div>
+
+                        {/* Phone */}
+                        <div className="shadow-md rounded-xl bg-background p-3">
+                          <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-teal-100/60 text-teal-700 w-fit">{t.phoneFilter}</label>
+                          <Input value={fPhone} onChange={e => setFPhone(e.target.value)} placeholder="06..." className="h-9 text-xs" />
                         </div>
 
                         {/* Search + Reset */}
@@ -654,16 +725,7 @@ const DatabaseDashboard = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" dir={dir}>
-          <TabsList className="w-full justify-start mb-6 bg-muted/50 rounded-xl p-1 h-auto">
-            <TabsTrigger value="users" className="rounded-lg px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <Users className="w-4 h-4 me-2" />
-              {t.registeredUsers}
-            </TabsTrigger>
-            <TabsTrigger value="offices" className="rounded-lg px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <Building2 className="w-4 h-4 me-2" />
-              {t.localOfficesTab}
-            </TabsTrigger>
-          </TabsList>
+          {/* TabsList removed - selection now happens via filter category cards */}
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">

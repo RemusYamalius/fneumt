@@ -214,7 +214,7 @@ const PostStats = () => {
       {/* Detail dialog */}
       <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
         <DialogContent className="max-w-lg max-h-[85vh]" dir={dir}>
-          <DialogHeader>
+          <DialogHeader className="sm:text-start">
             <DialogTitle className="text-[hsl(225,70%,45%)]">
               {lang === 'ar' ? 'إحصائيات المنشور' : 'Statistiques de la publication'}
             </DialogTitle>

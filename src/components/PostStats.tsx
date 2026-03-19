@@ -224,7 +224,7 @@ const PostStats = () => {
             <div className="py-8 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-[hsl(225,70%,45%)]" /></div>
           ) : detail && selectedPost && (
             <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-4 p-1">
+              <div className={`space-y-4 p-1 ${dir === 'rtl' ? 'rtl-text' : 'ltr-text'}`}>
                 {/* Post content */}
                 {editMode ? (
                   <div className="space-y-2">
@@ -238,8 +238,8 @@ const PostStats = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-muted/50 rounded-xl p-3">
-                    <p className="text-sm whitespace-pre-wrap text-start">{posts.find(p => p.id === selectedPost)?.content}</p>
+                  <div className="bg-muted/50 rounded-xl p-3" dir={dir} style={{ direction: dir === 'rtl' ? 'rtl' : 'ltr', textAlign: dir === 'rtl' ? 'right' : 'left' }}>
+                    <p className="text-sm whitespace-pre-wrap">{posts.find(p => p.id === selectedPost)?.content}</p>
                   </div>
                 )}
 

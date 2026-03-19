@@ -417,7 +417,7 @@ const DatabaseDashboard = () => {
                 <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                   {/* Academy */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.academyFilter}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-blue-100/60 text-blue-700 w-fit">{t.academyFilter}</label>
                     <Select value={fAcademy} onValueChange={v => { setFAcademy(v === '__all__' ? '' : v); setFDirectorate(''); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allAcademies} /></SelectTrigger>
                       <SelectContent>

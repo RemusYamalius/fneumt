@@ -61,7 +61,7 @@ const HierarchicalFilters = ({
           {/* Academy */}
           {(isNational || isRegional) && (
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">{t.academyLabel}</label>
+              <label className="text-sm font-bold bg-blue-100/60 text-blue-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.academyLabel}</label>
               <Select value={selectedAcademy} onValueChange={v => setSelectedAcademy(v === '__all__' ? '' : v)} disabled={isRegional}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allAcademies} /></SelectTrigger>
                 <SelectContent>

@@ -484,7 +484,7 @@ const IncomingRequests = () => {
         ) : (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-2xl border border-border/50 shadow-sm overflow-hidden">
             <div className="px-4 py-3 flex items-center justify-between border-b border-border/50 bg-muted/30">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm font-bold px-2 py-0.5 rounded-md bg-indigo-100/60 text-indigo-700">
                 {t.showingResults} {sortedRequests.length > 0 ? `${((currentPage - 1) * PAGE_SIZE) + 1}-${Math.min(currentPage * PAGE_SIZE, sortedRequests.length)}` : '0'} {t.of} {sortedRequests.length}
               </p>
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={handleExportExcel} disabled={filteredRequests.length === 0}>
@@ -544,7 +544,7 @@ const IncomingRequests = () => {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-border/50 bg-muted/20">
-                <p className="text-xs text-muted-foreground">{t.page} {currentPage} {t.of} {totalPages}</p>
+                <p className="text-sm font-bold px-2 py-0.5 rounded-md bg-teal-100/60 text-teal-700">{t.page} {currentPage} {t.of} {totalPages}</p>
                 <div className="flex gap-1">
                   <Button variant="outline" size="sm" className="h-7 w-7 p-0" disabled={currentPage <= 1} onClick={() => setCurrentPage(p => p - 1)}>
                     {dir === 'rtl' ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}

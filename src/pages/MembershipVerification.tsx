@@ -394,7 +394,7 @@ const MembershipVerification = () => {
 
                   {/* Institution Combobox */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
+                    <label className="text-sm font-bold bg-amber-100/60 text-amber-700 px-2 py-0.5 rounded-md mb-1 inline-block">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
                     <Popover open={openInstitution} onOpenChange={setOpenInstitution}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" role="combobox" className={cn("w-full justify-between h-9 text-xs font-normal", !filterInstitution && "text-muted-foreground")}>

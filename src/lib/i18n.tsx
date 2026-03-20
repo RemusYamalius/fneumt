@@ -196,7 +196,7 @@ const translations: Record<Lang, Record<string, string>> = {
     status_cancelled: 'ملغى',
     // Incoming requests
     incomingRequests: 'الطلبات الواردة',
-    incomingRequestsDesc: 'إدارة الطلبات الموكلة إليك',
+    incomingRequestsDesc: 'إدارة جميع الطلبات',
     // Filters
     filterAll: 'الكل',
     filterViewed: 'مطلع عليها',

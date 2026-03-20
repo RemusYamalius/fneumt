@@ -363,7 +363,7 @@ const MembershipVerification = () => {
 
                   {/* Employee Number Combobox */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{lang === 'ar' ? 'رقم التأجير' : 'N° PPR'}</label>
+                    <label className="text-sm font-bold bg-indigo-100/60 text-indigo-700 px-2 py-0.5 rounded-md mb-1 inline-block">{lang === 'ar' ? 'رقم التأجير' : 'N° PPR'}</label>
                     <Popover open={openEmployee} onOpenChange={setOpenEmployee}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" role="combobox" className={cn("w-full justify-between h-9 text-xs font-normal", !filterEmployee && "text-muted-foreground")}>

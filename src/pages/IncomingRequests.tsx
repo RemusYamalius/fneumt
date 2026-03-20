@@ -159,6 +159,9 @@ const IncomingRequests = () => {
     if (selectedRequest?.id === request.id) { setSelectedRequest(null); setAttachments([]); return; }
     setSelectedRequest(request);
     fetchAttachments(request.id);
+    setTimeout(() => {
+      document.getElementById('request-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
     if (request.status === 'submitted' && user && request.assigned_to === user.id) {
       try {
         await supabase.from('requests').update({ status: 'viewed' as any }).eq('id', request.id);
@@ -410,13 +413,16 @@ const IncomingRequests = () => {
 
         {/* Filters */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6 rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-          <button onClick={() => setFiltersOpen(!filtersOpen)} className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-muted/30 transition-colors">
-            <span className="flex items-center gap-2 font-semibold text-foreground">
+          <button onClick={() => setFiltersOpen(!filtersOpen)} className="group relative w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-[hsl(217,70%,25%)] to-[hsl(217,60%,40%)] text-white rounded-t-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl">
+            <span className="absolute inset-0 pointer-events-none overflow-hidden rounded-t-2xl">
+              <span className="absolute inset-y-0 -left-10 w-20 bg-gradient-to-r from-transparent via-white/25 to-transparent rotate-12 animate-[shimmer-sweep_3s_ease-in-out_infinite]" />
+            </span>
+            <span className="relative flex items-center gap-2 font-semibold">
               <Filter className="w-4 h-4" />
               {t.advancedFilters}
             </span>
-            <div className="flex items-center gap-2">
-              {hasActiveFilter && <Badge variant="secondary" className="text-[10px]">{t.filterLabel}</Badge>}
+            <div className="relative flex items-center gap-2">
+              {hasActiveFilter && <Badge variant="secondary" className="text-[10px] bg-white/20 text-white border-white/30">{t.filterLabel}</Badge>}
               {filtersOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </div>
           </button>
@@ -425,11 +431,11 @@ const IncomingRequests = () => {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
                 <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.searchByTracking}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-blue-100/60 text-blue-700 w-fit">{t.searchByTracking}</label>
                     <Input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="REQ-..." className="h-9 text-xs" />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByStatus}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-amber-100/60 text-amber-700 w-fit">{t.filterByStatus}</label>
                     <Select value={fStatus} onValueChange={v => { setFStatus(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>
@@ -439,7 +445,7 @@ const IncomingRequests = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByCategory}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-emerald-100/60 text-emerald-700 w-fit">{t.filterByCategory}</label>
                     <Select value={fCategory} onValueChange={v => { setFCategory(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allCategories} /></SelectTrigger>
                       <SelectContent>
@@ -449,7 +455,7 @@ const IncomingRequests = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByResolution}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-purple-100/60 text-purple-700 w-fit">{t.filterByResolution}</label>
                     <Select value={fResolution} onValueChange={v => { setFResolution(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allLevels} /></SelectTrigger>
                       <SelectContent>
@@ -516,10 +522,11 @@ const IncomingRequests = () => {
                         <div className="flex gap-1">
                           {(['in_progress', 'accepted', 'cancelled'] as RequestStatus[]).filter(s => s !== req.status).map(s => {
                             const icons: Record<string, any> = { in_progress: Clock, accepted: CheckCircle2, cancelled: XCircle };
+                            const iconColors: Record<string, string> = { in_progress: 'text-cyan-600 hover:bg-cyan-50', accepted: 'text-emerald-600 hover:bg-emerald-50', cancelled: 'text-red-600 hover:bg-red-50' };
                             const Icon = icons[s];
                             return (
-                              <button key={s} onClick={() => handleStatusChange(req, s)} disabled={!!changingStatus} className="p-1.5 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors" title={statusLabel(s)}>
-                                {changingStatus === `${req.id}:${s}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5 text-muted-foreground" />}
+                              <button key={s} onClick={() => handleStatusChange(req, s)} disabled={!!changingStatus} className={`p-1.5 rounded-lg border border-border/50 transition-colors ${iconColors[s]}`} title={statusLabel(s)}>
+                                {changingStatus === `${req.id}:${s}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
                               </button>
                             );
                           })}
@@ -554,7 +561,7 @@ const IncomingRequests = () => {
         {/* Detail Panel */}
         <AnimatePresence>
           {selectedRequest && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="mt-4 rounded-2xl border border-border/50 p-5 shadow-sm bg-card">
+            <motion.div id="request-detail" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="mt-4 rounded-2xl border border-border/50 p-5 shadow-sm bg-card">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm font-bold text-primary">{selectedRequest.tracking_number}</span>
@@ -567,27 +574,27 @@ const IncomingRequests = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <p className="text-xs text-muted-foreground">{t.senderColumn}</p>
+                  <p className="text-xs font-bold text-blue-600 mb-0.5">{t.senderColumn}</p>
                   <p className="text-sm font-medium">{selectedRequest.sender_name || '—'}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{selectedRequest.sender_institution || ''}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">{t.categoryColumn}</p>
+                  <p className="text-xs font-bold text-emerald-600 mb-0.5">{t.categoryColumn}</p>
                   <p className="text-sm font-medium">{categoryLabel(selectedRequest.category)}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{resolutionLabel(selectedRequest.resolution_level)}</p>
                 </div>
               </div>
 
               {selectedRequest.description && (
-                <div className="bg-muted/50 rounded-xl p-4 mb-4">
-                  <span className="text-xs font-medium text-muted-foreground">{t.descriptionLabel}</span>
+                <div className="bg-purple-50/50 rounded-xl p-4 mb-4 border border-purple-200/30">
+                  <span className="text-xs font-bold text-purple-600">{t.descriptionLabel}</span>
                   <p className="text-foreground mt-1">{selectedRequest.description}</p>
                 </div>
               )}
 
               {/* Attachments */}
-              <div className="bg-muted/50 rounded-xl p-4 mb-4">
-                <span className="text-xs font-medium text-muted-foreground mb-2 block">{t.attachments}</span>
+              <div className="bg-amber-50/50 rounded-xl p-4 mb-4 border border-amber-200/30">
+                <span className="text-xs font-bold text-amber-600 mb-2 block">{t.attachments}</span>
                 {loadingAttachments ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : attachments.length === 0 ? (
@@ -611,7 +618,7 @@ const IncomingRequests = () => {
 
               {/* Status change */}
               <div className="flex flex-wrap gap-2">
-                <span className="text-sm font-medium text-muted-foreground self-center me-1">{t.changeStatus}:</span>
+                <span className="text-sm font-bold text-cyan-600 self-center me-1">{t.changeStatus}:</span>
                 {(['viewed', 'in_progress', 'accepted', 'cancelled'] as RequestStatus[]).map(s => {
                   const isActive = selectedRequest.status === s;
                   const icons: Record<string, any> = { viewed: Eye, in_progress: Clock, accepted: CheckCircle2, cancelled: XCircle };

@@ -159,6 +159,9 @@ const IncomingRequests = () => {
     if (selectedRequest?.id === request.id) { setSelectedRequest(null); setAttachments([]); return; }
     setSelectedRequest(request);
     fetchAttachments(request.id);
+    setTimeout(() => {
+      document.getElementById('request-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
     if (request.status === 'submitted' && user && request.assigned_to === user.id) {
       try {
         await supabase.from('requests').update({ status: 'viewed' as any }).eq('id', request.id);

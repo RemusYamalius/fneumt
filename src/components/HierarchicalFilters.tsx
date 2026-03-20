@@ -54,7 +54,7 @@ const HierarchicalFilters = ({
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
             <Landmark className="w-3.5 h-3.5 text-primary" />
           </div>
-          <h3 className="text-sm font-bold text-foreground">{t.hierarchyScope}</h3>
+          <h3 className="text-sm font-bold bg-indigo-100/60 text-indigo-700 px-2 py-0.5 rounded-md">{t.hierarchyScope}</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

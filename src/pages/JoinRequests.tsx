@@ -337,7 +337,7 @@ const JoinRequests = () => {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
                 <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.searchByName}</label>
+                    <label className="text-sm font-bold bg-blue-100/60 text-blue-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.searchByName}</label>
                     <Input value={fName} onChange={e => { setFName(e.target.value); setCurrentPage(1); }} placeholder="..." className="h-9 text-xs" />
                   </div>
                   <div>

@@ -1,44 +1,48 @@
 
 
-# خطة: تحسين ألوان صفحة الطلبات الواردة
+# خطة: تطبيق تحسينات التلوين على 5 صفحات
 
-## 1. ألوان عناوين وخلفيات الفلاتر (سطور 426-467)
+## النمط المرجعي (من IncomingRequests)
+- عنوان الصفحة: `bg-blue-100/60 text-blue-800 px-3 py-1 rounded-lg inline-block`
+- الوصف: `bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md inline-block`
+- عناوين الفلاتر: `text-sm font-bold px-2 py-0.5 rounded-md bg-COLOR-100/60 text-COLOR-700 w-fit`
 
-تطبيق نفس نمط `DatabaseDashboard` على عناوين الفلاتر:
-- **البحث بالرقم**: `bg-blue-100/60 text-blue-700` + `text-sm font-bold`
-- **الحالة**: `bg-amber-100/60 text-amber-700`
-- **الفئة**: `bg-emerald-100/60 text-emerald-700`
-- **مستوى المعالجة**: `bg-purple-100/60 text-purple-700`
+## التعديلات لكل صفحة
 
-تحويل زر "فلاتر متقدمة" إلى زر ملون بتدرج مع بريق shimmer وظل، كما في `DatabaseDashboard`.
+### 1. JoinRequests.tsx (طلبات الانضمام)
+- **العنوان** (سطر 253): إضافة `bg-blue-100/60 text-blue-800 px-3 py-1 rounded-lg inline-block`
+- **الوصف** (سطر 254): إضافة `bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md inline-block`
+- **عناوين الفلاتر** (سطور 340, 344, 354): تحويل من `text-xs font-medium text-muted-foreground` إلى `text-sm font-bold px-2 py-0.5 rounded-md bg-COLOR-100/60 text-COLOR-700 w-fit`
+  - البحث بالاسم → أزرق
+  - الحالة → كهرماني
+  - المؤسسة → زمردي
 
-## 2. تلوين أيقونات الإجراءات في الجدول (سطور 516-525)
+### 2. MembershipVerification.tsx (التحقق من الانخراط)
+- **العنوان** (سطر 259): نفس النمط الأزرق
+- **الوصف** (سطر 260): نفس النمط الزمردي
+- **عناوين الفلاتر** (سطور 335, 366, 397, 428): تحويل من `text-xs font-medium text-muted-foreground` إلى ألوان مميزة:
+  - الاسم → أزرق
+  - رقم التأجير → نيلي
+  - المؤسسة → كهرماني
+  - حالة الانخراط → بنفسجي
 
-تغيير لون كل أيقونة حسب الإجراء بدل `text-muted-foreground`:
-- `in_progress` (Clock): `text-cyan-600`
-- `accepted` (CheckCircle2): `text-emerald-600`
-- `cancelled` (XCircle): `text-red-600`
+### 3. SupervisorDashboard.tsx (لوحة الإشراف)
+- **العنوان** (سطر 517): إضافة النمط الأزرق
+- **الوصف** (سطر 518): إضافة النمط الزمردي
 
-إضافة hover ملون لكل زر أيضاً.
+### 4. UserManagement.tsx (إدارة المستخدمين)
+- **العنوان** (سطر 185): إضافة النمط الأزرق
+- **الوصف** (سطر 186): إضافة النمط الزمردي
+- **عنوان الفلتر** (سطر 195): تحويل "فلتر" من `text-muted-foreground` إلى `text-sm font-bold bg-blue-100/60 text-blue-700 px-2 py-0.5 rounded-md`
 
-## 3. سحب الصفحة لبطاقة الطلب + تلوين عناصرها
+### 5. DatabaseDashboard.tsx (قاعدة البيانات)
+- **العنوان** (سطر 355): إضافة النمط الأزرق
+- **الوصف** (سطر 356): إضافة النمط الزمردي
 
-### السحب التلقائي (سطر 158-161)
-إضافة `scrollIntoView` بعد تحديد الطلب:
-```typescript
-setTimeout(() => {
-  document.getElementById('request-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}, 100);
-```
-
-### تلوين عناصر بطاقة التفصيل (سطور 556-627)
-- عنوان "المرسل": `text-blue-600`
-- عنوان "الفئة": `text-emerald-600`
-- عنوان "الوصف": `text-purple-600` مع خلفية `bg-purple-50/50`
-- عنوان "المرفقات": `text-amber-600` مع خلفية `bg-amber-50/50`
-- عنوان "تغيير الحالة": `text-cyan-600`
-- رقم التتبع: يبقى `text-primary`
-
-## الملف المتأثر
-`src/pages/IncomingRequests.tsx`
+## الملفات المتأثرة
+- `src/pages/JoinRequests.tsx`
+- `src/pages/MembershipVerification.tsx`
+- `src/pages/SupervisorDashboard.tsx`
+- `src/pages/admin/UserManagement.tsx`
+- `src/pages/DatabaseDashboard.tsx`
 

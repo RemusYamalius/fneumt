@@ -544,7 +544,7 @@ const IncomingRequests = () => {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-border/50 bg-muted/20">
-                <p className="text-xs text-muted-foreground">{t.page} {currentPage} {t.of} {totalPages}</p>
+                <p className="text-sm font-bold px-2 py-0.5 rounded-md bg-teal-100/60 text-teal-700">{t.page} {currentPage} {t.of} {totalPages}</p>
                 <div className="flex gap-1">
                   <Button variant="outline" size="sm" className="h-7 w-7 p-0" disabled={currentPage <= 1} onClick={() => setCurrentPage(p => p - 1)}>
                     {dir === 'rtl' ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}

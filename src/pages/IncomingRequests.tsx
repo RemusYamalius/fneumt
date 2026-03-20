@@ -561,7 +561,7 @@ const IncomingRequests = () => {
         {/* Detail Panel */}
         <AnimatePresence>
           {selectedRequest && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="mt-4 rounded-2xl border border-border/50 p-5 shadow-sm bg-card">
+            <motion.div id="request-detail" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="mt-4 rounded-2xl border border-border/50 p-5 shadow-sm bg-card">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm font-bold text-primary">{selectedRequest.tracking_number}</span>
@@ -574,27 +574,27 @@ const IncomingRequests = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <p className="text-xs text-muted-foreground">{t.senderColumn}</p>
+                  <p className="text-xs font-bold text-blue-600 mb-0.5">{t.senderColumn}</p>
                   <p className="text-sm font-medium">{selectedRequest.sender_name || '—'}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{selectedRequest.sender_institution || ''}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">{t.categoryColumn}</p>
+                  <p className="text-xs font-bold text-emerald-600 mb-0.5">{t.categoryColumn}</p>
                   <p className="text-sm font-medium">{categoryLabel(selectedRequest.category)}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{resolutionLabel(selectedRequest.resolution_level)}</p>
                 </div>
               </div>
 
               {selectedRequest.description && (
-                <div className="bg-muted/50 rounded-xl p-4 mb-4">
-                  <span className="text-xs font-medium text-muted-foreground">{t.descriptionLabel}</span>
+                <div className="bg-purple-50/50 rounded-xl p-4 mb-4 border border-purple-200/30">
+                  <span className="text-xs font-bold text-purple-600">{t.descriptionLabel}</span>
                   <p className="text-foreground mt-1">{selectedRequest.description}</p>
                 </div>
               )}
 
               {/* Attachments */}
-              <div className="bg-muted/50 rounded-xl p-4 mb-4">
-                <span className="text-xs font-medium text-muted-foreground mb-2 block">{t.attachments}</span>
+              <div className="bg-amber-50/50 rounded-xl p-4 mb-4 border border-amber-200/30">
+                <span className="text-xs font-bold text-amber-600 mb-2 block">{t.attachments}</span>
                 {loadingAttachments ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : attachments.length === 0 ? (
@@ -618,7 +618,7 @@ const IncomingRequests = () => {
 
               {/* Status change */}
               <div className="flex flex-wrap gap-2">
-                <span className="text-sm font-medium text-muted-foreground self-center me-1">{t.changeStatus}:</span>
+                <span className="text-sm font-bold text-cyan-600 self-center me-1">{t.changeStatus}:</span>
                 {(['viewed', 'in_progress', 'accepted', 'cancelled'] as RequestStatus[]).map(s => {
                   const isActive = selectedRequest.status === s;
                   const icons: Record<string, any> = { viewed: Eye, in_progress: Clock, accepted: CheckCircle2, cancelled: XCircle };

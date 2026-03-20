@@ -431,11 +431,11 @@ const IncomingRequests = () => {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
                 <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.searchByTracking}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-blue-100/60 text-blue-700 w-fit">{t.searchByTracking}</label>
                     <Input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} placeholder="REQ-..." className="h-9 text-xs" />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByStatus}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-amber-100/60 text-amber-700 w-fit">{t.filterByStatus}</label>
                     <Select value={fStatus} onValueChange={v => { setFStatus(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>
@@ -445,7 +445,7 @@ const IncomingRequests = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByCategory}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-emerald-100/60 text-emerald-700 w-fit">{t.filterByCategory}</label>
                     <Select value={fCategory} onValueChange={v => { setFCategory(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allCategories} /></SelectTrigger>
                       <SelectContent>
@@ -455,7 +455,7 @@ const IncomingRequests = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByResolution}</label>
+                    <label className="text-sm font-bold mb-1 block px-2 py-0.5 rounded-md bg-purple-100/60 text-purple-700 w-fit">{t.filterByResolution}</label>
                     <Select value={fResolution} onValueChange={v => { setFResolution(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allLevels} /></SelectTrigger>
                       <SelectContent>

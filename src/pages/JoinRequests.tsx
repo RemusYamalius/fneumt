@@ -250,8 +250,8 @@ const JoinRequests = () => {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-foreground mb-1">{t.joinRequests}</h1>
-            <p className="text-muted-foreground text-sm">{t.joinRequestsDesc}</p>
+            <h1 className="text-3xl font-extrabold text-foreground mb-1 bg-blue-100/60 text-blue-800 px-3 py-1 rounded-lg inline-block">{t.joinRequests}</h1>
+            <p className="text-sm bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md inline-block">{t.joinRequestsDesc}</p>
           </div>
           <Button variant="ghost" onClick={() => navigate('/dashboard')} className="rounded-full bg-gradient-to-r from-[hsl(217,70%,25%)] to-[hsl(217,60%,35%)] text-white hover:from-[hsl(217,70%,30%)] hover:to-[hsl(217,60%,40%)] shadow-md px-5 h-10 text-sm gap-2 shrink-0">
             {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
@@ -337,11 +337,11 @@ const JoinRequests = () => {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
                 <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.searchByName}</label>
+                    <label className="text-sm font-bold bg-blue-100/60 text-blue-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.searchByName}</label>
                     <Input value={fName} onChange={e => { setFName(e.target.value); setCurrentPage(1); }} placeholder="..." className="h-9 text-xs" />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByStatus}</label>
+                    <label className="text-sm font-bold bg-amber-100/60 text-amber-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.filterByStatus}</label>
                     <Select value={fStatus} onValueChange={v => { setFStatus(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>
@@ -351,7 +351,7 @@ const JoinRequests = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.institutionLabel}</label>
+                    <label className="text-sm font-bold bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.institutionLabel}</label>
                     <Input value={fInstitution} onChange={e => { setFInstitution(e.target.value); setCurrentPage(1); }} placeholder="..." className="h-9 text-xs" />
                   </div>
                   <div className="flex items-end">

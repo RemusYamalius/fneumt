@@ -256,8 +256,8 @@ const MembershipVerification = () => {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-foreground mb-1">{t.membershipVerification}</h1>
-            <p className="text-muted-foreground text-sm">{t.membershipVerificationDesc}</p>
+            <h1 className="text-3xl font-extrabold text-foreground mb-1 bg-blue-100/60 text-blue-800 px-3 py-1 rounded-lg inline-block">{t.membershipVerification}</h1>
+            <p className="text-sm bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md inline-block">{t.membershipVerificationDesc}</p>
           </div>
           <Button variant="ghost" onClick={() => navigate('/dashboard')} className="rounded-full bg-gradient-to-r from-[hsl(217,70%,25%)] to-[hsl(217,60%,35%)] text-white hover:from-[hsl(217,70%,30%)] hover:to-[hsl(217,60%,40%)] shadow-md px-5 h-10 text-sm gap-2 shrink-0">
             {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
@@ -332,7 +332,7 @@ const MembershipVerification = () => {
                 <div className="px-5 pb-5 pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                   {/* Name Combobox */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{lang === 'ar' ? 'الاسم' : 'Nom'}</label>
+                    <label className="text-sm font-bold bg-blue-100/60 text-blue-700 px-2 py-0.5 rounded-md mb-1 inline-block">{lang === 'ar' ? 'الاسم' : 'Nom'}</label>
                     <Popover open={openName} onOpenChange={setOpenName}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" role="combobox" className={cn("w-full justify-between h-9 text-xs font-normal", !filterName && "text-muted-foreground")}>
@@ -363,7 +363,7 @@ const MembershipVerification = () => {
 
                   {/* Employee Number Combobox */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{lang === 'ar' ? 'رقم التأجير' : 'N° PPR'}</label>
+                    <label className="text-sm font-bold bg-indigo-100/60 text-indigo-700 px-2 py-0.5 rounded-md mb-1 inline-block">{lang === 'ar' ? 'رقم التأجير' : 'N° PPR'}</label>
                     <Popover open={openEmployee} onOpenChange={setOpenEmployee}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" role="combobox" className={cn("w-full justify-between h-9 text-xs font-normal", !filterEmployee && "text-muted-foreground")}>
@@ -394,7 +394,7 @@ const MembershipVerification = () => {
 
                   {/* Institution Combobox */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
+                    <label className="text-sm font-bold bg-amber-100/60 text-amber-700 px-2 py-0.5 rounded-md mb-1 inline-block">{lang === 'ar' ? 'المؤسسة' : 'Établissement'}</label>
                     <Popover open={openInstitution} onOpenChange={setOpenInstitution}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" role="combobox" className={cn("w-full justify-between h-9 text-xs font-normal", !filterInstitution && "text-muted-foreground")}>
@@ -425,7 +425,7 @@ const MembershipVerification = () => {
 
                   {/* Membership Status */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByMembership}</label>
+                    <label className="text-sm font-bold bg-purple-100/60 text-purple-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.filterByMembership}</label>
                     <Select value={filterMembership} onValueChange={v => { setFilterMembership(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>

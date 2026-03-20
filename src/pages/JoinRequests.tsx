@@ -351,7 +351,7 @@ const JoinRequests = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.institutionLabel}</label>
+                    <label className="text-sm font-bold bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.institutionLabel}</label>
                     <Input value={fInstitution} onChange={e => { setFInstitution(e.target.value); setCurrentPage(1); }} placeholder="..." className="h-9 text-xs" />
                   </div>
                   <div className="flex items-end">

@@ -514,8 +514,8 @@ const SupervisorDashboard = () => {
               <Users className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">{t.supervisorDashboard}</h1>
-              <p className="text-sm text-muted-foreground">{t.supervisorDashboardDesc}</p>
+              <h1 className="text-2xl font-bold bg-blue-100/60 text-blue-800 px-3 py-1 rounded-lg inline-block">{t.supervisorDashboard}</h1>
+              <p className="text-sm bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md inline-block">{t.supervisorDashboardDesc}</p>
             </div>
           </motion.div>
 

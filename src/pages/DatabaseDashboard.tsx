@@ -352,8 +352,8 @@ const DatabaseDashboard = () => {
           className="mb-8 flex items-start justify-between gap-4"
         >
           <div>
-            <h1 className="text-3xl font-extrabold text-foreground mb-1">{t.databaseTitle}</h1>
-            <p className="text-muted-foreground text-sm">{t.databaseDesc}</p>
+            <h1 className="text-3xl font-extrabold text-foreground mb-1 bg-blue-100/60 text-blue-800 px-3 py-1 rounded-lg inline-block">{t.databaseTitle}</h1>
+            <p className="text-sm bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md inline-block">{t.databaseDesc}</p>
           </div>
           <Button
             variant="ghost"

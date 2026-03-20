@@ -425,7 +425,7 @@ const MembershipVerification = () => {
 
                   {/* Membership Status */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByMembership}</label>
+                    <label className="text-sm font-bold bg-purple-100/60 text-purple-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.filterByMembership}</label>
                     <Select value={filterMembership} onValueChange={v => { setFilterMembership(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>

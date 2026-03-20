@@ -192,7 +192,7 @@ const UserManagement = () => {
           <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gradient-to-br from-slate-100/80 to-blue-50/50 rounded-xl border border-white/60 shadow-sm">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">{t.filterLabel || 'فلتر'}:</span>
+              <span className="text-sm font-bold bg-blue-100/60 text-blue-700 px-2 py-0.5 rounded-md">{t.filterLabel || 'فلتر'}:</span>
             </div>
             <Select value={filterAcademy} onValueChange={(v) => { setFilterAcademy(v); setFilterDirectorate('all'); }}>
               <SelectTrigger className="w-[240px]">

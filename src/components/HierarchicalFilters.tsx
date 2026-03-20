@@ -77,7 +77,7 @@ const HierarchicalFilters = ({
           {/* Directorate */}
           {(selectedAcademy || isProvincial) && (
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">{t.directorateLabel}</label>
+              <label className="text-sm font-bold bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.directorateLabel}</label>
               <Select value={selectedDirectorate} onValueChange={v => setSelectedDirectorate(v === '__all__' ? '' : v)} disabled={isProvincial}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDirectorates} /></SelectTrigger>
                 <SelectContent>

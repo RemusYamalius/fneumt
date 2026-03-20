@@ -341,7 +341,7 @@ const JoinRequests = () => {
                     <Input value={fName} onChange={e => { setFName(e.target.value); setCurrentPage(1); }} placeholder="..." className="h-9 text-xs" />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">{t.filterByStatus}</label>
+                    <label className="text-sm font-bold bg-amber-100/60 text-amber-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.filterByStatus}</label>
                     <Select value={fStatus} onValueChange={v => { setFStatus(v === '__all__' ? '' : v); setCurrentPage(1); }}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allStatuses} /></SelectTrigger>
                       <SelectContent>

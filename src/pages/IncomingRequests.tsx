@@ -522,10 +522,11 @@ const IncomingRequests = () => {
                         <div className="flex gap-1">
                           {(['in_progress', 'accepted', 'cancelled'] as RequestStatus[]).filter(s => s !== req.status).map(s => {
                             const icons: Record<string, any> = { in_progress: Clock, accepted: CheckCircle2, cancelled: XCircle };
+                            const iconColors: Record<string, string> = { in_progress: 'text-cyan-600 hover:bg-cyan-50', accepted: 'text-emerald-600 hover:bg-emerald-50', cancelled: 'text-red-600 hover:bg-red-50' };
                             const Icon = icons[s];
                             return (
-                              <button key={s} onClick={() => handleStatusChange(req, s)} disabled={!!changingStatus} className="p-1.5 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors" title={statusLabel(s)}>
-                                {changingStatus === `${req.id}:${s}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5 text-muted-foreground" />}
+                              <button key={s} onClick={() => handleStatusChange(req, s)} disabled={!!changingStatus} className={`p-1.5 rounded-lg border border-border/50 transition-colors ${iconColors[s]}`} title={statusLabel(s)}>
+                                {changingStatus === `${req.id}:${s}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
                               </button>
                             );
                           })}

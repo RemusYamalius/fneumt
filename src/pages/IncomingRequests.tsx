@@ -413,13 +413,16 @@ const IncomingRequests = () => {
 
         {/* Filters */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6 rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-          <button onClick={() => setFiltersOpen(!filtersOpen)} className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-muted/30 transition-colors">
-            <span className="flex items-center gap-2 font-semibold text-foreground">
+          <button onClick={() => setFiltersOpen(!filtersOpen)} className="group relative w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-[hsl(217,70%,25%)] to-[hsl(217,60%,40%)] text-white rounded-t-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl">
+            <span className="absolute inset-0 pointer-events-none overflow-hidden rounded-t-2xl">
+              <span className="absolute inset-y-0 -left-10 w-20 bg-gradient-to-r from-transparent via-white/25 to-transparent rotate-12 animate-[shimmer-sweep_3s_ease-in-out_infinite]" />
+            </span>
+            <span className="relative flex items-center gap-2 font-semibold">
               <Filter className="w-4 h-4" />
               {t.advancedFilters}
             </span>
-            <div className="flex items-center gap-2">
-              {hasActiveFilter && <Badge variant="secondary" className="text-[10px]">{t.filterLabel}</Badge>}
+            <div className="relative flex items-center gap-2">
+              {hasActiveFilter && <Badge variant="secondary" className="text-[10px] bg-white/20 text-white border-white/30">{t.filterLabel}</Badge>}
               {filtersOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </div>
           </button>

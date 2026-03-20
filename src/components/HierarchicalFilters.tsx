@@ -61,7 +61,7 @@ const HierarchicalFilters = ({
           {/* Academy */}
           {(isNational || isRegional) && (
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">{t.academyLabel}</label>
+              <label className="text-sm font-bold bg-blue-100/60 text-blue-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.academyLabel}</label>
               <Select value={selectedAcademy} onValueChange={v => setSelectedAcademy(v === '__all__' ? '' : v)} disabled={isRegional}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allAcademies} /></SelectTrigger>
                 <SelectContent>
@@ -77,7 +77,7 @@ const HierarchicalFilters = ({
           {/* Directorate */}
           {(selectedAcademy || isProvincial) && (
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">{t.directorateLabel}</label>
+              <label className="text-sm font-bold bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.directorateLabel}</label>
               <Select value={selectedDirectorate} onValueChange={v => setSelectedDirectorate(v === '__all__' ? '' : v)} disabled={isProvincial}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDirectorates} /></SelectTrigger>
                 <SelectContent>
@@ -93,7 +93,7 @@ const HierarchicalFilters = ({
           {/* Local Office */}
           {(selectedDirectorate || isLocal) && offices.length > 0 && (
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">{t.localOfficeLabel}</label>
+              <label className="text-sm font-bold bg-amber-100/60 text-amber-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.localOfficeLabel}</label>
               <Select value={selectedOffice} onValueChange={v => setSelectedOffice(v === '__all__' ? '' : v)}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allOffices} /></SelectTrigger>
                 <SelectContent>
@@ -109,7 +109,7 @@ const HierarchicalFilters = ({
           {/* Deputy */}
           {(selectedDirectorate || isLocal) && deputies.length > 0 && (
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">{t.deputyLabel}</label>
+              <label className="text-sm font-bold bg-purple-100/60 text-purple-700 px-2 py-0.5 rounded-md mb-1 inline-block">{t.deputyLabel}</label>
               <Select value={selectedDeputy} onValueChange={v => setSelectedDeputy(v === '__all__' ? '' : v)}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue placeholder={t.allDeputies} /></SelectTrigger>
                 <SelectContent>

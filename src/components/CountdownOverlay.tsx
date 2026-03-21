@@ -55,13 +55,14 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-start justify-center pt-8 p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center p-4"
+      style={{ paddingTop: '140px' }}
     >
       <motion.div
         initial={{ scale: 0.85, y: 30 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 180, damping: 20 }}
-        className="relative max-w-lg w-full rounded-3xl mt-16"
+        className="relative max-w-lg w-full rounded-3xl"
         style={{
           background: 'linear-gradient(135deg, hsl(45 100% 55%), hsl(30 100% 50%), hsl(20 95% 45%))',
           boxShadow: '0 25px 80px hsla(30 100% 40% / 0.4), 0 0 60px hsla(45 100% 60% / 0.15)',

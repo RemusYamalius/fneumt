@@ -56,58 +56,42 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'hsla(220 30% 8% / 0.85)', backdropFilter: 'blur(12px)' }}
     >
-      {/* Large tilted clock digits in background */}
-      <div
-        className="absolute pointer-events-none select-none opacity-[0.04] font-black"
-        style={{
-          fontSize: 'clamp(120px, 25vw, 300px)',
-          transform: 'rotate(-12deg)',
-          right: '-2%',
-          top: '10%',
-          color: 'hsl(40 100% 60%)',
-          lineHeight: 1,
-          fontFamily: 'monospace',
-        }}
-      >
-        {pad(timeLeft.hours)}:{pad(timeLeft.minutes)}
-      </div>
-
       <motion.div
         initial={{ scale: 0.85, y: 30 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 180, damping: 20 }}
-        className="relative max-w-lg w-full rounded-3xl overflow-hidden"
+        className="relative max-w-lg w-full rounded-3xl"
         style={{
           background: 'linear-gradient(135deg, hsl(45 100% 55%), hsl(30 100% 50%), hsl(20 95% 45%))',
           boxShadow: '0 25px 80px hsla(30 100% 40% / 0.4), 0 0 60px hsla(45 100% 60% / 0.15)',
         }}
       >
+        {/* Floating Logo — half above the card */}
+        <motion.div
+          className="absolute left-1/2 -translate-x-1/2 -top-20 z-30 w-40 h-40 rounded-full overflow-hidden"
+          style={{
+            border: '4px solid hsla(0 0% 100% / 0.5)',
+            boxShadow: '0 8px 30px hsla(0 0% 0% / 0.25)',
+            background: 'white',
+          }}
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <img src={logoFne} alt="FNE Logo" className="w-full h-full object-contain p-2" />
+        </motion.div>
+
         {/* Inner card */}
-        <div className="p-8 sm:p-10 text-center relative">
+        <div className="pt-24 px-8 pb-8 sm:px-10 sm:pb-10 text-center relative">
           {/* Decorative shimmer */}
           <div
-            className="absolute inset-0 pointer-events-none"
+            className="absolute inset-0 rounded-3xl pointer-events-none"
             style={{
               background: 'linear-gradient(105deg, transparent 40%, hsla(0 0% 100% / 0.15) 45%, hsla(0 0% 100% / 0.05) 55%, transparent 60%)',
               backgroundSize: '300% 100%',
               animation: 'countdownShimmer 4s ease-in-out infinite',
             }}
           />
-
-          {/* Logo */}
-          <motion.div
-            className="mx-auto mb-5 w-20 h-20 rounded-full overflow-hidden"
-            style={{
-              border: '3px solid hsla(0 0% 100% / 0.4)',
-              boxShadow: '0 4px 20px hsla(0 0% 0% / 0.2)',
-            }}
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <img src={logoFne} alt="FNE Logo" className="w-full h-full object-contain" />
-          </motion.div>
 
           {/* Welcome text */}
           <h2

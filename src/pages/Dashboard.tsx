@@ -15,14 +15,9 @@ const Dashboard = () => {
   const { t, dir, lang } = useI18n();
   const { user, profile, role, loading } = useAuth();
   const navigate = useNavigate();
-  const [pendingCount, setPendingCount] = useState(0);
-  const [joinPendingCount, setJoinPendingCount] = useState(0);
-  const [myRequests, setMyRequests] = useState<any[]>([]);
-  const [loadingRequests, setLoadingRequests] = useState(true);
   const [expandedGroup, setExpandedGroup] = useState<'personal' | 'professional' | 'communication' | null>(null);
   const [hasJoinRequest, setHasJoinRequest] = useState(false);
   const [joiningLoading, setJoiningLoading] = useState(false);
-  const [unreadPostCount, setUnreadPostCount] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -38,63 +33,57 @@ const Dashboard = () => {
 
   const isDeputyLocal = role && ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role) || isAdminLike;
 
-  useEffect(() => {
-    if (!user || !showIncomingRequests) return;
-    supabase
-      .from('requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('assigned_to', user.id)
-      .eq('status', 'submitted')
-      .then(({ count }) => setPendingCount(count || 0));
-  }, [user, showIncomingRequests]);
-
-  // Fetch join requests pending count for deputies
-  useEffect(() => {
-    if (!user || !isDeputyLocal) return;
-    supabase
-      .from('join_requests')
-      .select('*', { count: 'exact', head: true })
-      .eq('assigned_to', user.id)
-      .eq('status', 'pending')
-      .then(({ count }: any) => setJoinPendingCount(count || 0));
-  }, [user, role]);
-
-  // Check if non-member already sent a join request
   const isNonMember = profile && role === 'teacher' && profile.is_member === false && profile.membership_verified === false && profile.full_name && profile.employee_number && profile.institution && profile.phone && profile.academy && profile.directorate && profile.zone;
-  useEffect(() => {
-    if (!user || !isNonMember) return;
-    supabase
-      .from('join_requests')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .then(({ count }: any) => setHasJoinRequest((count || 0) > 0));
-  }, [user, isNonMember]);
 
-  // Fetch unread post count
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from('post_recipients')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false)
-      .then(({ count }: any) => setUnreadPostCount(count || 0));
-  }, [user]);
+  // Consolidated dashboard data fetch with React Query
+  const { data: dashboardData } = useQuery({
+    queryKey: ['dashboard-counts', user?.id, role],
+    queryFn: async () => {
+      if (!user) return { pendingCount: 0, joinPendingCount: 0, unreadPostCount: 0, hasJoinRequest: false, myRequests: [] };
 
-  // Fetch user's own requests
+      const queries: Promise<any>[] = [
+        // 0: pending requests count
+        (showIncomingRequests
+          ? supabase.from('requests').select('*', { count: 'exact', head: true }).eq('assigned_to', user.id).eq('status', 'submitted')
+          : Promise.resolve({ count: 0 })),
+        // 1: join pending count
+        (isDeputyLocal
+          ? supabase.from('join_requests').select('*', { count: 'exact', head: true }).eq('assigned_to', user.id).eq('status', 'pending')
+          : Promise.resolve({ count: 0 })),
+        // 2: unread post count
+        supabase.from('post_recipients').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
+        // 3: has join request
+        (isNonMember
+          ? supabase.from('join_requests').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+          : Promise.resolve({ count: 0 })),
+        // 4: my requests
+        supabase.from('requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      ];
+
+      const [pendingRes, joinRes, unreadRes, joinReqRes, myReqRes] = await Promise.all(queries);
+
+      return {
+        pendingCount: pendingRes.count || 0,
+        joinPendingCount: joinRes.count || 0,
+        unreadPostCount: unreadRes.count || 0,
+        hasJoinRequest: (joinReqRes.count || 0) > 0,
+        myRequests: myReqRes.data || [],
+      };
+    },
+    staleTime: 30_000,
+    enabled: !!user,
+  });
+
+  const pendingCount = dashboardData?.pendingCount || 0;
+  const joinPendingCount = dashboardData?.joinPendingCount || 0;
+  const unreadPostCount = dashboardData?.unreadPostCount || 0;
+  const myRequests = dashboardData?.myRequests || [];
+  const loadingRequests = !dashboardData && !!user;
+
+  // Sync hasJoinRequest from query
   useEffect(() => {
-    if (!user) return;
-    setLoadingRequests(true);
-    supabase
-      .from('requests')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setMyRequests(data || []);
-        setLoadingRequests(false);
-      });
-  }, [user]);
+    if (dashboardData) setHasJoinRequest(dashboardData.hasJoinRequest);
+  }, [dashboardData]);
 
   if (loading) {
     return (

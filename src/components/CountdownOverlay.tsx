@@ -56,7 +56,7 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 flex items-start justify-center p-4"
-      style={{ paddingTop: '140px' }}
+      style={{ paddingTop: '180px' }}
     >
       <motion.div
         initial={{ scale: 0.85, y: 30 }}
@@ -70,7 +70,8 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
       >
         {/* Floating AnimatedLogo — half above the card */}
         <motion.div
-          className="absolute left-1/2 -translate-x-1/2 -top-20 z-30"
+          className="z-30"
+          style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '-80px' }}
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
         >

@@ -335,7 +335,7 @@ const ParticleExplosion = () => {
 
 const NewRequest = () => {
   const { t, dir } = useI18n();
-  const { user, loading } = useAuth();
+  const { user, profile, role, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -349,17 +349,32 @@ const NewRequest = () => {
   const [submitting, setSubmitting] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
+  const [countdownDone, setCountdownDone] = useState(false);
+
+  // May 1, 2026 at 10:00 AM (Morocco time ~ UTC+1)
+  const TARGET_DATE = useMemo(() => new Date('2026-05-01T09:00:00Z'), []);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
   }, [loading, user, navigate]);
 
-  useEffect(() => {
-    if (!user) return;
-    supabase.from('profiles').select('academy, directorate').eq('user_id', user.id).single()
-      .then(({ data }) => setProfileComplete(!!(data?.academy && data?.directorate)));
-  }, [user]);
+  // Check if profile is complete
+  const isProfileComplete = useCallback(() => {
+    if (!profile) return false;
+    const requiredFields = ['full_name', 'gender', 'date_of_birth', 'employee_number', 'mission', 'academy', 'directorate', 'institution', 'phone'] as const;
+    return requiredFields.every(field => {
+      const val = profile[field as keyof typeof profile];
+      return val !== null && val !== undefined && val !== '';
+    });
+  }, [profile]);
+
+  // Roles that bypass the countdown (non-teacher roles = administrative/supervisory)
+  const isPrivilegedRole = role && role !== 'teacher';
+
+  // Determine what to show
+  const now = new Date();
+  const isBeforeTarget = now < TARGET_DATE && !countdownDone;
+  const profileComplete = isProfileComplete();
 
   if (loading || !user) return (
     <div className="min-h-screen flex items-center justify-center bg-background">

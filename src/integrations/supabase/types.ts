@@ -396,6 +396,13 @@ export type Database = {
             foreignKeyName: "post_attachments_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
+            referencedRelation: "post_with_author"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_attachments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
@@ -421,6 +428,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "post_with_author"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "post_likes_post_id_fkey"
             columns: ["post_id"]
@@ -456,6 +470,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "post_recipients_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "post_with_author"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "post_recipients_post_id_fkey"
             columns: ["post_id"]
@@ -685,7 +706,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      post_with_author: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          content: string | null
+          created_at: string | null
+          filters: Json | null
+          id: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_attachment_file: {

@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, FileText, Video, Image, Download, Eye, Clock, Loader2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { Heart, FileText, Video, Image, Download, Eye, Clock, Loader2, ChevronDown } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ar, fr } from 'date-fns/locale';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface Post {
   id: string;
@@ -19,28 +20,30 @@ interface Post {
   is_read: boolean;
 }
 
+const PAGE_SIZE = 20;
+
 const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; mode?: 'normal' | 'supreme' }) => {
   const { lang, dir } = useI18n();
   const { user } = useAuth();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [likingPost, setLikingPost] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
-  const fetchPosts = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
+  const fetchPosts = useCallback(async (): Promise<{ posts: Post[]; totalCount: number }> => {
+    if (!user) return { posts: [], totalCount: 0 };
 
-    let query = supabase.from('posts').select('*').order('created_at', { ascending: false });
+    const from = 0;
+    const to = page * PAGE_SIZE - 1;
 
-    // In supreme mode, only show posts from other supreme accounts
+    let query = supabase.from('posts').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+
     if (mode === 'supreme') {
       query = query.neq('author_id', user.id);
     }
 
-    const { data: postsData } = await query;
-    if (!postsData) { setLoading(false); return; }
+    const { data: postsData, count: totalCount } = await query;
+    if (!postsData) return { posts: [], totalCount: 0 };
 
-    // In supreme mode, filter to only supreme authors
     let filteredPosts = postsData;
     if (mode === 'supreme') {
       const { data: supremeRoles } = await supabase
@@ -51,15 +54,16 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
       filteredPosts = postsData.filter(p => supremeIds.has(p.author_id));
     }
 
-    if (filteredPosts.length === 0) { setPosts([]); setLoading(false); return; }
+    if (filteredPosts.length === 0) return { posts: [], totalCount: 0 };
 
     const postIds = filteredPosts.map(p => p.id);
+    const authorIds = [...new Set(filteredPosts.map(p => p.author_id))];
 
-    // Fetch attachments, likes, author names, read status
+    // Parallel fetch: attachments, likes, profiles, recipients
     const [attachRes, likesRes, profilesRes, recipientRes] = await Promise.all([
       supabase.from('post_attachments').select('*').in('post_id', postIds),
       supabase.from('post_likes').select('*').in('post_id', postIds),
-      supabase.from('profiles').select('user_id, full_name').in('user_id', [...new Set(filteredPosts.map(p => p.author_id))]),
+      supabase.from('profiles').select('user_id, full_name').in('user_id', authorIds),
       isAuthor ? Promise.resolve({ data: [] }) : supabase.from('post_recipients').select('post_id, is_read').eq('user_id', user.id).in('post_id', postIds),
     ]);
 
@@ -94,9 +98,6 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
       is_read: readMap.get(p.id) ?? true,
     }));
 
-    setPosts(enriched);
-    setLoading(false);
-
     // Mark unread as read
     if (!isAuthor) {
       const unreadIds = enriched.filter(p => !p.is_read).map(p => p.id);
@@ -108,21 +109,31 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
           .in('post_id', unreadIds);
       }
     }
-  }, [user, isAuthor, mode]);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+    return { posts: enriched, totalCount: totalCount || filteredPosts.length };
+  }, [user, isAuthor, mode, page]);
 
-  // Realtime subscription for new posts
-  useEffect(() => {
-    if (!user || isAuthor) return;
-    const channel = supabase
-      .channel('post-feed-realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_recipients', filter: `user_id=eq.${user.id}` }, () => {
-        fetchPosts();
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user, isAuthor, fetchPosts]);
+  const { data, isLoading } = useQuery({
+    queryKey: ['posts', mode, isAuthor, page, user?.id],
+    queryFn: fetchPosts,
+    staleTime: 15_000,
+    enabled: !!user,
+  });
+
+  const posts = data?.posts || [];
+  const totalCount = data?.totalCount || 0;
+  const hasMore = posts.length < totalCount;
+
+  // Expose refetch for realtime callback
+  const refetchPosts = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['posts'] });
+  }, [queryClient]);
+
+  // Make refetchPosts available globally for the realtime hook
+  // This is done via a ref on window for simplicity
+  if (typeof window !== 'undefined') {
+    (window as any).__postFeedRefetch = refetchPosts;
+  }
 
   const toggleLike = async (postId: string, currentlyLiked: boolean) => {
     if (!user || likingPost) return;
@@ -134,9 +145,15 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
       await supabase.from('post_likes').insert({ post_id: postId, user_id: user.id } as any);
     }
 
-    setPosts(prev => prev.map(p =>
-      p.id === postId ? { ...p, user_liked: !currentlyLiked, like_count: p.like_count + (currentlyLiked ? -1 : 1) } : p
-    ));
+    queryClient.setQueryData(['posts', mode, isAuthor, page, user.id], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        posts: old.posts.map((p: Post) =>
+          p.id === postId ? { ...p, user_liked: !currentlyLiked, like_count: p.like_count + (currentlyLiked ? -1 : 1) } : p
+        ),
+      };
+    });
     setLikingPost(null);
   };
 
@@ -157,7 +174,7 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-8 h-8 animate-spin text-[hsl(225,70%,45%)]" />
@@ -277,6 +294,19 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
           </div>
         </motion.div>
       ))}
+
+      {/* Load more button */}
+      {hasMore && (
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={() => setPage(p => p + 1)}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors"
+          >
+            <ChevronDown className="w-4 h-4" />
+            {lang === 'ar' ? 'تحميل المزيد' : 'Charger plus'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

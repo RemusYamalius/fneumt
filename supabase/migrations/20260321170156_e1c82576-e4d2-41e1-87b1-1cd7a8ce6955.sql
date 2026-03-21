@@ -1,0 +1,1 @@
+ALTER VIEW public.post_with_author SET (security_invoker = on);

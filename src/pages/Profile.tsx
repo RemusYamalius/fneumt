@@ -275,6 +275,7 @@ const Profile = () => {
     if (error) {
       toast({ title: t.submitError, variant: 'destructive' });
     } else {
+      await refreshProfile(user.id);
       toast({ title: t.profileComplete || t.profileUpdated });
     }
   };

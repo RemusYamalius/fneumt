@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import logoFne from '@/assets/logo-fne.png';
 import { useI18n } from '@/lib/i18n';
 

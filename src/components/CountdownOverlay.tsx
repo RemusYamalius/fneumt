@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import logoFne from '@/assets/logo-fne.png';
 import { useI18n } from '@/lib/i18n';
 
@@ -9,7 +11,8 @@ interface CountdownOverlayProps {
 }
 
 const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => {
-  const { t, lang } = useI18n();
+  const { t, lang, dir } = useI18n();
+  const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
@@ -162,9 +165,23 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
           </div>
 
           {/* Motivational footer */}
-          <p className="text-xs font-semibold" style={{ color: 'hsl(25 50% 25%)' }}>
+          <p className="text-xs font-semibold mb-4" style={{ color: 'hsl(25 50% 25%)' }}>
             {lang === 'ar' ? '⏳ صبراً جميلاً... موعدنا قريب!' : '⏳ Patience... le rendez-vous approche !'}
           </p>
+
+          {/* Back to dashboard button */}
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105"
+            style={{
+              background: 'hsla(20 80% 15% / 0.7)',
+              color: 'hsl(40 60% 70%)',
+              border: '1px solid hsla(40 60% 50% / 0.3)',
+            }}
+          >
+            {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+            {lang === 'ar' ? 'العودة للوحة التحكم' : 'Retour au tableau de bord'}
+          </button>
         </div>
       </motion.div>
 

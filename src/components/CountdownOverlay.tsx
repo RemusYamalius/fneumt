@@ -52,12 +52,7 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
     : '1er Mai 2026 - 10h00';
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-start justify-center p-4"
-      style={{ paddingTop: '180px' }}
-    >
+    <div className="w-full flex justify-center pt-8 pointer-events-auto" style={{ zIndex: 40 }}>
       <motion.div
         initial={{ scale: 0.85, y: 30 }}
         animate={{ scale: 1, y: 0 }}
@@ -68,15 +63,24 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
           boxShadow: '0 25px 80px hsla(30 100% 40% / 0.4), 0 0 60px hsla(45 100% 60% / 0.15)',
         }}
       >
-        {/* Floating AnimatedLogo — half above the card */}
-        <motion.div
-          className="z-30"
-          style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '-80px' }}
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        {/* Floating AnimatedLogo — positioning wrapper (static, not animated) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-80px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 30,
+          }}
         >
-          <AnimatedLogo size="w-40 h-40" />
-        </motion.div>
+          {/* Pulse animation wrapper (only handles scale) */}
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <AnimatedLogo size="w-40 h-40" />
+          </motion.div>
+        </div>
 
         {/* Inner card */}
         <div className="pt-24 px-8 pb-8 sm:px-10 sm:pb-10 text-center relative">
@@ -172,7 +176,7 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
           50% { background-position: -100% 0; }
         }
       `}</style>
-    </motion.div>
+    </div>
   );
 };
 

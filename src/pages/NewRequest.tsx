@@ -903,6 +903,9 @@ const NewRequest = () => {
           </AnimatePresence>
         </div>
       </div>
+      {showCountdown && (
+        <CountdownOverlay targetDate={TARGET_DATE} onComplete={() => setCountdownDone(true)} />
+      )}
     </AuthenticatedLayout>
   );
 };

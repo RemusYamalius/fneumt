@@ -75,7 +75,7 @@ interface CardField {
 
 const Profile = () => {
   const { t, dir } = useI18n();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 

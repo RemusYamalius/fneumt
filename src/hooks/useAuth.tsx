@@ -35,6 +35,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
+  refreshProfile: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);

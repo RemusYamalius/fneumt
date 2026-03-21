@@ -1,48 +1,55 @@
 
 
-# خطة: تطبيق تحسينات التلوين على 5 صفحات
+# خطة: العد التنازلي لفاتح ماي في صفحة "طلب جديد"
 
-## النمط المرجعي (من IncomingRequests)
-- عنوان الصفحة: `bg-blue-100/60 text-blue-800 px-3 py-1 rounded-lg inline-block`
-- الوصف: `bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md inline-block`
-- عناوين الفلاتر: `text-sm font-bold px-2 py-0.5 rounded-md bg-COLOR-100/60 text-COLOR-700 w-fit`
+## الفكرة
+بطاقة عائمة شفافة بتصميم مشابه للصورة المرفقة (تدرج أصفر-برتقالي، أرقام كبيرة) تظهر فوق محتوى صفحة "طلب جديد" مع عد تنازلي إلى **1 ماي 2026 الساعة 10:00 صباحاً**.
 
-## التعديلات لكل صفحة
+## منطق الإظهار (3 حالات)
 
-### 1. JoinRequests.tsx (طلبات الانضمام)
-- **العنوان** (سطر 253): إضافة `bg-blue-100/60 text-blue-800 px-3 py-1 rounded-lg inline-block`
-- **الوصف** (سطر 254): إضافة `bg-emerald-100/60 text-emerald-700 px-2 py-0.5 rounded-md inline-block`
-- **عناوين الفلاتر** (سطور 340, 344, 354): تحويل من `text-xs font-medium text-muted-foreground` إلى `text-sm font-bold px-2 py-0.5 rounded-md bg-COLOR-100/60 text-COLOR-700 w-fit`
-  - البحث بالاسم → أزرق
-  - الحالة → كهرماني
-  - المؤسسة → زمردي
+| الحالة | ما يظهر |
+|--------|---------|
+| الملف الشخصي ناقص (أحد الحقول الإلزامية فارغ: `full_name`, `gender`, `date_of_birth`, `employee_number`, `mission`, `academy`, `directorate`, `institution`, `phone`) | رسالة "استكمل ملفك الشخصي" + رابط للملف. **لا عد تنازلي** ولا وصول للطلب |
+| الملف كامل + الدور = `teacher` (أو بدون دور) | **العد التنازلي** يظهر كبطاقة عائمة تحجب الوصول |
+| الملف كامل + الدور ≠ `teacher` (أي منصب إداري/سامي) | **لا عد تنازلي**، الصفحة مفتوحة عادياً |
 
-### 2. MembershipVerification.tsx (التحقق من الانخراط)
-- **العنوان** (سطر 259): نفس النمط الأزرق
-- **الوصف** (سطر 260): نفس النمط الزمردي
-- **عناوين الفلاتر** (سطور 335, 366, 397, 428): تحويل من `text-xs font-medium text-muted-foreground` إلى ألوان مميزة:
-  - الاسم → أزرق
-  - رقم التأجير → نيلي
-  - المؤسسة → كهرماني
-  - حالة الانخراط → بنفسجي
+**ملاحظة**: بعد انتهاء العد (1 ماي 10:00)، يختفي تلقائياً للجميع.
 
-### 3. SupervisorDashboard.tsx (لوحة الإشراف)
-- **العنوان** (سطر 517): إضافة النمط الأزرق
-- **الوصف** (سطر 518): إضافة النمط الزمردي
+## التصميم البصري للبطاقة
 
-### 4. UserManagement.tsx (إدارة المستخدمين)
-- **العنوان** (سطر 185): إضافة النمط الأزرق
-- **الوصف** (سطر 186): إضافة النمط الزمردي
-- **عنوان الفلتر** (سطر 195): تحويل "فلتر" من `text-muted-foreground` إلى `text-sm font-bold bg-blue-100/60 text-blue-700 px-2 py-0.5 rounded-md`
+- خلفية تدرج أصفر→برتقالي كما في الصورة
+- أرقام ساعة كبيرة بخط عريض أسود: **أيام | ساعات | دقائق | ثواني**
+- لوغو FNE في الوسط (بدل ERA)
+- عبارة ترحيبية: "مرحباً بك في منصة الجامعة الوطنية للتعليم"
+- دعوة: "نستعد لاستقبال طلباتكم ابتداءً من فاتح ماي، عيد الشغل"
+- أرقام الساعة الكبيرة المائلة على الجانب الأيمن (كما في الصورة)
 
-### 5. DatabaseDashboard.tsx (قاعدة البيانات)
-- **العنوان** (سطر 355): إضافة النمط الأزرق
-- **الوصف** (سطر 356): إضافة النمط الزمردي
+## التنفيذ
 
-## الملفات المتأثرة
-- `src/pages/JoinRequests.tsx`
-- `src/pages/MembershipVerification.tsx`
-- `src/pages/SupervisorDashboard.tsx`
-- `src/pages/admin/UserManagement.tsx`
-- `src/pages/DatabaseDashboard.tsx`
+### 1. تحديث `useAuth` Profile interface
+إضافة `gender: string | null` للـ Profile interface (موجود في قاعدة البيانات لكن غير مضمّن).
+
+### 2. إنشاء مكوّن `CountdownOverlay.tsx`
+- يستقبل `targetDate` و `onComplete`
+- يحسب الفرق بـ `setInterval` كل ثانية
+- يعرض الأيام/الساعات/الدقائق/الثواني بتنسيق الصورة
+- يدعم العربية/الفرنسية
+
+### 3. إنشاء مكوّن `IncompleteProfileMessage.tsx`
+- رسالة بسيطة مع رابط للملف الشخصي
+- تصميم تحذيري واضح
+
+### 4. تعديل `NewRequest.tsx`
+- إضافة دالة `isProfileComplete()` تفحص الحقول الإلزامية التسعة
+- منطق الإظهار الثلاثي في أعلى المكوّن
+- إذا ملف ناقص → `IncompleteProfileMessage`
+- إذا teacher + قبل الموعد → `CountdownOverlay`
+- غير ذلك → المحتوى العادي
+
+### الملفات المتأثرة
+- `src/hooks/useAuth.tsx` (إضافة gender)
+- `src/components/CountdownOverlay.tsx` (جديد)
+- `src/components/IncompleteProfileMessage.tsx` (جديد)
+- `src/pages/NewRequest.tsx` (إضافة المنطق)
+- `src/lib/i18n.tsx` (نصوص العد التنازلي)
 

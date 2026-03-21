@@ -41,26 +41,17 @@ const Dashboard = () => {
     queryFn: async () => {
       if (!user) return { pendingCount: 0, joinPendingCount: 0, unreadPostCount: 0, hasJoinRequest: false, myRequests: [] };
 
-      const queries: Promise<any>[] = [
-        // 0: pending requests count
-        (showIncomingRequests
-          ? supabase.from('requests').select('*', { count: 'exact', head: true }).eq('assigned_to', user.id).eq('status', 'submitted')
-          : Promise.resolve({ count: 0 })),
-        // 1: join pending count
-        (isDeputyLocal
-          ? supabase.from('join_requests').select('*', { count: 'exact', head: true }).eq('assigned_to', user.id).eq('status', 'pending')
-          : Promise.resolve({ count: 0 })),
-        // 2: unread post count
-        supabase.from('post_recipients').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
-        // 3: has join request
-        (isNonMember
-          ? supabase.from('join_requests').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-          : Promise.resolve({ count: 0 })),
-        // 4: my requests
-        supabase.from('requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-      ];
-
-      const [pendingRes, joinRes, unreadRes, joinReqRes, myReqRes] = await Promise.all(queries);
+      const pendingRes = showIncomingRequests
+        ? await supabase.from('requests').select('*', { count: 'exact', head: true }).eq('assigned_to', user.id).eq('status', 'submitted')
+        : { count: 0 };
+      const joinRes = isDeputyLocal
+        ? await supabase.from('join_requests').select('*', { count: 'exact', head: true }).eq('assigned_to', user.id).eq('status', 'pending')
+        : { count: 0 };
+      const unreadRes = await supabase.from('post_recipients').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false);
+      const joinReqRes = isNonMember
+        ? await supabase.from('join_requests').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+        : { count: 0 };
+      const myReqRes = await supabase.from('requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
 
       return {
         pendingCount: pendingRes.count || 0,

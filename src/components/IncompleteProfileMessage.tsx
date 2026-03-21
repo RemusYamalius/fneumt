@@ -4,16 +4,49 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 
-const IncompleteProfileMessage = () => {
+interface Profile {
+  full_name?: string | null;
+  gender?: string | null;
+  date_of_birth?: string | null;
+  employee_number?: string | null;
+  mission?: string | null;
+  academy?: string | null;
+  directorate?: string | null;
+  institution?: string | null;
+  phone?: string | null;
+}
+
+const REQUIRED_FIELDS: { key: keyof Profile; ar: string; fr: string }[] = [
+  { key: 'full_name', ar: 'الاسم الكامل', fr: 'Nom complet' },
+  { key: 'gender', ar: 'النوع', fr: 'Genre' },
+  { key: 'date_of_birth', ar: 'تاريخ الازدياد', fr: 'Date de naissance' },
+  { key: 'employee_number', ar: 'رقم التأجير (PPR)', fr: 'N° PPR' },
+  { key: 'mission', ar: 'الإطار / المهمة', fr: 'Cadre / Mission' },
+  { key: 'academy', ar: 'الأكاديمية', fr: 'Académie' },
+  { key: 'directorate', ar: 'المديرية', fr: 'Direction' },
+  { key: 'institution', ar: 'المؤسسة', fr: 'Établissement' },
+  { key: 'phone', ar: 'الهاتف', fr: 'Téléphone' },
+];
+
+interface Props {
+  profile?: Profile | null;
+}
+
+const IncompleteProfileMessage = ({ profile }: Props) => {
   const navigate = useNavigate();
   const { t, lang } = useI18n();
+
+  const missingFields = REQUIRED_FIELDS.filter(f => {
+    const val = profile?.[f.key];
+    return !val || (typeof val === 'string' && val.trim() === '');
+  });
 
   const title = lang === 'ar'
     ? 'يرجى استكمال ملفك الشخصي'
     : 'Veuillez compléter votre profil';
 
   const desc = lang === 'ar'
-    ? 'لتقديم طلب، يجب تعبئة جميع بيانات ملفك الشخصي أولاً: الاسم الكامل، النوع، تاريخ الازدياد، رقم التأجير، الإطار/المهمة، الأكاديمية، المديرية، المؤسسة، والهاتف.'
+    ? 'لتقديم طلب، يجب تعبئة جميع بيانات ملفك الشخصي أولاً.'
     : 'Pour soumettre une demande, vous devez d\'abord remplir toutes les données de votre profil.';
 
   return (
@@ -36,9 +69,24 @@ const IncompleteProfileMessage = () => {
       <h3 className="text-xl font-black mb-3" style={{ color: 'hsl(25 70% 25%)' }}>
         {title}
       </h3>
-      <p className="text-sm mb-6 leading-relaxed" style={{ color: 'hsl(25 40% 35%)' }}>
+      <p className="text-sm mb-4 leading-relaxed" style={{ color: 'hsl(25 40% 35%)' }}>
         {desc}
       </p>
+      {missingFields.length > 0 && (
+        <div className="mb-6 text-start rounded-xl p-4" style={{ background: 'hsla(35 80% 50% / 0.1)' }}>
+          <p className="text-xs font-bold mb-2" style={{ color: 'hsl(25 60% 30%)' }}>
+            {lang === 'ar' ? 'الحقول الناقصة:' : 'Champs manquants :'}
+          </p>
+          <ul className="space-y-1">
+            {missingFields.map(f => (
+              <li key={f.key} className="text-sm flex items-center gap-2" style={{ color: 'hsl(0 65% 45%)' }}>
+                <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: 'hsl(0 65% 45%)' }} />
+                {lang === 'ar' ? f.ar : f.fr}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <Button
         onClick={() => navigate('/profile')}
         className="gap-2 font-bold"

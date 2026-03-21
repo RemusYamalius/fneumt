@@ -500,7 +500,7 @@ const NewRequest = () => {
   if (!profileComplete) {
     return (
       <AuthenticatedLayout>
-        <IncompleteProfileMessage />
+        <IncompleteProfileMessage profile={profile} />
       </AuthenticatedLayout>
     );
   }

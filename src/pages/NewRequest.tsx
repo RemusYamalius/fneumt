@@ -511,7 +511,7 @@ const NewRequest = () => {
   // Case 3: Normal page (with optional countdown overlay on top)
   return (
     <AuthenticatedLayout>
-      <div className="futuristic-bg min-h-[calc(100vh-4rem)] relative overflow-hidden" dir={dir}>
+      <div className={`futuristic-bg min-h-[calc(100vh-4rem)] relative overflow-hidden ${showCountdown ? 'pointer-events-none' : ''}`} dir={dir}>
         <FloatingParticles />
         {/* Top bar */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2">

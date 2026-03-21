@@ -19,6 +19,7 @@ interface Profile {
   is_member: boolean | null;
   membership_verified: boolean | null;
   date_of_birth: string | null;
+  gender: string | null;
 }
 
 export type { AppRole };

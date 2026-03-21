@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import CountdownOverlay from '@/components/CountdownOverlay';
+import IncompleteProfileMessage from '@/components/IncompleteProfileMessage';
 
 type RequestCategory = 'rank_promotion' | 'grade_promotion' | 'schedules' | 'infrastructure' | 'financial_compensation' | 'zone_compensation' | 'equipment' | 'grievances' | 'assignments' | 'inspection_score' | 'other';
 type ResolutionLevel = 'ministry' | 'academy' | 'directorate' | 'institution';
@@ -333,7 +335,7 @@ const ParticleExplosion = () => {
 
 const NewRequest = () => {
   const { t, dir } = useI18n();
-  const { user, loading } = useAuth();
+  const { user, profile, role, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -347,17 +349,32 @@ const NewRequest = () => {
   const [submitting, setSubmitting] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [profileComplete, setProfileComplete] = useState<boolean | null>(null);
+  const [countdownDone, setCountdownDone] = useState(false);
+
+  // May 1, 2026 at 10:00 AM (Morocco time ~ UTC+1)
+  const TARGET_DATE = useMemo(() => new Date('2026-05-01T09:00:00Z'), []);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
   }, [loading, user, navigate]);
 
-  useEffect(() => {
-    if (!user) return;
-    supabase.from('profiles').select('academy, directorate').eq('user_id', user.id).single()
-      .then(({ data }) => setProfileComplete(!!(data?.academy && data?.directorate)));
-  }, [user]);
+  // Check if profile is complete
+  const isProfileComplete = useCallback(() => {
+    if (!profile) return false;
+    const requiredFields = ['full_name', 'gender', 'date_of_birth', 'employee_number', 'mission', 'academy', 'directorate', 'institution', 'phone'] as const;
+    return requiredFields.every(field => {
+      const val = profile[field as keyof typeof profile];
+      return val !== null && val !== undefined && val !== '';
+    });
+  }, [profile]);
+
+  // Roles that bypass the countdown (non-teacher roles = administrative/supervisory)
+  const isPrivilegedRole = role && role !== 'teacher';
+
+  // Determine what to show
+  const now = new Date();
+  const isBeforeTarget = now < TARGET_DATE && !countdownDone;
+  const profileComplete = isProfileComplete();
 
   if (loading || !user) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -479,6 +496,28 @@ const NewRequest = () => {
     );
   }
 
+  // Case 1: Profile incomplete → show message
+  if (!profileComplete) {
+    return (
+      <AuthenticatedLayout>
+        <IncompleteProfileMessage />
+      </AuthenticatedLayout>
+    );
+  }
+
+  // Case 2: Teacher + before target date → show countdown
+  if (!isPrivilegedRole && isBeforeTarget) {
+    return (
+      <AuthenticatedLayout>
+        <div className="futuristic-bg min-h-[calc(100vh-4rem)] relative overflow-hidden" dir={dir}>
+          <FloatingParticles />
+          <CountdownOverlay targetDate={TARGET_DATE} onComplete={() => setCountdownDone(true)} />
+        </div>
+      </AuthenticatedLayout>
+    );
+  }
+
+  // Case 3: Privileged role or countdown done → normal page
   return (
     <AuthenticatedLayout>
       <div className="futuristic-bg min-h-[calc(100vh-4rem)] relative overflow-hidden" dir={dir}>
@@ -533,19 +572,7 @@ const NewRequest = () => {
                 transition={{ duration: 0.5, ease: 'easeOut' }}
                 className="flex flex-col items-center"
               >
-                {profileComplete === false && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full max-w-lg mb-8 p-5 rounded-2xl futuristic-warning-card text-center"
-                  >
-                    <p className="text-base font-bold mb-1" style={{ color: 'hsl(45 100% 65%)' }}>{t.profileIncomplete}</p>
-                    <p className="text-xs mb-3" style={{ color: 'hsl(45 60% 50%)' }}>{t.profileIncompleteDesc}</p>
-                    <Button onClick={() => navigate('/profile')} className="futuristic-btn-primary">{t.completeProfile}</Button>
-                  </motion.div>
-                )}
-
-                <div className={profileComplete === false ? 'opacity-30 pointer-events-none' : ''}>
+                <div>
                   <OrbitalHub
                     items={CATEGORIES}
                     selectedKey={category}

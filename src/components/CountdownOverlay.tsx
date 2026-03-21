@@ -11,7 +11,8 @@ interface CountdownOverlayProps {
 }
 
 const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => {
-  const { t, lang } = useI18n();
+  const { t, lang, dir } = useI18n();
+  const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {

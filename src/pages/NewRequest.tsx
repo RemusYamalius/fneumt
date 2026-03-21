@@ -505,19 +505,10 @@ const NewRequest = () => {
     );
   }
 
-  // Case 2: Teacher + before target date → show countdown
-  if (!isPrivilegedRole && isBeforeTarget) {
-    return (
-      <AuthenticatedLayout>
-        <div className="futuristic-bg min-h-[calc(100vh-4rem)] relative overflow-hidden" dir={dir}>
-          <FloatingParticles />
-          <CountdownOverlay targetDate={TARGET_DATE} onComplete={() => setCountdownDone(true)} />
-        </div>
-      </AuthenticatedLayout>
-    );
-  }
+  // Show countdown overlay for teachers before target date
+  const showCountdown = !isPrivilegedRole && isBeforeTarget;
 
-  // Case 3: Privileged role or countdown done → normal page
+  // Case 3: Normal page (with optional countdown overlay on top)
   return (
     <AuthenticatedLayout>
       <div className="futuristic-bg min-h-[calc(100vh-4rem)] relative overflow-hidden" dir={dir}>

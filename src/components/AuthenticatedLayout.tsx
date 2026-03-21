@@ -41,8 +41,13 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
   const badgeStatus = getBadgeStatus(role, profile?.is_member ?? false, profile?.membership_verified ?? false);
 
   const getRoleLabel = () => {
-    const base = role ? (t[`role_${role}`] || t.roleTeacher) : t.roleTeacher;
-    if (!role || !profile) return base;
+    if (!role || !profile) return profile?.mission || t.roleTeacher;
+    // For teachers: show mission/corps instead of generic "أستاذ(ة)"
+    if (role === 'teacher') {
+      return profile.mission || t.roleTeacher;
+    }
+    // For appointed roles: show role name + geographic scope
+    const base = t[`role_${role}`] || t.roleTeacher;
     const isRegional = ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'].includes(role);
     const isSubRegional = ['provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role);
     if (isRegional && profile.academy) return `${base} — ${profile.academy}`;

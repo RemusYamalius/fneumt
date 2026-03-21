@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
-import logoFne from '@/assets/logo-fne.png';
+import AnimatedLogo from '@/components/AnimatedLogo';
 import { useI18n } from '@/lib/i18n';
 
 interface CountdownOverlayProps {
@@ -55,30 +55,25 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-8 p-4"
     >
       <motion.div
         initial={{ scale: 0.85, y: 30 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 180, damping: 20 }}
-        className="relative max-w-lg w-full rounded-3xl"
+        className="relative max-w-lg w-full rounded-3xl mt-16"
         style={{
           background: 'linear-gradient(135deg, hsl(45 100% 55%), hsl(30 100% 50%), hsl(20 95% 45%))',
           boxShadow: '0 25px 80px hsla(30 100% 40% / 0.4), 0 0 60px hsla(45 100% 60% / 0.15)',
         }}
       >
-        {/* Floating Logo — half above the card */}
+        {/* Floating AnimatedLogo — half above the card */}
         <motion.div
-          className="absolute left-1/2 -translate-x-1/2 -top-20 z-30 w-40 h-40 rounded-full overflow-hidden"
-          style={{
-            border: '4px solid hsla(0 0% 100% / 0.5)',
-            boxShadow: '0 8px 30px hsla(0 0% 0% / 0.25)',
-            background: 'white',
-          }}
+          className="absolute left-1/2 -translate-x-1/2 -top-20 z-30"
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <img src={logoFne} alt="FNE Logo" className="w-full h-full object-contain p-2" />
+          <AnimatedLogo size="w-40 h-40" />
         </motion.div>
 
         {/* Inner card */}

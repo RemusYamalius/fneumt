@@ -1,14 +1,20 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNotificationSound } from './useNotificationSound';
 import type { AppRole } from '@/lib/role-hierarchy';
 
 const INBOX_ROLES: AppRole[] = ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'];
 
-export const useRealtimeNotifications = (userId: string | undefined, role?: AppRole | null) => {
+export const useRealtimeNotifications = (
+  userId: string | undefined,
+  role?: AppRole | null,
+  onNewPost?: () => void,
+) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { play } = useNotificationSound();
   const isInboxRole = role ? INBOX_ROLES.includes(role) : false;
+  const onNewPostRef = useRef(onNewPost);
+  onNewPostRef.current = onNewPost;
 
   const fetchUnreadCount = useCallback(async () => {
     if (!userId) return;
@@ -34,64 +40,38 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
     if (!userId) return;
     fetchUnreadCount();
 
-    if (isInboxRole) {
-      const reqChannel = supabase
-        .channel('requests-badge-realtime')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'requests', filter: `assigned_to=eq.${userId}` },
-          (payload) => {
-            if (payload.eventType === 'INSERT') play();
-            fetchUnreadCount();
-          }
-        )
-        .subscribe();
-
-      const joinChannel = supabase
-        .channel('join-requests-badge-realtime')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'join_requests', filter: `assigned_to=eq.${userId}` },
-          (payload) => {
-            if (payload.eventType === 'INSERT') play();
-            fetchUnreadCount();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(reqChannel);
-        supabase.removeChannel(joinChannel);
-      };
-    } else {
-      const channel = supabase
-        .channel('notifications-realtime')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-          (payload) => {
-            if (payload.eventType === 'INSERT') play();
-            fetchUnreadCount();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [userId, isInboxRole, fetchUnreadCount, play]);
-
-  // Post notifications - distinct sound using higher pitch
-  useEffect(() => {
-    if (!userId) return;
-    const postChannel = supabase
-      .channel('post-notifications-realtime')
+    // Single unified channel per user
+    const channel = supabase
+      .channel(`user-realtime-${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && !isInboxRole) play();
+          fetchUnreadCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'requests', filter: `assigned_to=eq.${userId}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && isInboxRole) play();
+          fetchUnreadCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'join_requests', filter: `assigned_to=eq.${userId}` },
+        (payload) => {
+          if (payload.eventType === 'INSERT' && isInboxRole) play();
+          fetchUnreadCount();
+        }
+      )
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'post_recipients', filter: `user_id=eq.${userId}` },
         () => {
-          // Play a distinct notification using Web Audio API
+          // Play distinct post notification sound
           try {
             const ctx = new AudioContext();
             const osc = ctx.createOscillator();
@@ -104,7 +84,6 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
             gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
             osc.start(ctx.currentTime);
             osc.stop(ctx.currentTime + 0.5);
-            // Second tone
             const osc2 = ctx.createOscillator();
             const gain2 = ctx.createGain();
             osc2.connect(gain2);
@@ -117,12 +96,16 @@ export const useRealtimeNotifications = (userId: string | undefined, role?: AppR
             osc2.stop(ctx.currentTime + 0.6);
           } catch {}
           if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          // Notify PostFeed to refresh
+          onNewPostRef.current?.();
         }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(postChannel); };
-  }, [userId]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, isInboxRole, fetchUnreadCount, play]);
 
   return { unreadCount, refetch: fetchUnreadCount };
 };

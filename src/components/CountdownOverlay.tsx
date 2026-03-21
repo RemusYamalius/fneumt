@@ -56,7 +56,7 @@ const CountdownOverlay = ({ targetDate, onComplete }: CountdownOverlayProps) => 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 flex items-start justify-center p-4"
-      style={{ paddingTop: '140px' }}
+      style={{ paddingTop: '180px' }}
     >
       <motion.div
         initial={{ scale: 0.85, y: 30 }}

@@ -550,9 +550,9 @@ const NewRequest = () => {
           </div>
         </div>
 
-        {/* Countdown overlay — rendered INSIDE content flow, after top bar */}
+        {/* Countdown overlay — rendered in page flow, above wheel */}
         {showCountdown && (
-          <div className="absolute inset-0 top-0 z-40 pointer-events-none" style={{ paddingTop: '70px' }}>
+          <div className="relative z-40 pointer-events-auto">
             <CountdownOverlay targetDate={TARGET_DATE} onComplete={() => setCountdownDone(true)} />
           </div>
         )}

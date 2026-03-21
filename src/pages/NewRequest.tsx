@@ -572,19 +572,7 @@ const NewRequest = () => {
                 transition={{ duration: 0.5, ease: 'easeOut' }}
                 className="flex flex-col items-center"
               >
-                {profileComplete === false && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full max-w-lg mb-8 p-5 rounded-2xl futuristic-warning-card text-center"
-                  >
-                    <p className="text-base font-bold mb-1" style={{ color: 'hsl(45 100% 65%)' }}>{t.profileIncomplete}</p>
-                    <p className="text-xs mb-3" style={{ color: 'hsl(45 60% 50%)' }}>{t.profileIncompleteDesc}</p>
-                    <Button onClick={() => navigate('/profile')} className="futuristic-btn-primary">{t.completeProfile}</Button>
-                  </motion.div>
-                )}
-
-                <div className={profileComplete === false ? 'opacity-30 pointer-events-none' : ''}>
+                <div>
                   <OrbitalHub
                     items={CATEGORIES}
                     selectedKey={category}

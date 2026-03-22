@@ -105,8 +105,8 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
     onRefetch();
     setOpen(false);
-    if (location.pathname !== '/communication-hub') {
-      navigate('/communication-hub');
+    if (location.pathname !== '/communication') {
+      navigate('/communication');
     }
   };
 

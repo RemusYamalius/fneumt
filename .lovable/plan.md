@@ -1,17 +1,33 @@
 
 
-# خطة: إظهار لوحة الإشعارات لجميع الأدوار
+# تحليل: جرس الإشعارات لا يعرض إشعارات المنشورات
 
 ## المشكلة
-في `AuthenticatedLayout.tsx` (سطر 113-126)، أصحاب أدوار `INBOX_ROLES` (`deputy_local_primary`, `deputy_local_middle`, `deputy_local_high`) يحصلون على زر جرس يوجههم مباشرة لـ `/incoming-requests` بدون إظهار لوحة الإشعارات المنبثقة.
+الجرس يحسب فقط من جدول `notifications` (حيث `is_read = false`)، بينما إشعارات المنشورات (ركن التواصل) تُخزَّن في جدول مختلف تماماً: `post_recipients` (حيث `is_read = false`). لذلك الجرس لا يعكس المنشورات غير المقروءة.
 
-## الحل
-استبدال الشرط `isInboxRole` بحيث يظهر `NotificationPanel` لجميع المستخدمين بدون استثناء. يمكن إضافة رابط سريع داخل اللوحة المنبثقة لصفحة الطلبات الواردة لأصحاب أدوار Inbox.
+بطاقة "ركن التواصل" في Dashboard تحسب `post_recipients` مباشرة، لهذا تظهر الرقم 1 على البطاقة لكن الجرس فارغ.
 
-### التعديل في `src/components/AuthenticatedLayout.tsx`
-- إزالة الفرع الشرطي `isInboxRole` (سطور 113-126)
-- عرض `NotificationPanel` لجميع المستخدمين المسجلين
+## الحل المقترح
+دمج عدد `post_recipients` غير المقروءة مع عدد `notifications` غير المقروءة في حساب الجرس.
 
-### الملفات المتأثرة
-- `src/components/AuthenticatedLayout.tsx` فقط
+### التعديل في `src/hooks/useRealtimeNotifications.ts`
+في دالة `fetchUnreadCount` (السطر 29-36):
+- إضافة استعلام ثانٍ لـ `post_recipients` حيث `is_read = false`
+- جمع العددين: `notifications count + post_recipients count`
+
+```text
+قبل:  unreadCount = notifications(is_read=false).count
+بعد:  unreadCount = notifications(is_read=false).count + post_recipients(is_read=false).count
+```
+
+### التعديل في `src/components/NotificationPanel.tsx`
+- إضافة تبويب ثالث أو دمج المنشورات غير المقروءة في القائمة الحالية
+- الخيار الأبسط: إضافة صف ملخص في أعلى القائمة يشير لوجود منشورات غير مقروءة مع رابط `/communication-hub`
+
+### التعديل في `markAllRead`
+- إضافة تحديث `post_recipients` أيضاً عند النقر على "تحديد الكل كمقروء"
+
+## الملفات المتأثرة
+- `src/hooks/useRealtimeNotifications.ts` — دمج عدد post_recipients في unreadCount + تحديث markAllRead
+- `src/components/NotificationPanel.tsx` — عرض المنشورات غير المقروءة في اللوحة
 

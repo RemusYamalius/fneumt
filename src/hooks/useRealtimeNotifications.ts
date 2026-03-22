@@ -117,5 +117,5 @@ export const useRealtimeNotifications = (
     };
   }, [userId, isInboxRole, fetchUnreadCount, play]);
 
-  return { unreadCount, refetch: fetchUnreadCount };
+  return { unreadCount, refetch: fetchUnreadCount, markAllRead };
 };

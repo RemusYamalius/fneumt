@@ -464,6 +464,7 @@ const translations: Record<Lang, Record<string, string>> = {
     footer: "Au service des adhérents de la Fédération Nationale de l'Enseignement,\naffiliée à l'Union Marocaine du Travail.\nToujours : Plus proche / Plus rapide / Plus efficace.",
     copyright: '© 2026 FNE-UMT. Tous droits réservés.',
     langSwitch: 'عربية',
+    language: 'Langue',
     contact: 'Contactez-nous',
     phone: 'Téléphone',
     email: 'Email',

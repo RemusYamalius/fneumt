@@ -61,9 +61,9 @@ const Index = () => {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-3 leading-tight">
-            الجامعة الوطنية للتعليم
+            {t.orgLine1}
             <br /><br />
-            الاتحاد المغربي للشغل
+            {t.orgLine2}
           </h1>
           <p className="text-base text-white/70 mb-2 md:text-4xl font-mono font-extrabold">
             <br />

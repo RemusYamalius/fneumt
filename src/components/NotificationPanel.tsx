@@ -51,7 +51,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
       if (tab === 'unread') query = query.eq('is_read', false);
       const { data } = await query;
       return data || [];
@@ -105,8 +105,8 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
     onRefetch();
     setOpen(false);
-    if (location.pathname !== '/communication-hub') {
-      navigate('/communication-hub');
+    if (location.pathname !== '/communication') {
+      navigate('/communication');
     }
   };
 
@@ -204,7 +204,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
         </div>
 
         {/* List */}
-        <ScrollArea className="max-h-[400px]">
+        <div className="overflow-y-auto max-h-[400px]">
           {isLoading ? (
             <div className="p-6 flex justify-center">
               <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -264,7 +264,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   );

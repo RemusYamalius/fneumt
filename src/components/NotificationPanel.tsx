@@ -110,6 +110,12 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     }
   };
 
+  // Local notifications-only unread count (excludes posts/requests)
+  const notificationsUnreadCount = useMemo(() => {
+    if (tab === 'unread') return notifications.length;
+    return notifications.filter((n: any) => !n.is_read).length;
+  }, [notifications, tab]);
+
   const tabs: { key: Tab; label: string }[] = useMemo(
     () => [
       { key: 'all', label: t.allNotifications },

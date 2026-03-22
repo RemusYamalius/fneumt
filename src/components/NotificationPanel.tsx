@@ -191,9 +191,9 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               )}
             >
               {item.label}
-              {item.key === 'unread' && unreadCount > 0 && (
+              {item.key === 'unread' && notificationsUnreadCount > 0 && (
                 <span className="ms-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  {notificationsUnreadCount > 99 ? '99+' : notificationsUnreadCount}
                 </span>
               )}
               {tab === item.key && (

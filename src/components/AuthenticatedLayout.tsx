@@ -35,18 +35,13 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
   const { t, toggleLang, dir } = useI18n();
   const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
-  const { unreadCount, markAllRead } = useRealtimeNotifications(user?.id, role);
+  const { unreadCount, markAllRead, refetch } = useRealtimeNotifications(user?.id, role);
 
   const isInboxRole = role ? INBOX_ROLES.includes(role) : false;
 
-  const handleBellClick = async () => {
+  const handleBellClick = () => {
     if (isInboxRole) {
       navigate('/incoming-requests');
-    } else {
-      if (unreadCount > 0) {
-        await markAllRead();
-        toast({ title: t.notifications, description: '✓' });
-      }
     }
   };
 

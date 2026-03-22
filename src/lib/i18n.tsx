@@ -452,6 +452,8 @@ const translations: Record<Lang, Record<string, string>> = {
     unreadOnly: 'غير مقروءة',
     markAllAsRead: 'تحديد الكل كمقروء',
     noNotifications: 'لا توجد إشعارات',
+    unreadPosts: 'لديك {n} منشور غير مقروء',
+    unreadPostsSingle: 'لديك منشور غير مقروء',
     justNow: 'الآن',
     minutesAgo: 'منذ {n} دقيقة',
     hoursAgo: 'منذ {n} ساعة',

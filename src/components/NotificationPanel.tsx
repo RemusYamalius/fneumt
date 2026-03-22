@@ -38,6 +38,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
   const { t, dir } = useI18n();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [tab, setTab] = useState<Tab>('all');
   const [open, setOpen] = useState(false);
   const ArrowIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;

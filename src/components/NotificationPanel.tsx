@@ -65,10 +65,16 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     onRefetch();
   };
 
-  const handleMarkOne = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-    queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
-    onRefetch();
+  const handleClickNotification = async (n: any) => {
+    if (!n.is_read) {
+      await supabase.from('notifications').update({ is_read: true }).eq('id', n.id);
+      queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
+      onRefetch();
+    }
+    if (n.link) {
+      setOpen(false);
+      navigate(n.link);
+    }
   };
 
   const tabs: { key: Tab; label: string }[] = useMemo(

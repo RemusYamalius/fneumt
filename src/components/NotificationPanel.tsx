@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, CheckCheck, BellOff, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +38,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
   const { t, dir } = useI18n();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [tab, setTab] = useState<Tab>('all');
   const [open, setOpen] = useState(false);
   const ArrowIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;
@@ -93,10 +94,27 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     }
   };
 
-  const handleGoToPosts = () => {
+  const handleGoToPosts = async () => {
+    // Mark all post_recipients as read
+    await supabase
+      .from('post_recipients')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+    queryClient.invalidateQueries({ queryKey: ['unread-posts-count', userId] });
+    queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
+    onRefetch();
     setOpen(false);
-    navigate('/communication-hub');
+    if (location.pathname !== '/communication-hub') {
+      navigate('/communication-hub');
+    }
   };
+
+  // Local notifications-only unread count (excludes posts/requests)
+  const notificationsUnreadCount = useMemo(() => {
+    if (tab === 'unread') return notifications.length;
+    return notifications.filter((n: any) => !n.is_read).length;
+  }, [notifications, tab]);
 
   const tabs: { key: Tab; label: string }[] = useMemo(
     () => [
@@ -173,9 +191,9 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               )}
             >
               {item.label}
-              {item.key === 'unread' && unreadCount > 0 && (
+              {item.key === 'unread' && notificationsUnreadCount > 0 && (
                 <span className="ms-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  {notificationsUnreadCount > 99 ? '99+' : notificationsUnreadCount}
                 </span>
               )}
               {tab === item.key && (

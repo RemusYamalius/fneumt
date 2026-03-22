@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Bell, CheckCheck, BellOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Bell, CheckCheck, BellOff, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';

@@ -37,8 +37,10 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
 }) => {
   const { t, dir } = useI18n();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('all');
   const [open, setOpen] = useState(false);
+  const ArrowIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications-list', userId, tab],

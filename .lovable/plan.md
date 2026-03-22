@@ -1,25 +1,83 @@
 
 
-# خطة: إصلاح جرس الإشعارات + إضافة Tooltips للأيقونات
+# خطة: تحسين Tooltip اللغة + لوحة إشعارات منبثقة احترافية
 
-## المشكلة 1: الجرس يبقى يعرض عدداً رغم قراءة كل شيء
+## 1. Tooltip اللغة الديناميكي
 
-**السبب**: `useRealtimeNotifications` يحسب عدد الإشعارات غير المقروءة من جدول `notifications` (حيث `is_read = false`). لكن الإشعارات لا تُعلّم كمقروءة إلا عند النقر على طلب معين في لوحة التحكم (سطر 518-523 في Dashboard.tsx). لا توجد آلية لتصفير كل الإشعارات دفعة واحدة.
+**الملف**: `src/components/AuthenticatedLayout.tsx` (سطر 115)
 
-**الحل**: 
-- إضافة وظيفة `markAllRead` في `useRealtimeNotifications` تُعلّم كل إشعارات المستخدم كمقروءة
-- جعل أيقونة الجرس في `AuthenticatedLayout` قابلة للنقر: عند النقر تُصفّر الإشعارات (mark all as read) مع إظهار toast تأكيدي
-- بالنسبة لأصحاب أدوار Inbox (deputy_local_*): النقر يوجههم مباشرة لصفحة الطلبات الواردة
+**الوضع الحالي**: يعرض `(t as any).language` — أي "اللغة" بالعربية أو "Langue" بالفرنسية.
 
-## المشكلة 2: لا tooltips على أيقونات الشريط العلوي
+**التعديل**: عرض اسم اللغة **البديلة** المتاحة:
+- إذا الصفحة بالعربية → `"Français"`
+- إذا الصفحة بالفرنسية → `"العربية"`
 
-**الحل**: إضافة `Tooltip` حول أيقونات Globe و Bell و LogOut في `AuthenticatedLayout.tsx`، مع نصوص مترجمة:
-- Globe: "اللغة" / "Langue"  
-- Bell: `t.notifications` (موجود أصلاً)
-- LogOut: `t.logout` (موجود أصلاً)
+إضافة مفتاحين جديدين في `src/lib/i18n.tsx`:
+- `ar.switchLang = 'Français'`
+- `fr.switchLang = 'العربية'`
+
+---
+
+## 2. لوحة إشعارات منبثقة (Notification Panel)
+
+### الفكرة العامة
+عند النقر على الجرس، تنبثق لوحة أنيقة (Popover) تحت الجرس مباشرة، بتصميم عصري:
+
+```text
+┌──────────────────────────────────┐
+│  🔔  الإشعارات            ✓ الكل │  ← عنوان + زر "تحديد الكل كمقروء"
+├──────────────────────────────────┤
+│  [الكل]  [غير مقروءة]           │  ← تبويبان مع أنيميشن انزلاق
+├──────────────────────────────────┤
+│  ● طلبك #123 تمت الموافقة عليه  │  ← إشعار غير مقروء (خلفية زرقاء خفيفة)
+│    منذ 5 دقائق                  │     + نقطة زرقاء + تأثير دخول
+├──────────────────────────────────┤
+│  ○ مرحباً بك في المنصة          │  ← إشعار مقروء (خلفية عادية)
+│    منذ ساعتين                   │
+├──────────────────────────────────┤
+│       لا توجد إشعارات جديدة     │  ← حالة فارغة مع أيقونة
+└──────────────────────────────────┘
+```
+
+### التفاصيل التقنية
+
+**مكون جديد**: `src/components/NotificationPanel.tsx`
+
+- **Popover** من shadcn/ui (موجود في المشروع) يفتح تحت الجرس
+- **تبويبان**: "الكل" و "غير مقروءة" — مع شريط سفلي متحرك (animated underline)
+- **جلب الإشعارات**: `useQuery` مع `queryKey: ['notifications', userId, tab]` و `staleTime: 10_000`
+  - تبويب "الكل": آخر 20 إشعار مرتبة بالأحدث
+  - تبويب "غير مقروءة": فقط `is_read = false`
+- **زر "تحديد الكل كمقروء"**: يستدعي `markAllRead()` الموجودة + invalidate cache
+- **التوقيت النسبي**: "منذ دقيقة"، "منذ ساعة"... (بدون مكتبة خارجية)
+- **أنيميشن دخول**: كل إشعار يدخل بـ `animate-in slide-in-from-top-2 fade-in` مع تأخير تصاعدي
+- **نقطة زرقاء**: للإشعارات غير المقروءة (دائرة صغيرة نابضة)
+- **حالة فارغة**: أيقونة جرس شفافة + نص "لا توجد إشعارات"
+- **أقصى ارتفاع**: `max-h-[400px]` مع scroll مخفي أنيق
+- **ألوان**: تدرج أزرق ملكي للعنوان، خلفية `primary/5` للغير مقروءة
+
+**تعديل `AuthenticatedLayout.tsx`**:
+- استبدال `<button onClick={handleBellClick}>` بـ `<Popover>` يحتوي `NotificationPanel`
+- لأصحاب أدوار Inbox: يبقى السلوك الحالي (توجيه مباشر)
+
+**تعديل `useRealtimeNotifications.ts`**:
+- إضافة `fetchNotifications(filter)` تعيد قائمة الإشعارات (ليس فقط العدد)
+
+**تعديل `src/lib/i18n.tsx`**:
+- `switchLang`: 'Français' / 'العربية'
+- `allNotifications`: 'الكل' / 'Tout'
+- `unreadOnly`: 'غير مقروءة' / 'Non lu'
+- `markAllAsRead`: 'تحديد الكل كمقروء' / 'Tout marquer comme lu'
+- `noNotifications`: 'لا توجد إشعارات' / 'Aucune notification'
+- `minutesAgo`: 'منذ {n} دقيقة' / 'Il y a {n} min'
+- `hoursAgo`: 'منذ {n} ساعة' / 'Il y a {n}h'
+- `daysAgo`: 'منذ {n} يوم' / 'Il y a {n}j'
+
+---
 
 ## الملفات المتأثرة
-- `src/hooks/useRealtimeNotifications.ts` — إضافة `markAllRead`
-- `src/components/AuthenticatedLayout.tsx` — tooltips + نقر على الجرس
-- `src/lib/i18n.tsx` — إضافة مفتاح `language` (ar/fr)
+- `src/lib/i18n.tsx` — مفاتيح ترجمة جديدة
+- `src/components/NotificationPanel.tsx` — مكون جديد
+- `src/components/AuthenticatedLayout.tsx` — Popover بدل button + tooltip ديناميكي
+- `src/hooks/useRealtimeNotifications.ts` — إضافة جلب قائمة الإشعارات
 

@@ -264,7 +264,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   );

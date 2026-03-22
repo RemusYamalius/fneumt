@@ -51,7 +51,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
       if (tab === 'unread') query = query.eq('is_read', false);
       const { data } = await query;
       return data || [];

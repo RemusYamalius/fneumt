@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import AnimatedLogo from '@/components/AnimatedLogo';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
+import NotificationPanel from '@/components/NotificationPanel';
 import { toast } from '@/hooks/use-toast';
 
 /* ─── Sub-bar with shimmer ─── */

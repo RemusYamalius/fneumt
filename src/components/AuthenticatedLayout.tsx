@@ -29,21 +29,11 @@ interface AuthenticatedLayoutProps {
   children: React.ReactNode;
 }
 
-const INBOX_ROLES = ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'];
-
 const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) => {
   const { t, toggleLang, dir } = useI18n();
   const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
   const { unreadCount, markAllRead, refetch } = useRealtimeNotifications(user?.id, role);
-
-  const isInboxRole = role ? INBOX_ROLES.includes(role) : false;
-
-  const handleBellClick = () => {
-    if (isInboxRole) {
-      navigate('/incoming-requests');
-    }
-  };
 
   const handleSignOut = async () => {
     await signOut();

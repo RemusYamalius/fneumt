@@ -450,6 +450,8 @@ const translations: Record<Lang, Record<string, string>> = {
   fr: {
     platformName: 'Plateforme FNE-UMT',
     platformSubtitle: "Fédération Nationale de l'Enseignement - Union Marocaine du Travail",
+    orgLine1: "La Fédération Nationale de l'Enseignement",
+    orgLine2: "L'Union Marocaine du Travail",
     heroTitle: 'Votre plateforme numérique pour le suivi de vos dossiers syndicaux',
     heroDescription: 'Nous facilitons la soumission et le suivi de vos dossiers en toute transparence',
     newRequest: 'Nouvelle demande',

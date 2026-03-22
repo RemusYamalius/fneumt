@@ -82,15 +82,26 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     onRefetch();
   };
 
+  const resolveNotificationLink = (n: any): string | null => {
+    if (!n.link) return null;
+    // If link is /track without query param, try to extract tracking number from message
+    if (n.link === '/track' && n.message) {
+      const match = n.message.match(/REQ-\d+/);
+      if (match) return `/track?q=${match[0]}`;
+    }
+    return n.link;
+  };
+
   const handleClickNotification = async (n: any) => {
     if (!n.is_read) {
       await supabase.from('notifications').update({ is_read: true }).eq('id', n.id);
       queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
       onRefetch();
     }
-    if (n.link) {
+    const link = resolveNotificationLink(n);
+    if (link) {
       setOpen(false);
-      navigate(n.link);
+      navigate(link);
     }
   };
 

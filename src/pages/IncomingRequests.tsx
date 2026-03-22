@@ -166,7 +166,7 @@ const IncomingRequests = () => {
       try {
         await supabase.from('requests').update({ status: 'viewed' as any }).eq('id', request.id);
         await supabase.from('request_status_history').insert({ request_id: request.id, old_status: 'submitted' as any, new_status: 'viewed' as any, changed_by: user.id, note: lang === 'ar' ? 'تم الاطلاع على الملف' : 'Dossier consulté' } as any);
-        await supabase.from('notifications').insert({ user_id: request.user_id, title: lang === 'ar' ? 'تم الاطلاع على ملفك' : 'Dossier consulté', message: lang === 'ar' ? `تم الاطلاع على ملفك رقم ${request.tracking_number}` : `Votre dossier n° ${request.tracking_number} a été consulté`, link: '/track' });
+        await supabase.from('notifications').insert({ user_id: request.user_id, title: lang === 'ar' ? 'تم الاطلاع على ملفك' : 'Dossier consulté', message: lang === 'ar' ? `تم الاطلاع على ملفك رقم ${request.tracking_number}` : `Votre dossier n° ${request.tracking_number} a été consulté`, link: `/track?q=${request.tracking_number}` });
         setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: 'viewed' as RequestStatus } : r));
         setSelectedRequest({ ...request, status: 'viewed' as RequestStatus });
       } catch (err) { console.error(err); }

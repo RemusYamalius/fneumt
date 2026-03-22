@@ -94,9 +94,20 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     }
   };
 
-  const handleGoToPosts = () => {
+  const handleGoToPosts = async () => {
+    // Mark all post_recipients as read
+    await supabase
+      .from('post_recipients')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+    queryClient.invalidateQueries({ queryKey: ['unread-posts-count', userId] });
+    queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
+    onRefetch();
     setOpen(false);
-    navigate('/communication-hub');
+    if (location.pathname !== '/communication-hub') {
+      navigate('/communication-hub');
+    }
   };
 
   const tabs: { key: Tab; label: string }[] = useMemo(

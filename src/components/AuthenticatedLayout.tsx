@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import AnimatedLogo from '@/components/AnimatedLogo';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
+import { toast } from '@/hooks/use-toast';
 
 /* ─── Sub-bar with shimmer ─── */
 const SubBarShimmer = ({ roleLabel, dir }: { roleLabel: string; dir: 'rtl' | 'ltr' }) => (
@@ -27,11 +28,26 @@ interface AuthenticatedLayoutProps {
   children: React.ReactNode;
 }
 
+const INBOX_ROLES = ['deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'];
+
 const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) => {
   const { t, toggleLang, dir } = useI18n();
   const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
-  const { unreadCount } = useRealtimeNotifications(user?.id, role);
+  const { unreadCount, markAllRead } = useRealtimeNotifications(user?.id, role);
+
+  const isInboxRole = role ? INBOX_ROLES.includes(role) : false;
+
+  const handleBellClick = async () => {
+    if (isInboxRole) {
+      navigate('/incoming-requests');
+    } else {
+      if (unreadCount > 0) {
+        await markAllRead();
+        toast({ title: t.notifications, description: '✓' });
+      }
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -60,11 +76,9 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
 
   const getRoleLabel = () => {
     if (!role || !profile) return getMissionLabel(profile?.mission);
-    // For teachers: show translated mission
     if (role === 'teacher') {
       return getMissionLabel(profile.mission);
     }
-    // For appointed roles: show role name + geographic scope
     const base = t[`role_${role}`] || t.roleTeacher;
     const isRegional = ['regional_supervisor', 'deputy_regional_primary', 'deputy_regional_middle', 'deputy_regional_high'].includes(role);
     const isSubRegional = ['provincial_manager', 'deputy_provincial_primary', 'deputy_provincial_middle', 'deputy_provincial_high', 'local_coordinator', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high'].includes(role);
@@ -92,21 +106,36 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
                   <p>{badgeStatus === 'green' && role ? (t[`role_${role}`] || t[`badge_${badgeStatus}`]) : t[`badge_${badgeStatus}`]}</p>
                 </TooltipContent>
               </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={toggleLang} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                    <Globe className="w-5 h-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent><p>{(t as any).language || 'اللغة'}</p></TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={handleBellClick} className="p-2 rounded-full hover:bg-white/10 transition-colors relative">
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent><p>{t.notifications}</p></TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={handleSignOut} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent><p>{t.logout}</p></TooltipContent>
+              </Tooltip>
             </TooltipProvider>
-            <button onClick={toggleLang} className="p-2 rounded-full hover:bg-white/10 transition-colors">
-              <Globe className="w-5 h-5" />
-            </button>
-            <button className="p-2 rounded-full hover:bg-white/10 transition-colors relative">
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </button>
-            <button onClick={handleSignOut} className="p-2 rounded-full hover:bg-white/10 transition-colors">
-              <LogOut className="w-5 h-5" />
-            </button>
           </div>
         </div>
         <SubBarShimmer roleLabel={getRoleLabel()} dir={dir} />

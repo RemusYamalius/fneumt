@@ -19,6 +19,7 @@ const translations: Record<Lang, Record<string, string>> = {
     footer: 'لتتبع المشاكل النقابية لمنخرطي الجامعة الوطنية للتعليم\nالمنضوية تحت لواء الاتحاد المغربي للشغل\nدائما: أقـــرب / أســـرع / أنجـــع',
     copyright: '© 2026 FNE-UMT. جميع الحقوق محفوظة.',
     langSwitch: 'FR',
+    language: 'اللغة',
     contact: 'تواصل معنا',
     phone: 'الهاتف',
     email: 'البريد الإلكتروني',

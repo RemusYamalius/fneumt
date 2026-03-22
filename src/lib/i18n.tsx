@@ -6,6 +6,8 @@ const translations: Record<Lang, Record<string, string>> = {
   ar: {
     platformName: 'منصة FNE-UMT',
     platformSubtitle: 'الجامعة الوطنية للتعليم - الاتحاد المغربي للشغل',
+    orgLine1: 'الجامعة الوطنية للتعليم',
+    orgLine2: 'الاتحاد المغربي للشغل',
     heroTitle: 'منصتك الرقمية لتتبع ملفاتك النقابية',
     heroDescription: 'نسهّل عليك تقديم طلباتك وتتبع ملفاتك بكل شفافية وسرعة',
     newRequest: 'طلب جديد',

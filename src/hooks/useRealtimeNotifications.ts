@@ -19,7 +19,7 @@ export const useRealtimeNotifications = (
   const fetchUnreadCount = useCallback(async () => {
     if (!userId) return;
 
-    const queries: Promise<{ count: number | null }>[] = [
+    const queries: any[] = [
       supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })

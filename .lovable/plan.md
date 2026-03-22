@@ -1,29 +1,17 @@
 
 
-# خطة: جعل الإشعارات قابلة للنقر
+# خطة: إظهار لوحة الإشعارات لجميع الأدوار
 
-## التحليل
-جدول `notifications` يحتوي على حقل `link` (نص اختياري). عند إنشاء إشعار، يُخزَّن رابط الوجهة في هذا الحقل (مثل `/track?q=REQ-123` أو `/communication-hub`).
+## المشكلة
+في `AuthenticatedLayout.tsx` (سطر 113-126)، أصحاب أدوار `INBOX_ROLES` (`deputy_local_primary`, `deputy_local_middle`, `deputy_local_high`) يحصلون على زر جرس يوجههم مباشرة لـ `/incoming-requests` بدون إظهار لوحة الإشعارات المنبثقة.
 
-## التعديل في `src/components/NotificationPanel.tsx`
+## الحل
+استبدال الشرط `isInboxRole` بحيث يظهر `NotificationPanel` لجميع المستخدمين بدون استثناء. يمكن إضافة رابط سريع داخل اللوحة المنبثقة لصفحة الطلبات الواردة لأصحاب أدوار Inbox.
 
-### 1. إضافة `useNavigate` من React Router
-- استيراد `useNavigate` + أيقونة `ChevronLeft` أو `ExternalLink` للإشارة البصرية
+### التعديل في `src/components/AuthenticatedLayout.tsx`
+- إزالة الفرع الشرطي `isInboxRole` (سطور 113-126)
+- عرض `NotificationPanel` لجميع المستخدمين المسجلين
 
-### 2. تعديل `onClick` لكل إشعار
-- عند النقر على أي إشعار:
-  1. تعليمه كمقروء (`handleMarkOne`)
-  2. إغلاق اللوحة المنبثقة (`setOpen(false)`)
-  3. إذا `n.link` موجود → `navigate(n.link)`
-  4. إذا لا رابط → فقط تعليمه كمقروء
-
-### 3. إضافة مؤشر بصري
-- إضافة أيقونة سهم صغيرة (`ChevronRight` / `ChevronLeft` حسب RTL) على الإشعارات التي تحتوي رابط
-- تأثير hover: انزلاق خفيف للسهم لإيحاء بالنقر
-
-### 4. تغيير cursor
-- `cursor-pointer` للإشعارات التي تحتوي رابط
-
-## الملفات المتأثرة
-- `src/components/NotificationPanel.tsx` فقط
+### الملفات المتأثرة
+- `src/components/AuthenticatedLayout.tsx` فقط
 

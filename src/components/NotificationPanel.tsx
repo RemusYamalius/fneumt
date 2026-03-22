@@ -204,7 +204,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
         </div>
 
         {/* List */}
-        <ScrollArea className="max-h-[400px]">
+        <div className="overflow-y-auto max-h-[400px]">
           {isLoading ? (
             <div className="p-6 flex justify-center">
               <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />

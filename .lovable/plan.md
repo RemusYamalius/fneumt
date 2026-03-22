@@ -1,33 +1,32 @@
 
 
-# تحليل: جرس الإشعارات لا يعرض إشعارات المنشورات
+# خطة: إصلاح لوحة الإشعارات
 
-## المشكلة
-الجرس يحسب فقط من جدول `notifications` (حيث `is_read = false`)، بينما إشعارات المنشورات (ركن التواصل) تُخزَّن في جدول مختلف تماماً: `post_recipients` (حيث `is_read = false`). لذلك الجرس لا يعكس المنشورات غير المقروءة.
+## المشكلتان
 
-بطاقة "ركن التواصل" في Dashboard تحسب `post_recipients` مباشرة، لهذا تظهر الرقم 1 على البطاقة لكن الجرس فارغ.
+### 1. اللبس في العدد على تبويب "غير مقروءة"
+`unreadCount` يجمع من 3 جداول (notifications + post_recipients + requests)، لكن قائمة الإشعارات تعرض فقط من جدول `notifications`. فيظهر رقم "1" على تبويب "غير مقروءة" بينما القائمة فارغة — لأن الـ "1" هو منشور وليس إشعاراً.
 
-## الحل المقترح
-دمج عدد `post_recipients` غير المقروءة مع عدد `notifications` غير المقروءة في حساب الجرس.
+**الحل**: فصل العدد — تبويب "غير مقروءة" يعرض فقط عدد إشعارات `notifications` غير المقروءة (يُحسب محلياً في NotificationPanel). أما عدد المنشورات فيظهر فقط على بانر المنشورات.
 
-### التعديل في `src/hooks/useRealtimeNotifications.ts`
-في دالة `fetchUnreadCount` (السطر 29-36):
-- إضافة استعلام ثانٍ لـ `post_recipients` حيث `is_read = false`
-- جمع العددين: `notifications count + post_recipients count`
+### 2. النقر على "لديك منشور غير مقروء" لا يفعل شيئاً
+المستخدم موجود أصلاً في `/communication-hub`، فـ `navigate('/communication-hub')` لا يفعل شيئاً.
 
-```text
-قبل:  unreadCount = notifications(is_read=false).count
-بعد:  unreadCount = notifications(is_read=false).count + post_recipients(is_read=false).count
-```
+**الحل**: عند النقر، بدل التنقل:
+- تعليم المنشورات كمقروءة مباشرة (`post_recipients.is_read = true`)
+- تحديث الكاش وإغلاق اللوحة
+- إذا لم يكن المستخدم في `/communication-hub`، يتم التوجيه إليها
 
-### التعديل في `src/components/NotificationPanel.tsx`
-- إضافة تبويب ثالث أو دمج المنشورات غير المقروءة في القائمة الحالية
-- الخيار الأبسط: إضافة صف ملخص في أعلى القائمة يشير لوجود منشورات غير مقروءة مع رابط `/communication-hub`
+## التعديلات في `src/components/NotificationPanel.tsx`
 
-### التعديل في `markAllRead`
-- إضافة تحديث `post_recipients` أيضاً عند النقر على "تحديد الكل كمقروء"
+1. إضافة استعلام منفصل لعدد إشعارات `notifications` غير المقروءة (`notificationsUnreadCount`)
+2. استخدام هذا العدد المحلي في badge تبويب "غير مقروءة" بدل `unreadCount`
+3. تعديل `handleGoToPosts`:
+   - تعليم كل `post_recipients` كمقروءة
+   - invalidate caches + onRefetch
+   - التوجيه فقط إذا لم نكن في `/communication-hub`
+4. إضافة عدد المنشورات غير المقروءة على بانر المنشورات نفسه
 
 ## الملفات المتأثرة
-- `src/hooks/useRealtimeNotifications.ts` — دمج عدد post_recipients في unreadCount + تحديث markAllRead
-- `src/components/NotificationPanel.tsx` — عرض المنشورات غير المقروءة في اللوحة
+- `src/components/NotificationPanel.tsx` فقط
 

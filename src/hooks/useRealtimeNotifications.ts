@@ -36,6 +36,16 @@ export const useRealtimeNotifications = (
     }
   }, [userId, isInboxRole]);
 
+  const markAllRead = useCallback(async () => {
+    if (!userId) return;
+    await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+    setUnreadCount(0);
+  }, [userId]);
+
   useEffect(() => {
     if (!userId) return;
     fetchUnreadCount();

@@ -901,6 +901,15 @@ const translations: Record<Lang, Record<string, string>> = {
     allOffices: 'Tous les bureaux',
     deputyLabel: 'Adjoint local',
     deputyProfileLabel: "Profil de l'adjoint",
+    switchLang: 'العربية',
+    allNotifications: 'Tout',
+    unreadOnly: 'Non lu',
+    markAllAsRead: 'Tout marquer comme lu',
+    noNotifications: 'Aucune notification',
+    justNow: "À l'instant",
+    minutesAgo: 'Il y a {n} min',
+    hoursAgo: 'Il y a {n}h',
+    daysAgo: 'Il y a {n}j',
   },
 };
 

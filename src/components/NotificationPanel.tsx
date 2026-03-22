@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Bell, CheckCheck, BellOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Bell, CheckCheck, BellOff, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
@@ -36,8 +37,10 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
 }) => {
   const { t, dir } = useI18n();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('all');
   const [open, setOpen] = useState(false);
+  const ArrowIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications-list', userId, tab],
@@ -62,10 +65,16 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     onRefetch();
   };
 
-  const handleMarkOne = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-    queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
-    onRefetch();
+  const handleClickNotification = async (n: any) => {
+    if (!n.is_read) {
+      await supabase.from('notifications').update({ is_read: true }).eq('id', n.id);
+      queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
+      onRefetch();
+    }
+    if (n.link) {
+      setOpen(false);
+      navigate(n.link);
+    }
   };
 
   const tabs: { key: Tab; label: string }[] = useMemo(
@@ -153,16 +162,16 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               {notifications.map((n, i) => (
                 <button
                   key={n.id}
-                  onClick={() => !n.is_read && handleMarkOne(n.id)}
+                  onClick={() => handleClickNotification(n)}
                   className={cn(
-                    'w-full text-start px-4 py-3 hover:bg-accent/50 transition-all',
+                    'w-full text-start px-4 py-3 transition-all group',
                     !n.is_read && 'bg-primary/5',
+                    n.link ? 'cursor-pointer hover:bg-accent/50' : 'hover:bg-accent/30',
                     'animate-in fade-in slide-in-from-top-2',
                   )}
                   style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}
                 >
                   <div className="flex items-start gap-2.5">
-                    {/* Unread dot */}
                     <div className="mt-1.5 shrink-0">
                       {!n.is_read ? (
                         <span className="block w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -188,6 +197,11 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                         {relativeTime(n.created_at, t)}
                       </p>
                     </div>
+                    {n.link && (
+                      <div className="mt-2 shrink-0 text-muted-foreground/40 group-hover:text-primary transition-all group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5">
+                        <ArrowIcon className="w-4 h-4" />
+                      </div>
+                    )}
                   </div>
                 </button>
               ))}

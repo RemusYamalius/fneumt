@@ -185,7 +185,7 @@ const IncomingRequests = () => {
       };
       const label = statusLabels[newStatus];
       if (label) {
-        await supabase.from('notifications').insert({ user_id: request.user_id, title: lang === 'ar' ? 'تحديث حالة ملفك' : 'Mise à jour de votre dossier', message: lang === 'ar' ? `تم تغيير حالة ملفك رقم ${request.tracking_number} إلى: ${label.ar}` : `Le statut de votre dossier n° ${request.tracking_number} a été changé à : ${label.fr}`, link: '/track' });
+        await supabase.from('notifications').insert({ user_id: request.user_id, title: lang === 'ar' ? 'تحديث حالة ملفك' : 'Mise à jour de votre dossier', message: lang === 'ar' ? `تم تغيير حالة ملفك رقم ${request.tracking_number} إلى: ${label.ar}` : `Le statut de votre dossier n° ${request.tracking_number} a été changé à : ${label.fr}`, link: `/track?q=${request.tracking_number}` });
       }
       setRequests(prev => prev.map(r => r.id === request.id ? { ...r, status: newStatus } : r));
       setSelectedRequest(prev => prev ? { ...prev, status: newStatus } : null);

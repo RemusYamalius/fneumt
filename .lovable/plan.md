@@ -1,83 +1,29 @@
 
 
-# خطة: تحسين Tooltip اللغة + لوحة إشعارات منبثقة احترافية
+# خطة: جعل الإشعارات قابلة للنقر
 
-## 1. Tooltip اللغة الديناميكي
+## التحليل
+جدول `notifications` يحتوي على حقل `link` (نص اختياري). عند إنشاء إشعار، يُخزَّن رابط الوجهة في هذا الحقل (مثل `/track?q=REQ-123` أو `/communication-hub`).
 
-**الملف**: `src/components/AuthenticatedLayout.tsx` (سطر 115)
+## التعديل في `src/components/NotificationPanel.tsx`
 
-**الوضع الحالي**: يعرض `(t as any).language` — أي "اللغة" بالعربية أو "Langue" بالفرنسية.
+### 1. إضافة `useNavigate` من React Router
+- استيراد `useNavigate` + أيقونة `ChevronLeft` أو `ExternalLink` للإشارة البصرية
 
-**التعديل**: عرض اسم اللغة **البديلة** المتاحة:
-- إذا الصفحة بالعربية → `"Français"`
-- إذا الصفحة بالفرنسية → `"العربية"`
+### 2. تعديل `onClick` لكل إشعار
+- عند النقر على أي إشعار:
+  1. تعليمه كمقروء (`handleMarkOne`)
+  2. إغلاق اللوحة المنبثقة (`setOpen(false)`)
+  3. إذا `n.link` موجود → `navigate(n.link)`
+  4. إذا لا رابط → فقط تعليمه كمقروء
 
-إضافة مفتاحين جديدين في `src/lib/i18n.tsx`:
-- `ar.switchLang = 'Français'`
-- `fr.switchLang = 'العربية'`
+### 3. إضافة مؤشر بصري
+- إضافة أيقونة سهم صغيرة (`ChevronRight` / `ChevronLeft` حسب RTL) على الإشعارات التي تحتوي رابط
+- تأثير hover: انزلاق خفيف للسهم لإيحاء بالنقر
 
----
-
-## 2. لوحة إشعارات منبثقة (Notification Panel)
-
-### الفكرة العامة
-عند النقر على الجرس، تنبثق لوحة أنيقة (Popover) تحت الجرس مباشرة، بتصميم عصري:
-
-```text
-┌──────────────────────────────────┐
-│  🔔  الإشعارات            ✓ الكل │  ← عنوان + زر "تحديد الكل كمقروء"
-├──────────────────────────────────┤
-│  [الكل]  [غير مقروءة]           │  ← تبويبان مع أنيميشن انزلاق
-├──────────────────────────────────┤
-│  ● طلبك #123 تمت الموافقة عليه  │  ← إشعار غير مقروء (خلفية زرقاء خفيفة)
-│    منذ 5 دقائق                  │     + نقطة زرقاء + تأثير دخول
-├──────────────────────────────────┤
-│  ○ مرحباً بك في المنصة          │  ← إشعار مقروء (خلفية عادية)
-│    منذ ساعتين                   │
-├──────────────────────────────────┤
-│       لا توجد إشعارات جديدة     │  ← حالة فارغة مع أيقونة
-└──────────────────────────────────┘
-```
-
-### التفاصيل التقنية
-
-**مكون جديد**: `src/components/NotificationPanel.tsx`
-
-- **Popover** من shadcn/ui (موجود في المشروع) يفتح تحت الجرس
-- **تبويبان**: "الكل" و "غير مقروءة" — مع شريط سفلي متحرك (animated underline)
-- **جلب الإشعارات**: `useQuery` مع `queryKey: ['notifications', userId, tab]` و `staleTime: 10_000`
-  - تبويب "الكل": آخر 20 إشعار مرتبة بالأحدث
-  - تبويب "غير مقروءة": فقط `is_read = false`
-- **زر "تحديد الكل كمقروء"**: يستدعي `markAllRead()` الموجودة + invalidate cache
-- **التوقيت النسبي**: "منذ دقيقة"، "منذ ساعة"... (بدون مكتبة خارجية)
-- **أنيميشن دخول**: كل إشعار يدخل بـ `animate-in slide-in-from-top-2 fade-in` مع تأخير تصاعدي
-- **نقطة زرقاء**: للإشعارات غير المقروءة (دائرة صغيرة نابضة)
-- **حالة فارغة**: أيقونة جرس شفافة + نص "لا توجد إشعارات"
-- **أقصى ارتفاع**: `max-h-[400px]` مع scroll مخفي أنيق
-- **ألوان**: تدرج أزرق ملكي للعنوان، خلفية `primary/5` للغير مقروءة
-
-**تعديل `AuthenticatedLayout.tsx`**:
-- استبدال `<button onClick={handleBellClick}>` بـ `<Popover>` يحتوي `NotificationPanel`
-- لأصحاب أدوار Inbox: يبقى السلوك الحالي (توجيه مباشر)
-
-**تعديل `useRealtimeNotifications.ts`**:
-- إضافة `fetchNotifications(filter)` تعيد قائمة الإشعارات (ليس فقط العدد)
-
-**تعديل `src/lib/i18n.tsx`**:
-- `switchLang`: 'Français' / 'العربية'
-- `allNotifications`: 'الكل' / 'Tout'
-- `unreadOnly`: 'غير مقروءة' / 'Non lu'
-- `markAllAsRead`: 'تحديد الكل كمقروء' / 'Tout marquer comme lu'
-- `noNotifications`: 'لا توجد إشعارات' / 'Aucune notification'
-- `minutesAgo`: 'منذ {n} دقيقة' / 'Il y a {n} min'
-- `hoursAgo`: 'منذ {n} ساعة' / 'Il y a {n}h'
-- `daysAgo`: 'منذ {n} يوم' / 'Il y a {n}j'
-
----
+### 4. تغيير cursor
+- `cursor-pointer` للإشعارات التي تحتوي رابط
 
 ## الملفات المتأثرة
-- `src/lib/i18n.tsx` — مفاتيح ترجمة جديدة
-- `src/components/NotificationPanel.tsx` — مكون جديد
-- `src/components/AuthenticatedLayout.tsx` — Popover بدل button + tooltip ديناميكي
-- `src/hooks/useRealtimeNotifications.ts` — إضافة جلب قائمة الإشعارات
+- `src/components/NotificationPanel.tsx` فقط
 

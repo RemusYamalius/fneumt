@@ -1,31 +1,33 @@
 
 
-# خطة: إصلاح لوحة الإشعارات
+# خطة: إصلاح جرس الإشعارات + التمرير + خطأ 404
 
-## المشكلتان
+## تحليل المشاكل
 
-### 1. اللبس في العدد على تبويب "غير مقروءة"
-`unreadCount` يجمع من 3 جداول (notifications + post_recipients + requests)، لكن قائمة الإشعارات تعرض فقط من جدول `notifications`. فيظهر رقم "1" على تبويب "غير مقروءة" بينما القائمة فارغة — لأن الـ "1" هو منشور وليس إشعاراً.
+### 1. خطأ 404 عند النقر على "لديك منشور غير مقروء"
+**السبب**: البانر يوجه إلى `/communication-hub` لكن المسار الفعلي في `App.tsx` هو `/communication` (سطر 56).
+**الحل**: تصحيح المسار في `NotificationPanel.tsx` من `/communication-hub` إلى `/communication`.
 
-**الحل**: فصل العدد — تبويب "غير مقروءة" يعرض فقط عدد إشعارات `notifications` غير المقروءة (يُحسب محلياً في NotificationPanel). أما عدد المنشورات فيظهر فقط على بانر المنشورات.
+### 2. عدم إمكانية التمرير (Scrolling)
+**السبب**: `ScrollArea` مع `max-h-[400px]` لا يعمل بشكل صحيح مع Radix ScrollArea. يحتاج لارتفاع ثابت أو تقنية CSS مختلفة.
+**الحل**: تغيير `ScrollArea` إلى `div` عادي مع `overflow-y-auto max-h-[400px]` لضمان التمرير.
 
-### 2. النقر على "لديك منشور غير مقروء" لا يفعل شيئاً
-المستخدم موجود أصلاً في `/communication-hub`، فـ `navigate('/communication-hub')` لا يفعل شيئاً.
+### 3. "غير مقروءة" (18) أكبر من "الكل" (17)
+**السبب**: الحد الأقصى للاستعلام هو `limit(20)` في تبويب "الكل"، لكن `notificationsUnreadCount` يُحسب من القائمة المعروضة فقط (أقصى 20). العدد على الجرس (18) يشمل `post_recipients` + `requests` + `notifications`. لكن المشكل هو أن العدد المحلي `notificationsUnreadCount` يعرض عدد الإشعارات غير المقروءة في القائمة المعروضة فحسب — وليس العدد الحقيقي.
+**الحل**: 
+- في تبويب "غير مقروءة"، العدد = `notifications.length` (صحيح لأنه يجلب فقط غير المقروءة)
+- في تبويب "الكل"، العدد = عدد الإشعارات التي `is_read = false` في القائمة المحملة
+- رفع `limit` إلى 50 لتغطية أكبر
 
-**الحل**: عند النقر، بدل التنقل:
-- تعليم المنشورات كمقروءة مباشرة (`post_recipients.is_read = true`)
-- تحديث الكاش وإغلاق اللوحة
-- إذا لم يكن المستخدم في `/communication-hub`، يتم التوجيه إليها
+### 4. صورة البروفايل
+المستخدم اختار الحفاظ على الحرف الأول مؤقتاً — لا تعديل مطلوب.
 
-## التعديلات في `src/components/NotificationPanel.tsx`
+## التعديلات
 
-1. إضافة استعلام منفصل لعدد إشعارات `notifications` غير المقروءة (`notificationsUnreadCount`)
-2. استخدام هذا العدد المحلي في badge تبويب "غير مقروءة" بدل `unreadCount`
-3. تعديل `handleGoToPosts`:
-   - تعليم كل `post_recipients` كمقروءة
-   - invalidate caches + onRefetch
-   - التوجيه فقط إذا لم نكن في `/communication-hub`
-4. إضافة عدد المنشورات غير المقروءة على بانر المنشورات نفسه
+### `src/components/NotificationPanel.tsx`
+1. تصحيح `/communication-hub` → `/communication` (سطران: 108-109)
+2. استبدال `<ScrollArea className="max-h-[400px]">` بـ `<div className="overflow-y-auto max-h-[400px]">`
+3. رفع `limit(20)` إلى `limit(50)`
 
 ## الملفات المتأثرة
 - `src/components/NotificationPanel.tsx` فقط

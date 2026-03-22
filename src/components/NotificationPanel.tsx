@@ -162,16 +162,16 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               {notifications.map((n, i) => (
                 <button
                   key={n.id}
-                  onClick={() => !n.is_read && handleMarkOne(n.id)}
+                  onClick={() => handleClickNotification(n)}
                   className={cn(
-                    'w-full text-start px-4 py-3 hover:bg-accent/50 transition-all',
+                    'w-full text-start px-4 py-3 transition-all group',
                     !n.is_read && 'bg-primary/5',
+                    n.link ? 'cursor-pointer hover:bg-accent/50' : 'hover:bg-accent/30',
                     'animate-in fade-in slide-in-from-top-2',
                   )}
                   style={{ animationDelay: `${i * 40}ms`, animationFillMode: 'both' }}
                 >
                   <div className="flex items-start gap-2.5">
-                    {/* Unread dot */}
                     <div className="mt-1.5 shrink-0">
                       {!n.is_read ? (
                         <span className="block w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -197,6 +197,11 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                         {relativeTime(n.created_at, t)}
                       </p>
                     </div>
+                    {n.link && (
+                      <div className="mt-2 shrink-0 text-muted-foreground/40 group-hover:text-primary transition-all group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5">
+                        <ArrowIcon className="w-4 h-4" />
+                      </div>
+                    )}
                   </div>
                 </button>
               ))}

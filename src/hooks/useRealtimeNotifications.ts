@@ -19,30 +19,44 @@ export const useRealtimeNotifications = (
   const fetchUnreadCount = useCallback(async () => {
     if (!userId) return;
 
-    if (isInboxRole) {
-      const { count } = await supabase
-        .from('requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('assigned_to', userId)
-        .eq('status', 'submitted');
-      setUnreadCount(count || 0);
-    } else {
-      const { count } = await supabase
+    const [notifRes, postRes, ...(isInboxRole ? [reqRes] : [])] = await Promise.all([
+      supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .eq('is_read', false);
-      setUnreadCount(count || 0);
-    }
+        .eq('is_read', false),
+      supabase
+        .from('post_recipients')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_read', false),
+      ...(isInboxRole
+        ? [supabase
+            .from('requests')
+            .select('*', { count: 'exact', head: true })
+            .eq('assigned_to', userId)
+            .eq('status', 'submitted')]
+        : []),
+    ]);
+
+    const total = (notifRes.count || 0) + (postRes.count || 0) + (reqRes?.count || 0);
+    setUnreadCount(total);
   }, [userId, isInboxRole]);
 
   const markAllRead = useCallback(async () => {
     if (!userId) return;
-    await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('user_id', userId)
-      .eq('is_read', false);
+    await Promise.all([
+      supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false),
+      supabase
+        .from('post_recipients')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .eq('is_read', false),
+    ]);
     setUnreadCount(0);
   }, [userId]);
 

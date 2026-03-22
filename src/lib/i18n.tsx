@@ -908,6 +908,8 @@ const translations: Record<Lang, Record<string, string>> = {
     unreadOnly: 'Non lu',
     markAllAsRead: 'Tout marquer comme lu',
     noNotifications: 'Aucune notification',
+    unreadPosts: 'Vous avez {n} publications non lues',
+    unreadPostsSingle: 'Vous avez une publication non lue',
     justNow: "À l'instant",
     minutesAgo: 'Il y a {n} min',
     hoursAgo: 'Il y a {n}h',

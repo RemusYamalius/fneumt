@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, CheckCheck, BellOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Bell, CheckCheck, BellOff, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
@@ -59,9 +59,25 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
     enabled: open,
   });
 
+  // Fetch unread posts count for the banner
+  const { data: unreadPostsCount = 0 } = useQuery({
+    queryKey: ['unread-posts-count', userId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('post_recipients')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+      return count || 0;
+    },
+    staleTime: 10_000,
+    enabled: open,
+  });
+
   const handleMarkAll = async () => {
     await markAllRead();
     queryClient.invalidateQueries({ queryKey: ['notifications-list', userId] });
+    queryClient.invalidateQueries({ queryKey: ['unread-posts-count', userId] });
     onRefetch();
   };
 
@@ -75,6 +91,11 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
       setOpen(false);
       navigate(n.link);
     }
+  };
+
+  const handleGoToPosts = () => {
+    setOpen(false);
+    navigate('/communication-hub');
   };
 
   const tabs: { key: Tab; label: string }[] = useMemo(
@@ -119,6 +140,24 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
             </button>
           )}
         </div>
+
+        {/* Unread Posts Banner */}
+        {unreadPostsCount > 0 && (
+          <button
+            onClick={handleGoToPosts}
+            className="w-full flex items-center gap-3 px-4 py-2.5 bg-accent/50 hover:bg-accent transition-colors border-b border-border/50 animate-in fade-in slide-in-from-top-1"
+          >
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <MessageSquare className="w-4 h-4 text-primary" />
+            </div>
+            <span className="text-xs font-medium text-foreground">
+              {unreadPostsCount === 1
+                ? t.unreadPostsSingle
+                : (t.unreadPosts || '').replace('{n}', String(unreadPostsCount))}
+            </span>
+            <ArrowIcon className="w-4 h-4 text-muted-foreground ms-auto" />
+          </button>
+        )}
 
         {/* Tabs */}
         <div className="flex border-b border-border relative bg-muted/30">

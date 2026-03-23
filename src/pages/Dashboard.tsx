@@ -151,6 +151,10 @@ const Dashboard = () => {
         ]
       : [{ icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'المنشورات الداخلية' : 'Bulletin interne', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]', badge: unreadPostCount }]
     ),
+    ...(role === 'admin'
+      ? [{ icon: Megaphone, title: lang === 'ar' ? 'ركن المعلنين' : 'Espace Annonceurs', desc: lang === 'ar' ? 'إدارة الإعلانات الممولة' : 'Gestion des annonces sponsorisées', to: '/sponsored', color: 'from-[hsl(42,80%,50%)] to-[hsl(42,70%,38%)]' }]
+      : []
+    ),
   ];
 
   // Simple layout for regular users (teacher/union_officer)

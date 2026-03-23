@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, Send, BarChart3, Newspaper, ArrowRight, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Send, BarChart3, ArrowRight, ArrowLeft, Settings } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import PostComposer from '@/components/PostComposer';
 import PostFeed from '@/components/PostFeed';
 import PostStats from '@/components/PostStats';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import PublisherSettings from '@/components/PublisherSettings';
 
 const CommunicationHub = () => {
   const { t, lang, dir } = useI18n();
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'compose' | 'stats' | 'feed'>('feed');
+  const [activeTab, setActiveTab] = useState<'compose' | 'stats' | 'feed' | 'settings'>('feed');
 
   const isSupreme = role && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(role);
 
@@ -69,11 +69,12 @@ const CommunicationHub = () => {
 
         {/* Tabs for supreme accounts */}
         {isSupreme && (
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-6 flex-wrap">
             {[
               { key: 'compose' as const, label: lang === 'ar' ? 'إنشاء منشور' : 'Créer', icon: Send },
               { key: 'stats' as const, label: lang === 'ar' ? 'إحصائيات' : 'Statistiques', icon: BarChart3 },
               { key: 'feed' as const, label: lang === 'ar' ? 'المنشورات' : 'Publications', icon: MessageSquare },
+              { key: 'settings' as const, label: lang === 'ar' ? 'إعدادات' : 'Paramètres', icon: Settings },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -104,6 +105,9 @@ const CommunicationHub = () => {
           )}
           {isSupreme && activeTab === 'stats' && (
             <PostStats />
+          )}
+          {isSupreme && activeTab === 'settings' && (
+            <PublisherSettings />
           )}
           {(activeTab === 'feed' || !isSupreme) && (
             <PostFeed isAuthor={isSupreme || false} />

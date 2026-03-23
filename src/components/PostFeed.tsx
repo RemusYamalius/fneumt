@@ -86,20 +86,35 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
     const profileMap = new Map<string, string>();
     (profilesRes.data || []).forEach(p => profileMap.set(p.user_id, p.full_name || ''));
 
+    const pubSettingsMap = new Map<string, { name: string; avatar: string | null }>();
+    ((pubSettingsRes as any).data || []).forEach((ps: any) => {
+      const avatarUrl = ps.avatar_path
+        ? supabase.storage.from('publisher-avatars').getPublicUrl(ps.avatar_path).data.publicUrl
+        : null;
+      pubSettingsMap.set(ps.user_id, {
+        name: ps.display_name || ps.display_title || '',
+        avatar: avatarUrl,
+      });
+    });
+
     const readMap = new Map<string, boolean>();
     ((recipientRes as any).data || []).forEach((r: any) => readMap.set(r.post_id, r.is_read));
 
-    const enriched: Post[] = filteredPosts.map(p => ({
-      id: p.id,
-      author_id: p.author_id,
-      content: p.content || '',
-      created_at: p.created_at,
-      attachments: attachMap.get(p.id) || [],
-      author_name: profileMap.get(p.author_id) || 'FNE-UMT',
-      like_count: likeCountMap.get(p.id) || 0,
-      user_liked: userLikeMap.get(p.id) || false,
-      is_read: readMap.get(p.id) ?? true,
-    }));
+    const enriched: Post[] = filteredPosts.map(p => {
+      const pubSettings = pubSettingsMap.get(p.author_id);
+      return {
+        id: p.id,
+        author_id: p.author_id,
+        content: p.content || '',
+        created_at: p.created_at,
+        attachments: attachMap.get(p.id) || [],
+        author_name: pubSettings?.name || profileMap.get(p.author_id) || 'FNE-UMT',
+        author_avatar_url: pubSettings?.avatar || null,
+        like_count: likeCountMap.get(p.id) || 0,
+        user_liked: userLikeMap.get(p.id) || false,
+        is_read: readMap.get(p.id) ?? true,
+      };
+    });
 
     // Mark unread as read
     if (!isAuthor) {

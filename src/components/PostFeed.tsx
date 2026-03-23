@@ -250,9 +250,13 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
         >
           {/* Post header */}
           <div className="px-5 pt-5 pb-3 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md"
-              style={{ background: 'linear-gradient(135deg, hsl(225,70%,45%), hsl(225,80%,35%))' }}>
-              {post.author_name.charAt(0) || 'F'}
+            <div className="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0"
+              style={{ background: post.author_avatar_url ? undefined : 'linear-gradient(135deg, hsl(225,70%,45%), hsl(225,80%,35%))' }}>
+              {post.author_avatar_url ? (
+                <img src={post.author_avatar_url} alt={post.author_name} className="w-full h-full object-cover" />
+              ) : (
+                post.author_name.charAt(0) || 'F'
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-foreground text-sm">{post.author_name}</p>

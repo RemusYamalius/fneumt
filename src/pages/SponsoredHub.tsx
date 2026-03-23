@@ -92,11 +92,11 @@ const SponsoredHub = () => {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6">
           {[
             { key: 'compose' as const, label: lang === 'ar' ? 'إعلان جديد' : 'Nouvelle annonce', icon: Send },
             { key: 'manage' as const, label: lang === 'ar' ? 'إدارة الإعلانات' : 'Gérer les annonces', icon: BarChart3 },
+            { key: 'stats' as const, label: lang === 'ar' ? 'إحصائيات' : 'Statistiques', icon: PieChart },
           ].map(tab => (
             <button
               key={tab.key}

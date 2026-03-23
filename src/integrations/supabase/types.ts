@@ -727,6 +727,38 @@ export type Database = {
           },
         ]
       }
+      sponsored_post_recipients: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsored_post_recipients_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "sponsored_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sponsored_posts: {
         Row: {
           advertiser_avatar_path: string | null
@@ -735,8 +767,11 @@ export type Database = {
           created_at: string | null
           created_by: string
           display_style: string
+          filters: Json | null
           id: string
           is_active: boolean | null
+          link_preview: Json | null
+          link_url: string | null
           updated_at: string | null
         }
         Insert: {
@@ -746,8 +781,11 @@ export type Database = {
           created_at?: string | null
           created_by: string
           display_style?: string
+          filters?: Json | null
           id?: string
           is_active?: boolean | null
+          link_preview?: Json | null
+          link_url?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -757,8 +795,11 @@ export type Database = {
           created_at?: string | null
           created_by?: string
           display_style?: string
+          filters?: Json | null
           id?: string
           is_active?: boolean | null
+          link_preview?: Json | null
+          link_url?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Heart, Download, FileText, Video, Image, Clock, Sparkles } from 'lucide-react';
+import { Download, FileText, Video, Image, Clock, Sparkles, ExternalLink } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -12,6 +12,7 @@ interface SponsoredPost {
   content: string | null;
   display_style: string;
   created_at: string;
+  link_url?: string | null;
   attachments: { id: string; file_path: string; file_name: string; mime_type: string | null }[];
 }
 
@@ -60,6 +61,11 @@ const SponsoredPostCard = ({ post }: { post: SponsoredPost }) => {
 
   const style = styleConfig[post.display_style] || styleConfig.elegant;
 
+  // Separate media attachments
+  const images = post.attachments.filter(a => a.mime_type?.startsWith('image/'));
+  const videos = post.attachments.filter(a => a.mime_type?.startsWith('video/'));
+  const others = post.attachments.filter(a => !a.mime_type?.startsWith('image/') && !a.mime_type?.startsWith('video/'));
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -67,7 +73,6 @@ const SponsoredPostCard = ({ post }: { post: SponsoredPost }) => {
       transition={{ duration: 0.5 }}
       className={`rounded-2xl overflow-hidden shadow-lg transition-all hover:shadow-xl relative ${style.wrapper}`}
     >
-      {/* Shimmer effect for spotlight */}
       {style.shimmer && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[hsl(260,60%,55%)]/5 to-transparent animate-[shimmer_3s_infinite]"
@@ -114,38 +119,76 @@ const SponsoredPostCard = ({ post }: { post: SponsoredPost }) => {
         </div>
       )}
 
-      {/* Attachments */}
-      {post.attachments.length > 0 && (
-        <div className="px-5 pb-4">
+      {/* Inline Images - Facebook style */}
+      {images.length > 0 && (
+        <div className={`${images.length === 1 ? '' : 'grid gap-0.5'} ${images.length === 2 ? 'grid-cols-2' : images.length >= 3 ? 'grid-cols-2' : ''}`}>
+          {images.slice(0, 4).map((att, idx) => (
+            <div
+              key={att.id}
+              className={`relative group cursor-pointer overflow-hidden ${
+                images.length === 1 ? 'w-full max-h-[400px]' :
+                images.length === 3 && idx === 0 ? 'row-span-2 h-full' :
+                'h-48'
+              }`}
+              onClick={() => downloadAttachment(att.file_path, att.file_name)}
+            >
+              <img src={getAttachmentUrl(att.file_path)} alt={att.file_name} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <Download className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+              </div>
+              {idx === 3 && images.length > 4 && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <span className="text-white text-2xl font-bold">+{images.length - 4}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Inline Videos */}
+      {videos.map(att => (
+        <div key={att.id} className="px-0">
+          <video src={getAttachmentUrl(att.file_path)} controls className="w-full max-h-[400px] bg-black" />
+        </div>
+      ))}
+
+      {/* Other files */}
+      {others.length > 0 && (
+        <div className="px-5 pb-3 pt-2">
           <div className="flex flex-wrap gap-2">
-            {post.attachments.map(att => {
-              const isImage = att.mime_type?.startsWith('image/');
-              return (
-                <button
-                  key={att.id}
-                  onClick={() => downloadAttachment(att.file_path, att.file_name)}
-                  className="group relative rounded-xl overflow-hidden border border-border/30 hover:border-primary/30 transition-all"
-                >
-                  {isImage ? (
-                    <div className="w-full max-w-sm h-48 relative">
-                      <img src={getAttachmentUrl(att.file_path)} alt={att.file_name} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                        <Download className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-24 h-24 flex flex-col items-center justify-center gap-1 bg-muted/50">
-                      {att.mime_type === 'application/pdf' ? <FileText className="w-6 h-6 text-red-500" /> :
-                       att.mime_type?.startsWith('video/') ? <Video className="w-6 h-6 text-primary" /> :
-                       <Image className="w-6 h-6 text-muted-foreground" />}
-                      <span className="text-[9px] text-muted-foreground truncate max-w-[80px] px-1">{att.file_name}</span>
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+            {others.map(att => (
+              <button
+                key={att.id}
+                onClick={() => downloadAttachment(att.file_path, att.file_name)}
+                className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 hover:border-primary/30 transition-all bg-muted/30"
+              >
+                {att.mime_type === 'application/pdf' ? <FileText className="w-5 h-5 text-red-500" /> : <Image className="w-5 h-5 text-muted-foreground" />}
+                <span className="text-xs text-muted-foreground max-w-[120px] truncate">{att.file_name}</span>
+                <Download className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            ))}
           </div>
         </div>
+      )}
+
+      {/* Link preview */}
+      {post.link_url && (
+        <a
+          href={post.link_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`mx-5 mb-4 flex items-center gap-3 px-4 py-3 rounded-xl border transition-all hover:shadow-md ${
+            post.display_style === 'immersive'
+              ? 'border-white/20 bg-white/10 hover:bg-white/15'
+              : 'border-border bg-muted/30 hover:bg-muted/50'
+          }`}
+        >
+          <ExternalLink className={`w-5 h-5 shrink-0 ${post.display_style === 'immersive' ? 'text-[hsl(42,80%,60%)]' : 'text-[hsl(42,80%,50%)]'}`} />
+          <span className={`text-sm truncate ${post.display_style === 'immersive' ? 'text-white/80' : 'text-primary'}`}>
+            {post.link_url}
+          </span>
+        </a>
       )}
     </motion.div>
   );

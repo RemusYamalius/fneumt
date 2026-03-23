@@ -33,35 +33,21 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
 
   const fetchPosts = useCallback(async (): Promise<{ posts: Post[]; totalCount: number }> => {
     if (!user) return { posts: [], totalCount: 0 };
-
     const from = 0;
     const to = page * PAGE_SIZE - 1;
-
     let query = supabase.from('posts').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
-
-    if (mode === 'supreme') {
-      query = query.neq('author_id', user.id);
-    }
-
+    if (mode === 'supreme') query = query.neq('author_id', user.id);
     const { data: postsData, count: totalCount } = await query;
     if (!postsData) return { posts: [], totalCount: 0 };
-
     let filteredPosts = postsData;
     if (mode === 'supreme') {
-      const { data: supremeRoles } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .in('role', ['admin', 'national_secretary', 'deputy_national_secretary']);
+      const { data: supremeRoles } = await supabase.from('user_roles').select('user_id').in('role', ['admin', 'national_secretary', 'deputy_national_secretary']);
       const supremeIds = new Set((supremeRoles || []).map(r => r.user_id));
       filteredPosts = postsData.filter(p => supremeIds.has(p.author_id));
     }
-
     if (filteredPosts.length === 0) return { posts: [], totalCount: 0 };
-
     const postIds = filteredPosts.map(p => p.id);
     const authorIds = [...new Set(filteredPosts.map(p => p.author_id))];
-
-    // Parallel fetch: attachments, likes, profiles, recipients, publisher_settings
     const [attachRes, likesRes, profilesRes, recipientRes, pubSettingsRes] = await Promise.all([
       supabase.from('post_attachments').select('*').in('post_id', postIds),
       supabase.from('post_likes').select('*').in('post_id', postIds),
@@ -69,65 +55,36 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
       isAuthor ? Promise.resolve({ data: [] }) : supabase.from('post_recipients').select('post_id, is_read').eq('user_id', user.id).in('post_id', postIds),
       supabase.from('publisher_settings').select('user_id, display_name, display_title, avatar_path').in('user_id', authorIds),
     ]);
-
     const attachMap = new Map<string, any[]>();
-    (attachRes.data || []).forEach(a => {
-      if (!attachMap.has(a.post_id)) attachMap.set(a.post_id, []);
-      attachMap.get(a.post_id)!.push(a);
-    });
-
+    (attachRes.data || []).forEach(a => { if (!attachMap.has(a.post_id)) attachMap.set(a.post_id, []); attachMap.get(a.post_id)!.push(a); });
     const likeCountMap = new Map<string, number>();
     const userLikeMap = new Map<string, boolean>();
-    (likesRes.data || []).forEach(l => {
-      likeCountMap.set(l.post_id, (likeCountMap.get(l.post_id) || 0) + 1);
-      if (l.user_id === user.id) userLikeMap.set(l.post_id, true);
-    });
-
+    (likesRes.data || []).forEach(l => { likeCountMap.set(l.post_id, (likeCountMap.get(l.post_id) || 0) + 1); if (l.user_id === user.id) userLikeMap.set(l.post_id, true); });
     const profileMap = new Map<string, string>();
     (profilesRes.data || []).forEach(p => profileMap.set(p.user_id, p.full_name || ''));
-
     const pubSettingsMap = new Map<string, { name: string; avatar: string | null }>();
     ((pubSettingsRes as any).data || []).forEach((ps: any) => {
-      const avatarUrl = ps.avatar_path
-        ? supabase.storage.from('publisher-avatars').getPublicUrl(ps.avatar_path).data.publicUrl
-        : null;
-      pubSettingsMap.set(ps.user_id, {
-        name: ps.display_name || ps.display_title || '',
-        avatar: avatarUrl,
-      });
+      const avatarUrl = ps.avatar_path ? supabase.storage.from('publisher-avatars').getPublicUrl(ps.avatar_path).data.publicUrl : null;
+      pubSettingsMap.set(ps.user_id, { name: ps.display_name || ps.display_title || '', avatar: avatarUrl });
     });
-
     const readMap = new Map<string, boolean>();
     ((recipientRes as any).data || []).forEach((r: any) => readMap.set(r.post_id, r.is_read));
-
     const enriched: Post[] = filteredPosts.map(p => {
       const pubSettings = pubSettingsMap.get(p.author_id);
       return {
-        id: p.id,
-        author_id: p.author_id,
-        content: p.content || '',
-        created_at: p.created_at,
+        id: p.id, author_id: p.author_id, content: p.content || '', created_at: p.created_at,
         attachments: attachMap.get(p.id) || [],
         author_name: pubSettings?.name || profileMap.get(p.author_id) || 'FNE-UMT',
         author_avatar_url: pubSettings?.avatar || null,
-        like_count: likeCountMap.get(p.id) || 0,
-        user_liked: userLikeMap.get(p.id) || false,
-        is_read: readMap.get(p.id) ?? true,
+        like_count: likeCountMap.get(p.id) || 0, user_liked: userLikeMap.get(p.id) || false, is_read: readMap.get(p.id) ?? true,
       };
     });
-
-    // Mark unread as read
     if (!isAuthor) {
       const unreadIds = enriched.filter(p => !p.is_read).map(p => p.id);
       if (unreadIds.length > 0) {
-        await supabase
-          .from('post_recipients')
-          .update({ is_read: true, read_at: new Date().toISOString() } as any)
-          .eq('user_id', user.id)
-          .in('post_id', unreadIds);
+        await supabase.from('post_recipients').update({ is_read: true, read_at: new Date().toISOString() } as any).eq('user_id', user.id).in('post_id', unreadIds);
       }
     }
-
     return { posts: enriched, totalCount: totalCount || filteredPosts.length };
   }, [user, isAuthor, mode, page]);
 
@@ -142,68 +99,40 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
   const totalCount = data?.totalCount || 0;
   const hasMore = posts.length < totalCount;
 
-  // Fetch active sponsored posts
   const { data: sponsoredPosts = [] } = useQuery({
     queryKey: ['sponsored-posts-feed'],
     queryFn: async () => {
-      const { data: postsData } = await supabase
-        .from('sponsored_posts')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+      const { data: postsData } = await supabase.from('sponsored_posts').select('*').eq('is_active', true).order('created_at', { ascending: false });
       if (!postsData || postsData.length === 0) return [];
       const postIds = postsData.map((p: any) => p.id);
-      const { data: attachments } = await supabase
-        .from('sponsored_post_attachments')
-        .select('*')
-        .in('post_id', postIds);
+      const { data: attachments } = await supabase.from('sponsored_post_attachments').select('*').in('post_id', postIds);
       const attachMap = new Map<string, any[]>();
-      (attachments || []).forEach((a: any) => {
-        if (!attachMap.has(a.post_id)) attachMap.set(a.post_id, []);
-        attachMap.get(a.post_id)!.push(a);
-      });
+      (attachments || []).forEach((a: any) => { if (!attachMap.has(a.post_id)) attachMap.set(a.post_id, []); attachMap.get(a.post_id)!.push(a); });
       return postsData.map((p: any) => ({ ...p, attachments: attachMap.get(p.id) || [] }));
     },
     staleTime: 60_000,
     enabled: !!user && mode !== 'supreme',
   });
 
-  // Expose refetch for realtime callback
-  const refetchPosts = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['posts'] });
-  }, [queryClient]);
-
-  // Make refetchPosts available globally for the realtime hook
-  if (typeof window !== 'undefined') {
-    (window as any).__postFeedRefetch = refetchPosts;
-  }
+  const refetchPosts = useCallback(() => { queryClient.invalidateQueries({ queryKey: ['posts'] }); }, [queryClient]);
+  if (typeof window !== 'undefined') { (window as any).__postFeedRefetch = refetchPosts; }
 
   const toggleLike = async (postId: string, currentlyLiked: boolean) => {
     if (!user || likingPost) return;
     setLikingPost(postId);
-
     if (currentlyLiked) {
       await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', user.id);
     } else {
       await supabase.from('post_likes').insert({ post_id: postId, user_id: user.id } as any);
     }
-
     queryClient.setQueryData(['posts', mode, isAuthor, page, user.id], (old: any) => {
       if (!old) return old;
-      return {
-        ...old,
-        posts: old.posts.map((p: Post) =>
-          p.id === postId ? { ...p, user_liked: !currentlyLiked, like_count: p.like_count + (currentlyLiked ? -1 : 1) } : p
-        ),
-      };
+      return { ...old, posts: old.posts.map((p: Post) => p.id === postId ? { ...p, user_liked: !currentlyLiked, like_count: p.like_count + (currentlyLiked ? -1 : 1) } : p) };
     });
     setLikingPost(null);
   };
 
-  const getAttachmentUrl = (path: string) => {
-    const { data } = supabase.storage.from('post-attachments').getPublicUrl(path);
-    return data.publicUrl;
-  };
+  const getAttachmentUrl = (path: string) => supabase.storage.from('post-attachments').getPublicUrl(path).data.publicUrl;
 
   const downloadAttachment = async (path: string, fileName: string) => {
     const { data } = await supabase.storage.from('post-attachments').download(path);
@@ -255,6 +184,12 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
         }
         const post = item.data as Post;
         const index = item.index;
+
+        // Separate attachments by type
+        const images = post.attachments.filter(a => a.mime_type?.startsWith('image/'));
+        const videos = post.attachments.filter(a => a.mime_type?.startsWith('video/'));
+        const others = post.attachments.filter(a => !a.mime_type?.startsWith('image/') && !a.mime_type?.startsWith('video/'));
+
         return (
         <motion.div
           key={post.id}
@@ -296,42 +231,55 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
             </div>
           )}
 
-          {/* Attachments */}
-          {post.attachments.length > 0 && (
-            <div className="px-5 pb-3">
-              <div className="flex flex-wrap gap-2">
-                {post.attachments.map(att => {
-                  const isImage = att.mime_type?.startsWith('image/');
-                  const isVideo = att.mime_type?.startsWith('video/');
-                  const isPdf = att.mime_type === 'application/pdf';
+          {/* Inline Images - Facebook style */}
+          {images.length > 0 && (
+            <div className={`${images.length === 1 ? '' : 'grid gap-0.5'} ${images.length === 2 ? 'grid-cols-2' : images.length >= 3 ? 'grid-cols-2' : ''}`}>
+              {images.slice(0, 4).map((att, imgIdx) => (
+                <div
+                  key={att.id}
+                  className={`relative group cursor-pointer overflow-hidden ${
+                    images.length === 1 ? 'w-full max-h-[400px]' :
+                    images.length === 3 && imgIdx === 0 ? 'row-span-2 h-full' :
+                    'h-48'
+                  }`}
+                  onClick={() => downloadAttachment(att.file_path, att.file_name)}
+                >
+                  <img src={getAttachmentUrl(att.file_path)} alt={att.file_name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <Download className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                  </div>
+                  {imgIdx === 3 && images.length > 4 && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <span className="text-white text-2xl font-bold">+{images.length - 4}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
-                  return (
-                    <button
-                      key={att.id}
-                      onClick={() => downloadAttachment(att.file_path, att.file_name)}
-                      className="group relative rounded-xl overflow-hidden border border-border hover:border-[hsl(225,70%,45%)]/30 transition-all"
-                    >
-                      {isImage ? (
-                        <div className="w-24 h-24 relative">
-                          <img
-                            src={getAttachmentUrl(att.file_path)}
-                            alt={att.file_name}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                            <Download className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-24 h-24 flex flex-col items-center justify-center gap-1 bg-muted/50">
-                          {isPdf ? <FileText className="w-6 h-6 text-red-500" /> : isVideo ? <Video className="w-6 h-6 text-[hsl(225,70%,45%)]" /> : <Image className="w-6 h-6 text-gray-500" />}
-                          <span className="text-[9px] text-muted-foreground truncate max-w-[80px] px-1">{att.file_name}</span>
-                          <Download className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+          {/* Inline Videos */}
+          {videos.map(att => (
+            <div key={att.id}>
+              <video src={getAttachmentUrl(att.file_path)} controls className="w-full max-h-[400px] bg-black" />
+            </div>
+          ))}
+
+          {/* Other files (PDF, docs) */}
+          {others.length > 0 && (
+            <div className="px-5 pb-3 pt-2">
+              <div className="flex flex-wrap gap-2">
+                {others.map(att => (
+                  <button
+                    key={att.id}
+                    onClick={() => downloadAttachment(att.file_path, att.file_name)}
+                    className="group flex items-center gap-2 px-3 py-2 rounded-xl border border-border hover:border-[hsl(225,70%,45%)]/30 transition-all bg-muted/30"
+                  >
+                    {att.mime_type === 'application/pdf' ? <FileText className="w-5 h-5 text-red-500" /> : <Image className="w-5 h-5 text-muted-foreground" />}
+                    <span className="text-xs text-muted-foreground max-w-[120px] truncate">{att.file_name}</span>
+                    <Download className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -342,15 +290,10 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
               onClick={() => toggleLike(post.id, post.user_liked)}
               disabled={likingPost === post.id || isAuthor}
               className={`flex items-center gap-1.5 text-sm font-medium transition-all ${
-                post.user_liked
-                  ? 'text-red-500'
-                  : 'text-muted-foreground hover:text-red-500'
+                post.user_liked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
               }`}
             >
-              <motion.div
-                whileTap={{ scale: 1.4 }}
-                transition={{ type: 'spring', stiffness: 500 }}
-              >
+              <motion.div whileTap={{ scale: 1.4 }} transition={{ type: 'spring', stiffness: 500 }}>
                 <Heart className={`w-5 h-5 ${post.user_liked ? 'fill-current' : ''}`} />
               </motion.div>
               {post.like_count > 0 && <span>{post.like_count}</span>}
@@ -360,7 +303,6 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
         );
       })}
 
-      {/* Load more button */}
       {hasMore && (
         <div className="flex justify-center pt-4">
           <button

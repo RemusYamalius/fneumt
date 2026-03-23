@@ -9,8 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
 const PublisherSettings = () => {
-  const { user, profile } = useAuth();
-  const { lang, dir } = useI18n();
+  const { user, profile, role } = useAuth();
+  const { lang, dir, t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -20,6 +20,9 @@ const PublisherSettings = () => {
   const [displayTitle, setDisplayTitle] = useState('');
   const [avatarPath, setAvatarPath] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Dynamic placeholder based on user's actual role
+  const rolePlaceholder = role ? (t as any)[`role_${role}`] || role : '';
 
   useEffect(() => {
     if (!user) return;
@@ -56,7 +59,6 @@ const PublisherSettings = () => {
     const ext = file.name.split('.').pop();
     const path = `${user.id}/avatar-${Date.now()}.${ext}`;
 
-    // Delete old if exists
     if (avatarPath) {
       await supabase.storage.from('publisher-avatars').remove([avatarPath]);
     }
@@ -197,7 +199,7 @@ const PublisherSettings = () => {
               <Input
                 value={displayTitle}
                 onChange={(e) => setDisplayTitle(e.target.value)}
-                placeholder={lang === 'ar' ? 'مثال: الكاتب العام الوطني' : 'Ex: Secrétaire Général National'}
+                placeholder={rolePlaceholder || (lang === 'ar' ? 'أدخل المسمى الوظيفي' : 'Entrez le titre')}
                 className="max-w-sm"
               />
             </div>

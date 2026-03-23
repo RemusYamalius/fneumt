@@ -17,7 +17,7 @@ const SponsoredHub = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'compose' | 'manage'>('compose');
+  const [activeTab, setActiveTab] = useState<'compose' | 'manage' | 'stats'>('compose');
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 

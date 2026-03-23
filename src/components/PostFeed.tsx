@@ -236,9 +236,26 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
     );
   }
 
+  // Interleave sponsored posts every 4 regular posts
+  const renderItems: { type: 'post' | 'sponsored'; data: any; index: number }[] = [];
+  let sponsoredIdx = 0;
+  posts.forEach((post, i) => {
+    renderItems.push({ type: 'post', data: post, index: i });
+    if ((i + 1) % 4 === 0 && sponsoredIdx < sponsoredPosts.length) {
+      renderItems.push({ type: 'sponsored', data: sponsoredPosts[sponsoredIdx], index: sponsoredIdx });
+      sponsoredIdx++;
+    }
+  });
+
   return (
     <div className="space-y-5">
-      {posts.map((post, index) => (
+      {renderItems.map((item, idx) => {
+        if (item.type === 'sponsored') {
+          return <SponsoredPostCard key={`sp-${item.data.id}`} post={item.data} />;
+        }
+        const post = item.data as Post;
+        const index = item.index;
+        return (
         <motion.div
           key={post.id}
           initial={{ opacity: 0, y: 20 }}

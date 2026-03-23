@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database, MessageSquare, Newspaper } from 'lucide-react';
+import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database, MessageSquare, Newspaper, Megaphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -150,6 +150,10 @@ const Dashboard = () => {
           { icon: Newspaper, title: lang === 'ar' ? 'منشورات القيادة' : 'Publications Direction', desc: lang === 'ar' ? 'منشورات الحسابات السامية' : 'Publications des comptes suprêmes', to: '/supreme-feed', color: 'from-[hsl(225,60%,55%)] to-[hsl(225,70%,40%)]' },
         ]
       : [{ icon: MessageSquare, title: lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', desc: lang === 'ar' ? 'المنشورات الداخلية' : 'Bulletin interne', to: '/communication', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]', badge: unreadPostCount }]
+    ),
+    ...(role === 'admin'
+      ? [{ icon: Megaphone, title: lang === 'ar' ? 'ركن المعلنين' : 'Espace Annonceurs', desc: lang === 'ar' ? 'إدارة الإعلانات الممولة' : 'Gestion des annonces sponsorisées', to: '/sponsored', color: 'from-[hsl(42,80%,50%)] to-[hsl(42,70%,38%)]' }]
+      : []
     ),
   ];
 

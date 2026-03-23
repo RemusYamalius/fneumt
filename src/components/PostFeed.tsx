@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ar, fr } from 'date-fns/locale';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import SponsoredPostCard from '@/components/SponsoredPostCard';
 
 interface Post {
   id: string;
@@ -15,6 +16,7 @@ interface Post {
   created_at: string;
   attachments: { id: string; file_path: string; file_name: string; mime_type: string | null }[];
   author_name: string;
+  author_avatar_url: string | null;
   like_count: number;
   user_liked: boolean;
   is_read: boolean;
@@ -59,12 +61,13 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
     const postIds = filteredPosts.map(p => p.id);
     const authorIds = [...new Set(filteredPosts.map(p => p.author_id))];
 
-    // Parallel fetch: attachments, likes, profiles, recipients
-    const [attachRes, likesRes, profilesRes, recipientRes] = await Promise.all([
+    // Parallel fetch: attachments, likes, profiles, recipients, publisher_settings
+    const [attachRes, likesRes, profilesRes, recipientRes, pubSettingsRes] = await Promise.all([
       supabase.from('post_attachments').select('*').in('post_id', postIds),
       supabase.from('post_likes').select('*').in('post_id', postIds),
       supabase.from('profiles').select('user_id, full_name').in('user_id', authorIds),
       isAuthor ? Promise.resolve({ data: [] }) : supabase.from('post_recipients').select('post_id, is_read').eq('user_id', user.id).in('post_id', postIds),
+      supabase.from('publisher_settings').select('user_id, display_name, display_title, avatar_path').in('user_id', authorIds),
     ]);
 
     const attachMap = new Map<string, any[]>();
@@ -83,20 +86,35 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
     const profileMap = new Map<string, string>();
     (profilesRes.data || []).forEach(p => profileMap.set(p.user_id, p.full_name || ''));
 
+    const pubSettingsMap = new Map<string, { name: string; avatar: string | null }>();
+    ((pubSettingsRes as any).data || []).forEach((ps: any) => {
+      const avatarUrl = ps.avatar_path
+        ? supabase.storage.from('publisher-avatars').getPublicUrl(ps.avatar_path).data.publicUrl
+        : null;
+      pubSettingsMap.set(ps.user_id, {
+        name: ps.display_name || ps.display_title || '',
+        avatar: avatarUrl,
+      });
+    });
+
     const readMap = new Map<string, boolean>();
     ((recipientRes as any).data || []).forEach((r: any) => readMap.set(r.post_id, r.is_read));
 
-    const enriched: Post[] = filteredPosts.map(p => ({
-      id: p.id,
-      author_id: p.author_id,
-      content: p.content || '',
-      created_at: p.created_at,
-      attachments: attachMap.get(p.id) || [],
-      author_name: profileMap.get(p.author_id) || 'FNE-UMT',
-      like_count: likeCountMap.get(p.id) || 0,
-      user_liked: userLikeMap.get(p.id) || false,
-      is_read: readMap.get(p.id) ?? true,
-    }));
+    const enriched: Post[] = filteredPosts.map(p => {
+      const pubSettings = pubSettingsMap.get(p.author_id);
+      return {
+        id: p.id,
+        author_id: p.author_id,
+        content: p.content || '',
+        created_at: p.created_at,
+        attachments: attachMap.get(p.id) || [],
+        author_name: pubSettings?.name || profileMap.get(p.author_id) || 'FNE-UMT',
+        author_avatar_url: pubSettings?.avatar || null,
+        like_count: likeCountMap.get(p.id) || 0,
+        user_liked: userLikeMap.get(p.id) || false,
+        is_read: readMap.get(p.id) ?? true,
+      };
+    });
 
     // Mark unread as read
     if (!isAuthor) {
@@ -124,13 +142,38 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
   const totalCount = data?.totalCount || 0;
   const hasMore = posts.length < totalCount;
 
+  // Fetch active sponsored posts
+  const { data: sponsoredPosts = [] } = useQuery({
+    queryKey: ['sponsored-posts-feed'],
+    queryFn: async () => {
+      const { data: postsData } = await supabase
+        .from('sponsored_posts')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      if (!postsData || postsData.length === 0) return [];
+      const postIds = postsData.map((p: any) => p.id);
+      const { data: attachments } = await supabase
+        .from('sponsored_post_attachments')
+        .select('*')
+        .in('post_id', postIds);
+      const attachMap = new Map<string, any[]>();
+      (attachments || []).forEach((a: any) => {
+        if (!attachMap.has(a.post_id)) attachMap.set(a.post_id, []);
+        attachMap.get(a.post_id)!.push(a);
+      });
+      return postsData.map((p: any) => ({ ...p, attachments: attachMap.get(p.id) || [] }));
+    },
+    staleTime: 60_000,
+    enabled: !!user && mode !== 'supreme',
+  });
+
   // Expose refetch for realtime callback
   const refetchPosts = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['posts'] });
   }, [queryClient]);
 
   // Make refetchPosts available globally for the realtime hook
-  // This is done via a ref on window for simplicity
   if (typeof window !== 'undefined') {
     (window as any).__postFeedRefetch = refetchPosts;
   }
@@ -193,9 +236,26 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
     );
   }
 
+  // Interleave sponsored posts every 4 regular posts
+  const renderItems: { type: 'post' | 'sponsored'; data: any; index: number }[] = [];
+  let sponsoredIdx = 0;
+  posts.forEach((post, i) => {
+    renderItems.push({ type: 'post', data: post, index: i });
+    if ((i + 1) % 4 === 0 && sponsoredIdx < sponsoredPosts.length) {
+      renderItems.push({ type: 'sponsored', data: sponsoredPosts[sponsoredIdx], index: sponsoredIdx });
+      sponsoredIdx++;
+    }
+  });
+
   return (
     <div className="space-y-5">
-      {posts.map((post, index) => (
+      {renderItems.map((item, idx) => {
+        if (item.type === 'sponsored') {
+          return <SponsoredPostCard key={`sp-${item.data.id}`} post={item.data} />;
+        }
+        const post = item.data as Post;
+        const index = item.index;
+        return (
         <motion.div
           key={post.id}
           initial={{ opacity: 0, y: 20 }}
@@ -207,9 +267,13 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
         >
           {/* Post header */}
           <div className="px-5 pt-5 pb-3 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md"
-              style={{ background: 'linear-gradient(135deg, hsl(225,70%,45%), hsl(225,80%,35%))' }}>
-              {post.author_name.charAt(0) || 'F'}
+            <div className="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0"
+              style={{ background: post.author_avatar_url ? undefined : 'linear-gradient(135deg, hsl(225,70%,45%), hsl(225,80%,35%))' }}>
+              {post.author_avatar_url ? (
+                <img src={post.author_avatar_url} alt={post.author_name} className="w-full h-full object-cover" />
+              ) : (
+                post.author_name.charAt(0) || 'F'
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-foreground text-sm">{post.author_name}</p>
@@ -293,7 +357,8 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
             </button>
           </div>
         </motion.div>
-      ))}
+        );
+      })}
 
       {/* Load more button */}
       {hasMore && (

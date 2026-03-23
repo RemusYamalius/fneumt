@@ -579,6 +579,36 @@ export type Database = {
         }
         Relationships: []
       }
+      publisher_settings: {
+        Row: {
+          avatar_path: string | null
+          created_at: string | null
+          display_name: string | null
+          display_title: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_path?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          display_title?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_path?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          display_title?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       request_status_history: {
         Row: {
           changed_by: string | null
@@ -656,6 +686,80 @@ export type Database = {
           tracking_number?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      sponsored_post_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          post_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          post_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsored_post_attachments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "sponsored_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsored_posts: {
+        Row: {
+          advertiser_avatar_path: string | null
+          advertiser_name: string
+          content: string | null
+          created_at: string | null
+          created_by: string
+          display_style: string
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          advertiser_avatar_path?: string | null
+          advertiser_name: string
+          content?: string | null
+          created_at?: string | null
+          created_by: string
+          display_style?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          advertiser_avatar_path?: string | null
+          advertiser_name?: string
+          content?: string | null
+          created_at?: string | null
+          created_by?: string
+          display_style?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
         }
         Relationships: []
       }

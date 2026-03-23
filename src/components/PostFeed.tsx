@@ -61,12 +61,13 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
     const postIds = filteredPosts.map(p => p.id);
     const authorIds = [...new Set(filteredPosts.map(p => p.author_id))];
 
-    // Parallel fetch: attachments, likes, profiles, recipients
-    const [attachRes, likesRes, profilesRes, recipientRes] = await Promise.all([
+    // Parallel fetch: attachments, likes, profiles, recipients, publisher_settings
+    const [attachRes, likesRes, profilesRes, recipientRes, pubSettingsRes] = await Promise.all([
       supabase.from('post_attachments').select('*').in('post_id', postIds),
       supabase.from('post_likes').select('*').in('post_id', postIds),
       supabase.from('profiles').select('user_id, full_name').in('user_id', authorIds),
       isAuthor ? Promise.resolve({ data: [] }) : supabase.from('post_recipients').select('post_id, is_read').eq('user_id', user.id).in('post_id', postIds),
+      supabase.from('publisher_settings').select('user_id, display_name, display_title, avatar_path').in('user_id', authorIds),
     ]);
 
     const attachMap = new Map<string, any[]>();

@@ -162,6 +162,8 @@ const SponsoredHub = () => {
               )}
             </div>
           )}
+
+          {activeTab === 'stats' && <SponsoredPostStats />}
         </motion.div>
       </main>
     </AuthenticatedLayout>

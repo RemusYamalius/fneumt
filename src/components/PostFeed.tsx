@@ -142,13 +142,38 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
   const totalCount = data?.totalCount || 0;
   const hasMore = posts.length < totalCount;
 
+  // Fetch active sponsored posts
+  const { data: sponsoredPosts = [] } = useQuery({
+    queryKey: ['sponsored-posts-feed'],
+    queryFn: async () => {
+      const { data: postsData } = await supabase
+        .from('sponsored_posts')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      if (!postsData || postsData.length === 0) return [];
+      const postIds = postsData.map((p: any) => p.id);
+      const { data: attachments } = await supabase
+        .from('sponsored_post_attachments')
+        .select('*')
+        .in('post_id', postIds);
+      const attachMap = new Map<string, any[]>();
+      (attachments || []).forEach((a: any) => {
+        if (!attachMap.has(a.post_id)) attachMap.set(a.post_id, []);
+        attachMap.get(a.post_id)!.push(a);
+      });
+      return postsData.map((p: any) => ({ ...p, attachments: attachMap.get(p.id) || [] }));
+    },
+    staleTime: 60_000,
+    enabled: !!user && mode !== 'supreme',
+  });
+
   // Expose refetch for realtime callback
   const refetchPosts = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['posts'] });
   }, [queryClient]);
 
   // Make refetchPosts available globally for the realtime hook
-  // This is done via a ref on window for simplicity
   if (typeof window !== 'undefined') {
     (window as any).__postFeedRefetch = refetchPosts;
   }

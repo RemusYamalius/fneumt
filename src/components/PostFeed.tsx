@@ -357,7 +357,8 @@ const PostFeed = ({ isAuthor = false, mode = 'normal' }: { isAuthor?: boolean; m
             </button>
           </div>
         </motion.div>
-      ))}
+        );
+      })}
 
       {/* Load more button */}
       {hasMore && (

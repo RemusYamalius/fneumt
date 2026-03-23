@@ -1,122 +1,94 @@
 
 
-# خطة: إعدادات ركن التواصل + بطاقة ركن المعلنين
+# خطة التحسينات الأربعة
 
-## الجزء الأول: إعدادات الحسابات السامية في ركن التواصل
+## 1. المسمى الوظيفي الديناميكي في إعدادات الناشر
 
-### 1. جدول جديد: `publisher_settings`
-```sql
-CREATE TABLE public.publisher_settings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL UNIQUE,
-  display_name text,
-  display_title text,
-  avatar_path text,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-ALTER TABLE public.publisher_settings ENABLE ROW LEVEL SECURITY;
--- سياسات: المستخدم يقرأ/يعدل إعداداته فقط، والجميع يقرأ (لعرض الصورة في المنشورات)
-```
+### المشكلة
+placeholder الصفة الوظيفية ثابت على "الكاتب العام الوطني" لكل الحسابات.
 
-### 2. Storage bucket: `publisher-avatars`
-- لرفع صور بروفايل الناشر
+### الحل
+في `PublisherSettings.tsx`:
+- استيراد `useAuth` → الحصول على `role`
+- استيراد `useI18n` → الحصول على `t`
+- استخدام `t[`role_${role}`]` كـ placeholder ديناميكي حسب دور المستخدم الفعلي
+- مثال: الأدمين يرى "أدمين"، الكاتب العام يرى "الكاتب العام الوطني"
 
-### 3. تبويب "إعدادات" جديد في `CommunicationHub.tsx`
-- إضافة تبويب رابع `settings` بأيقونة Settings للحسابات السامية
-- داخله:
-  - **صورة البروفايل**: رفع / تغيير / حذف (مع معاينة دائرية)
-  - **اسم الناشر**: حقل نصي لتغيير الاسم المعروض
-  - **الصفة كاسم**: زر تبديل لاستخدام المسمى الوظيفي بدل الاسم
-
-### 4. تعديل `PostFeed.tsx`
-- بدل جلب الاسم من `profiles` فقط، يتم أيضاً جلب `publisher_settings` (avatar + display_name)
-- عرض صورة البروفايل الحقيقية بدل الحرف الأول إن وُجدت
+### التأكد من عمل زر الحفظ
+الزر يعمل منطقياً (upsert) لكن يجب التأكد من أن الـ RLS تسمح بالـ INSERT (السياسة الحالية `user_id = auth.uid()` للـ ALL — صحيحة).
 
 ---
 
-## الجزء الثاني: بطاقة "ركن المعلنين" (أدمين فقط)
+## 2. فلاتر المستلمين + إيموجي في ركن المعلنين
 
-### 1. جداول جديدة
+### الحل
+في `SponsoredPostComposer.tsx`:
+- نسخ نفس منطق الفلاتر من `PostComposer.tsx` (أكاديمية، مديرية، مكتب محلي، مهمة، جنس، عضوية، اسم، رقم PPR، سن)
+- تغيير لون الفلاتر من `hsl(225,70%,45%)` (أزرق) إلى `hsl(42,80%,50%)` (ذهبي)
+- إضافة أيقونة Emoji picker تحت حقل المحتوى (نفس EMOJI_LIST من PostComposer)
+- إضافة حقل `filters` و`recipients` في `sponsored_posts` أو إنشاء جدول `sponsored_post_recipients`
+
+### تعديل قاعدة البيانات
+- إضافة عمود `filters jsonb` إلى `sponsored_posts`
+- إنشاء جدول `sponsored_post_recipients` مشابه لـ `post_recipients` لتتبع المستلمين
+
+---
+
+## 3. عرض المرفقات داخل المنشور (Facebook-style)
+
+### الحل
+في `PostFeed.tsx` و `SponsoredPostCard.tsx`:
+- **الصور**: عرضها بعرض المنشور الكامل (w-full) بدل مصغرات 24x24
+  - صورة واحدة: عرض كامل
+  - صورتان: شبكة 2 أعمدة
+  - 3+: شبكة مع عداد "+N" للباقي
+- **الفيديو**: عرض `<video>` مع controls بعرض المنشور
+- **PDF**: بطاقة معاينة كبيرة مع أيقونة وزر تحميل
+- النقر على الصورة يفتحها في lightbox أو يحملها
+
+---
+
+## 4. روابط المعلنين مع معاينة (Link Preview)
+
+### الحل
+في `SponsoredPostComposer.tsx`:
+- إضافة حقل رابط URL
+- عند لصق رابط: محاولة جلب Open Graph metadata (العنوان، الوصف، الصورة) عبر edge function
+- عرض معاينة الرابط (صورة + عنوان + وصف) مع زر X لحذف المعاينة
+- إمكانية استبدال صورة المعاينة بصورة مخصصة أو فيديو
+- إضافة عمود `link_url text` و `link_preview jsonb` إلى `sponsored_posts`
+
+في `SponsoredPostCard.tsx`:
+- عرض معاينة الرابط بشكل بطاقة أنيقة أسفل المحتوى (مثل Facebook)
+- النقر يفتح الرابط في تبويب جديد
+
+### Edge Function: `fetch-link-preview`
+- تأخذ URL كمدخل
+- تجلب HTML وتستخرج og:title, og:description, og:image
+- تُرجع JSON
+
+---
+
+## تعديلات قاعدة البيانات
 ```sql
-CREATE TABLE public.sponsored_posts (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_by uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  advertiser_name text NOT NULL,
-  advertiser_avatar_path text,
-  content text,
-  display_style text NOT NULL DEFAULT 'elegant',
-  -- display_style: 'elegant' | 'spotlight' | 'immersive'
-  is_active boolean DEFAULT true,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
+-- إضافة أعمدة للروابط والفلاتر
+ALTER TABLE sponsored_posts ADD COLUMN filters jsonb;
+ALTER TABLE sponsored_posts ADD COLUMN link_url text;
+ALTER TABLE sponsored_posts ADD COLUMN link_preview jsonb;
 
-CREATE TABLE public.sponsored_post_attachments (
+-- جدول مستلمي الإعلانات
+CREATE TABLE sponsored_post_recipients (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  post_id uuid REFERENCES public.sponsored_posts(id) ON DELETE CASCADE NOT NULL,
-  file_path text NOT NULL,
-  file_name text NOT NULL,
-  mime_type text,
-  file_size bigint,
+  post_id uuid REFERENCES sponsored_posts(id) ON DELETE CASCADE NOT NULL,
+  user_id uuid NOT NULL,
+  is_read boolean DEFAULT false,
   created_at timestamptz DEFAULT now()
 );
+ALTER TABLE sponsored_post_recipients ENABLE ROW LEVEL SECURITY;
 ```
-- RLS: الأدمين فقط يقرأ/يكتب، الباقي يقرأ المنشورات النشطة
-
-### 2. Storage bucket: `sponsor-assets`
-- لرفع صور بروفايل المعلنين ومرفقاتهم
-
-### 3. صفحة جديدة: `SponsoredHub.tsx`
-- مسار: `/sponsored`
-- مقيدة بـ RoleGuard: `admin` فقط
-- واجهة إنشاء منشور معلن تشبه PostComposer مع:
-  - حقل صورة بروفايل المعلن (رفع)
-  - حقل اسم المعلن
-  - علامة "معلن / Sponsorisé" تحت الاسم بخط أصغر
-  - اختيار شكل العرض من 3 أنماط:
-
-```text
-┌─────────────────────────────────────────┐
-│ Style 1: "Elegant"                      │
-│ ─ حدود ذهبية متدرجة + خلفية كريمية    │
-│ ─ شريط "Sponsorisé" ذهبي شفاف أعلاه   │
-│ ─ تصميم أنيق وهادئ يندمج مع المحتوى   │
-├─────────────────────────────────────────┤
-│ Style 2: "Spotlight"                    │
-│ ─ بطاقة بارزة بظل عميق + إطار متوهج   │
-│ ─ شريط جانبي ملون بتدرج أزرق-بنفسجي   │
-│ ─ تأثير shimmer خفيف على الحدود        │
-├─────────────────────────────────────────┤
-│ Style 3: "Immersive"                    │
-│ ─ خلفية تدرج كامل (أزرق داكن-تيل)     │
-│ ─ نص أبيض + صورة كبيرة ممتدة          │
-│ ─ تأثير parallax خفيف عند التمرير      │
-└─────────────────────────────────────────┘
-```
-
-### 4. عرض المنشورات المعلنة في `PostFeed.tsx`
-- إدراج منشور معلن كل 3-5 منشورات عادية
-- التمييز البصري حسب النمط المختار (elegant/spotlight/immersive)
-
-### 5. بطاقة في Dashboard
-- إضافة بطاقة ثالثة "ركن المعلنين" في `communicationCards` للأدمين فقط
-- لون مميز (ذهبي/برتقالي متدرج)
-- أيقونة Megaphone أو Star
-
-### 6. مسار في `App.tsx`
-```tsx
-<Route path="/sponsored" element={
-  <RoleGuard allowedRoles={['admin']}>
-    <SponsoredHub />
-  </RoleGuard>
-} />
-```
-
----
 
 ## الملفات المتأثرة
-- **جديدة**: `src/pages/SponsoredHub.tsx`, `src/components/SponsoredPostComposer.tsx`, `src/components/SponsoredPostCard.tsx`
-- **معدلة**: `src/pages/CommunicationHub.tsx` (تبويب إعدادات), `src/pages/Dashboard.tsx` (بطاقة المعلنين), `src/App.tsx` (مسار), `src/components/PostFeed.tsx` (صورة الناشر + إدراج إعلانات)
-- **قاعدة البيانات**: جدولان جديدان + bucket تخزين
+- **معدلة**: `PublisherSettings.tsx`, `SponsoredPostComposer.tsx`, `PostFeed.tsx`, `SponsoredPostCard.tsx`
+- **جديدة**: `supabase/functions/fetch-link-preview/index.ts`
+- **قاعدة البيانات**: 3 أعمدة جديدة + جدول مستلمين
 

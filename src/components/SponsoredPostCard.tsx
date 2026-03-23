@@ -175,7 +175,7 @@ const SponsoredPostCard = ({ post }: { post: SponsoredPost }) => {
       {/* Link preview */}
       {post.link_url && (
         <a
-          href={post.link_url}
+          href={!/^https?:\/\//i.test(post.link_url) ? `https://${post.link_url}` : post.link_url}
           target="_blank"
           rel="noopener noreferrer"
           className={`mx-5 mb-4 flex items-center gap-3 px-4 py-3 rounded-xl border transition-all hover:shadow-md ${

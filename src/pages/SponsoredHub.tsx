@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Megaphone, Send, BarChart3, ArrowRight, ArrowLeft, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Megaphone, Send, BarChart3, ArrowRight, ArrowLeft, Loader2, Trash2, Eye, EyeOff, PieChart } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import SponsoredPostComposer from '@/components/SponsoredPostComposer';
 import SponsoredPostCard from '@/components/SponsoredPostCard';
+import SponsoredPostStats from '@/components/SponsoredPostStats';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';

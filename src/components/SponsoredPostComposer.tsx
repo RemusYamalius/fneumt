@@ -236,7 +236,7 @@ const SponsoredPostComposer = ({ onPostCreated }: { onPostCreated?: () => void }
         content: content.trim() || null,
         display_style: displayStyle,
         filters: hasFilters ? filters : null,
-        link_url: linkUrl.trim() || null,
+        link_url: linkUrl.trim() ? (!/^https?:\/\//i.test(linkUrl.trim()) ? `https://${linkUrl.trim()}` : linkUrl.trim()) : null,
       } as any).select().single();
 
       if (error || !post) {

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Megaphone, Send, BarChart3, ArrowRight, ArrowLeft, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Megaphone, Send, BarChart3, ArrowRight, ArrowLeft, Loader2, Trash2, Eye, EyeOff, PieChart } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import SponsoredPostComposer from '@/components/SponsoredPostComposer';
 import SponsoredPostCard from '@/components/SponsoredPostCard';
+import SponsoredPostStats from '@/components/SponsoredPostStats';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
@@ -16,7 +17,7 @@ const SponsoredHub = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'compose' | 'manage'>('compose');
+  const [activeTab, setActiveTab] = useState<'compose' | 'manage' | 'stats'>('compose');
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
@@ -91,11 +92,11 @@ const SponsoredHub = () => {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6">
           {[
             { key: 'compose' as const, label: lang === 'ar' ? 'إعلان جديد' : 'Nouvelle annonce', icon: Send },
             { key: 'manage' as const, label: lang === 'ar' ? 'إدارة الإعلانات' : 'Gérer les annonces', icon: BarChart3 },
+            { key: 'stats' as const, label: lang === 'ar' ? 'إحصائيات' : 'Statistiques', icon: PieChart },
           ].map(tab => (
             <button
               key={tab.key}
@@ -161,6 +162,8 @@ const SponsoredHub = () => {
               )}
             </div>
           )}
+
+          {activeTab === 'stats' && <SponsoredPostStats />}
         </motion.div>
       </main>
     </AuthenticatedLayout>

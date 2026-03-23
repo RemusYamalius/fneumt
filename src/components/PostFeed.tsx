@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ar, fr } from 'date-fns/locale';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import SponsoredPostCard from '@/components/SponsoredPostCard';
 
 interface Post {
   id: string;
@@ -15,6 +16,7 @@ interface Post {
   created_at: string;
   attachments: { id: string; file_path: string; file_name: string; mime_type: string | null }[];
   author_name: string;
+  author_avatar_url: string | null;
   like_count: number;
   user_liked: boolean;
   is_read: boolean;

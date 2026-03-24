@@ -42,8 +42,8 @@ const RESOLUTION_LEVELS: { key: ResolutionLevel; icon: typeof Landmark; color: s
   { key: 'institution', icon: School, color: 'hsl(345 70% 50%)' },
 ];
 
-const MAX_FILES = 5;
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILES = 10;
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 /* ── Orbital Hub component ── */
 const OrbitalHub = ({

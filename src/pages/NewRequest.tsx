@@ -621,8 +621,8 @@ const NewRequest = () => {
                 transition={{ duration: 0.5, ease: 'easeOut' }}
                 className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full"
               >
-                {/* Resolution level cards — left side */}
-                <div className="order-2 lg:order-1 w-full max-w-sm space-y-3">
+                {/* Resolution level cards — appears first on mobile */}
+                <div className="order-1 w-full max-w-sm space-y-3">
                   <h3 className="text-base font-black futuristic-text-cyan text-center mb-4">{t.selectLevel || 'مستوى حل المشكل'}</h3>
                   {RESOLUTION_LEVELS.map(level => {
                     const Icon = level.icon;

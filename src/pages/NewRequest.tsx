@@ -674,7 +674,7 @@ const NewRequest = () => {
                 </div>
 
                 {/* Orbital wheel — right side (small, showing selected category) */}
-                <div className="order-1 lg:order-2">
+                <div className="order-2">
                   <OrbitalHub
                     items={CATEGORIES}
                     selectedKey={category}

@@ -700,6 +700,27 @@ const NewRequest = () => {
                 <div className="futuristic-card p-6 sm:p-8 space-y-6">
                   <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.attachDocuments}</h3>
 
+                  {/* Download form card */}
+                  <div className="rounded-xl p-4 space-y-3" style={{ background: 'linear-gradient(135deg, hsl(220 40% 12%), hsl(230 35% 15%))', border: '1px solid hsl(220 60% 35% / 0.4)' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'hsl(220 70% 50% / 0.2)' }}>
+                        <FileText className="w-5 h-5" style={{ color: 'hsl(220 80% 65%)' }} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold" style={{ color: 'hsl(0 0% 90%)' }}>{t.downloadFormTitle || 'استمارة المعلومات والمشاكل'}</p>
+                        <p className="text-xs" style={{ color: 'hsl(210 15% 55%)' }}>{t.downloadFormDesc || 'قم بتحميل الاستمارة وملئها وتوقيعها ثم إرفاقها'}</p>
+                      </div>
+                    </div>
+                    <a
+                      href="/forms/information-problems-form.pdf"
+                      download
+                      className="futuristic-btn-royal w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      {t.downloadForm || 'تحميل الاستمارة'}
+                    </a>
+                  </div>
+
                   <div
                     className="futuristic-dropzone group"
                     onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}

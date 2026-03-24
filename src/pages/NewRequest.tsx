@@ -717,7 +717,7 @@ const NewRequest = () => {
                       className="futuristic-btn-royal w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
                     >
                       <Download className="w-4 h-4" />
-                      {t.downloadForm || 'تحميل الاستمارة'}
+                      {t.downloadFormButton}
                     </a>
                   </div>
 

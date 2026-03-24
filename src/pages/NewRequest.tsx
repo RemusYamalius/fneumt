@@ -758,7 +758,7 @@ const NewRequest = () => {
 
                   <div className="flex gap-3">
                     <Button onClick={() => setStep(4)} className="flex-1 futuristic-btn-primary">
-                      {files.length > 0 ? t.next : (t.skipAttachments || 'Continuer sans pièces jointes')}
+                      {files.length > 0 ? t.next : t.skipAttachments}
                       {dir === 'rtl' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                     </Button>
                   </div>

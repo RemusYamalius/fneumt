@@ -176,7 +176,7 @@ const translations: Record<Lang, Record<string, string>> = {
     descriptionLabel: 'الوصف',
     descriptionPlaceholder: 'أضف وصفاً تفصيلياً (اختياري)',
     dropFiles: 'اسحب الملفات هنا أو انقر للاختيار',
-    maxFiles: 'حد أقصى 5 ملفات، 10 ميغابايت لكل ملف',
+    maxFiles: 'حد أقصى 10 ملفات، 2 ميغابايت لكل ملف',
     fileTooLarge: 'الملف كبير جداً',
     submitRequest: 'إرسال الطلب',
     submitError: 'خطأ في الإرسال',

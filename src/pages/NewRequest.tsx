@@ -619,7 +619,7 @@ const NewRequest = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: slideDirection * -100 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full"
+                className={`flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full ${dir === 'rtl' ? 'lg:flex-row-reverse' : ''}`}
               >
                 {/* Resolution level cards — appears first on mobile */}
                 <div className="order-1 w-full max-w-sm space-y-3">

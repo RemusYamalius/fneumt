@@ -639,7 +639,7 @@ const translations: Record<Lang, Record<string, string>> = {
     descriptionLabel: 'Description',
     descriptionPlaceholder: 'Ajoutez une description détaillée (optionnel)',
     dropFiles: 'Glissez les fichiers ici ou cliquez pour sélectionner',
-    maxFiles: 'Maximum 5 fichiers, 10 Mo par fichier',
+    maxFiles: 'Maximum 10 fichiers, 2 Mo par fichier',
     fileTooLarge: 'Fichier trop volumineux',
     submitRequest: 'Soumettre la demande',
     submitError: 'Erreur de soumission',

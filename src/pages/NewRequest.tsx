@@ -633,7 +633,7 @@ const NewRequest = () => {
                         onClick={() => handleResolutionSelect(level.key)}
                         className="w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300"
                         style={{
-                          background: isSelected ? `linear-gradient(135deg, ${level.color}20, ${level.color}10)` : 'hsl(210 30% 10%)',
+                          background: isSelected ? `linear-gradient(135deg, ${level.color}20, ${level.color}10)` : `linear-gradient(135deg, ${level.color}08, ${level.color}04)`,
                           border: `2px solid ${isSelected ? level.color : 'hsl(210 20% 20%)'}`,
                           boxShadow: isSelected ? `0 0 20px ${level.color}30, 0 0 40px ${level.color}15` : 'none',
                         }}

@@ -619,7 +619,7 @@ const NewRequest = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: slideDirection * -100 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full"
+                className={`flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full ${dir === 'rtl' ? 'lg:flex-row-reverse' : ''}`}
               >
                 {/* Resolution level cards — appears first on mobile */}
                 <div className="order-1 w-full max-w-sm space-y-3">
@@ -833,29 +833,6 @@ const NewRequest = () => {
                     </div>
                   </div>
 
-                  {/* Generate PDF */}
-                  <Button variant="outline" className="w-full futuristic-btn-outline" onClick={async () => {
-                    const { jsPDF } = await import('jspdf');
-                    const pdf = new jsPDF();
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(18);
-                    pdf.text('FNE - Request Summary', 20, 30);
-                    pdf.setFontSize(12);
-                    pdf.setFont('helvetica', 'normal');
-                    const info = [
-                      `Category: ${categoryLabel(category!)}`,
-                      `Subject: ${category === 'other' ? subject : categoryLabel(category!)}`,
-                      ...(description ? [`Description: ${description}`] : []),
-                      ...(resolutionLevel ? [`Resolution Level: ${levelLabel(resolutionLevel)}`] : []),
-                      `Attachments: ${files.length}`,
-                      ...(files.map(f => `  - ${f.name}`)),
-                    ];
-                    info.forEach((line, i) => pdf.text(line, 20, 50 + i * 10));
-                    pdf.save('request-summary.pdf');
-                  }}>
-                    <Download className="w-4 h-4" />
-                    {t.downloadSummary || 'Télécharger le résumé'}
-                  </Button>
 
                   {/* Submit */}
                   <motion.button

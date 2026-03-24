@@ -728,8 +728,8 @@ const NewRequest = () => {
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <input ref={fileInputRef} type="file" className="hidden" multiple accept={ACCEPTED_TYPES.join(',')} onChange={e => handleFiles(e.target.files)} />
-                    <Upload className="w-10 h-10 mb-3 futuristic-text-cyan group-hover:scale-110 transition-transform" />
-                    <p className="text-sm font-bold futuristic-text-cyan mb-1">{t.dragOrClick}</p>
+                    <Upload className="w-12 h-12 mb-3 futuristic-text-cyan group-hover:scale-110 transition-transform" />
+                    <p className="text-sm font-bold futuristic-text-cyan mb-1">{t.clickToUpload || t.dropFiles}</p>
                     <p className="text-xs futuristic-text-muted">{t.maxFiles}</p>
                   </div>
 

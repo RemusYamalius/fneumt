@@ -782,11 +782,11 @@ const NewRequest = () => {
                   animate={{ rotateX: 0 }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
                 >
-                  <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.reviewRequest}</h3>
+                  <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.reviewRequest || t.stepReview}</h3>
 
                   <div className="space-y-4">
                     {/* Category */}
-                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'hsl(210 30% 10%)' }}>
+                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: `linear-gradient(135deg, ${CATEGORIES.find(c => c.key === category)?.color || 'hsl(210 15% 40%)'}12, ${CATEGORIES.find(c => c.key === category)?.color || 'hsl(210 15% 40%)'}06)` }}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: CATEGORIES.find(c => c.key === category)?.color || 'hsl(210 15% 40%)' }}>
                         {(() => { const cat = CATEGORIES.find(c => c.key === category); return cat ? <cat.icon className="w-4 h-4 text-white" /> : null; })()}
                       </div>
@@ -801,7 +801,7 @@ const NewRequest = () => {
 
                     {/* Resolution level */}
                     {resolutionLevel && (
-                      <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'hsl(210 30% 10%)' }}>
+                      <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: `linear-gradient(135deg, ${RESOLUTION_LEVELS.find(l => l.key === resolutionLevel)?.color || 'hsl(210 15% 40%)'}12, ${RESOLUTION_LEVELS.find(l => l.key === resolutionLevel)?.color || 'hsl(210 15% 40%)'}06)` }}>
                         <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: RESOLUTION_LEVELS.find(l => l.key === resolutionLevel)?.color || 'hsl(210 15% 40%)' }}>
                           {(() => { const lvl = RESOLUTION_LEVELS.find(l => l.key === resolutionLevel); return lvl ? <lvl.icon className="w-4 h-4 text-white" /> : null; })()}
                         </div>
@@ -813,7 +813,7 @@ const NewRequest = () => {
                     )}
 
                     {/* Attachments */}
-                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'hsl(210 30% 10%)' }}>
+                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'linear-gradient(135deg, hsl(190 80% 40% / 0.08), hsl(190 80% 40% / 0.03))' }}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'hsl(190 80% 40%)' }}>
                         <FileText className="w-4 h-4 text-white" />
                       </div>

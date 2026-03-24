@@ -442,7 +442,7 @@ const NewRequest = () => {
   const categoryLabel = (key: string) => t[`cat_${key}`] || key;
   const levelLabel = (key: string) => t[`level_${key}`] || key;
 
-  const slideDirection = dir === 'rtl' ? 1 : -1;
+  const slideDirection = dir === 'rtl' ? -1 : 1;
 
   // Step progress
   const stepLabels = [t.stepCategory, t.stepResolutionLevel, t.stepAttachments, t.stepReview];

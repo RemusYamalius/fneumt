@@ -820,7 +820,7 @@ const NewRequest = () => {
                       <div>
                         <p className="text-xs futuristic-text-muted mb-0.5">{t.stepAttachments}</p>
                         <p className="text-sm font-bold" style={{ color: 'hsl(0 0% 90%)' }}>
-                          {files.length > 0 ? `${files.length} ${t.filesAttached || 'fichier(s)'}` : (t.noAttachments || 'Aucune pièce jointe')}
+                          {files.length > 0 ? `${files.length} ${t.filesAttached}` : t.noAttachments}
                         </p>
                         {files.length > 0 && (
                           <div className="mt-1 space-y-0.5">

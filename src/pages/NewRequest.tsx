@@ -611,7 +611,7 @@ const NewRequest = () => {
               </motion.div>
             )}
 
-            {/* ──────── STEP 2: Resolution Level ──────── */}
+            {/* ──────── STEP 2: Resolution Level (side-by-side) ──────── */}
             {step === 2 && (
               <motion.div
                 key="step2"
@@ -619,16 +619,71 @@ const NewRequest = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: slideDirection * -100 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="flex flex-col items-center"
+                className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full"
               >
-                <OrbitalHub
-                  items={RESOLUTION_LEVELS}
-                  selectedKey={resolutionLevel}
-                  onSelect={handleResolutionSelect}
-                  centerLabel={t.selectLevel}
-                  labelFn={levelLabel}
-                  isSmall
-                />
+                {/* Resolution level cards — left side */}
+                <div className="order-2 lg:order-1 w-full max-w-sm space-y-3">
+                  <h3 className="text-base font-black futuristic-text-cyan text-center mb-4">{t.selectLevel || 'مستوى حل المشكل'}</h3>
+                  {RESOLUTION_LEVELS.map(level => {
+                    const Icon = level.icon;
+                    const isSelected = resolutionLevel === level.key;
+                    return (
+                      <motion.button
+                        key={level.key}
+                        onClick={() => handleResolutionSelect(level.key)}
+                        className="w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300"
+                        style={{
+                          background: isSelected ? `linear-gradient(135deg, ${level.color}20, ${level.color}10)` : 'hsl(210 30% 10%)',
+                          border: `2px solid ${isSelected ? level.color : 'hsl(210 20% 20%)'}`,
+                          boxShadow: isSelected ? `0 0 20px ${level.color}30, 0 0 40px ${level.color}15` : 'none',
+                        }}
+                        whileHover={{ scale: 1.03, borderColor: level.color }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        <div
+                          className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: isSelected ? level.color : `${level.color}30`,
+                            boxShadow: isSelected ? `0 0 15px ${level.color}50` : 'none',
+                          }}
+                        >
+                          <Icon className="w-5 h-5" style={{ color: isSelected ? 'white' : level.color }} />
+                        </div>
+                        <span
+                          className="text-sm font-bold"
+                          style={{
+                            color: isSelected ? level.color : 'hsl(210 15% 65%)',
+                            textShadow: isSelected ? `0 0 10px ${level.color}40` : 'none',
+                          }}
+                        >
+                          {levelLabel(level.key)}
+                        </span>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="mr-auto w-6 h-6 rounded-full flex items-center justify-center"
+                            style={{ background: level.color }}
+                          >
+                            <Check className="w-3.5 h-3.5 text-white" />
+                          </motion.div>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                {/* Orbital wheel — right side (small, showing selected category) */}
+                <div className="order-1 lg:order-2">
+                  <OrbitalHub
+                    items={CATEGORIES}
+                    selectedKey={category}
+                    onSelect={() => {}}
+                    centerLabel={t.selectCategory}
+                    labelFn={categoryLabel}
+                    isSmall
+                  />
+                </div>
               </motion.div>
             )}
 

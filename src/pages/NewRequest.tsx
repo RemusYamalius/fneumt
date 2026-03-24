@@ -442,7 +442,7 @@ const NewRequest = () => {
   const categoryLabel = (key: string) => t[`cat_${key}`] || key;
   const levelLabel = (key: string) => t[`level_${key}`] || key;
 
-  const slideDirection = dir === 'rtl' ? 1 : -1;
+  const slideDirection = dir === 'rtl' ? -1 : 1;
 
   // Step progress
   const stepLabels = [t.stepCategory, t.stepResolutionLevel, t.stepAttachments, t.stepReview];
@@ -621,8 +621,8 @@ const NewRequest = () => {
                 transition={{ duration: 0.5, ease: 'easeOut' }}
                 className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full"
               >
-                {/* Resolution level cards — left side */}
-                <div className="order-2 lg:order-1 w-full max-w-sm space-y-3">
+                {/* Resolution level cards — appears first on mobile */}
+                <div className="order-1 w-full max-w-sm space-y-3">
                   <h3 className="text-base font-black futuristic-text-cyan text-center mb-4">{t.selectLevel || 'مستوى حل المشكل'}</h3>
                   {RESOLUTION_LEVELS.map(level => {
                     const Icon = level.icon;
@@ -633,7 +633,7 @@ const NewRequest = () => {
                         onClick={() => handleResolutionSelect(level.key)}
                         className="w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300"
                         style={{
-                          background: isSelected ? `linear-gradient(135deg, ${level.color}20, ${level.color}10)` : 'hsl(210 30% 10%)',
+                          background: isSelected ? `linear-gradient(135deg, ${level.color}20, ${level.color}10)` : `linear-gradient(135deg, ${level.color}08, ${level.color}04)`,
                           border: `2px solid ${isSelected ? level.color : 'hsl(210 20% 20%)'}`,
                           boxShadow: isSelected ? `0 0 20px ${level.color}30, 0 0 40px ${level.color}15` : 'none',
                         }}
@@ -674,7 +674,7 @@ const NewRequest = () => {
                 </div>
 
                 {/* Orbital wheel — right side (small, showing selected category) */}
-                <div className="order-1 lg:order-2">
+                <div className="order-2">
                   <OrbitalHub
                     items={CATEGORIES}
                     selectedKey={category}
@@ -698,7 +698,7 @@ const NewRequest = () => {
                 className="max-w-lg mx-auto"
               >
                 <div className="futuristic-card p-6 sm:p-8 space-y-6">
-                  <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.attachDocuments}</h3>
+                   <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.attachDocuments || t.stepAttachments}</h3>
 
                   {/* Download form card */}
                   <div className="rounded-xl p-4 space-y-3" style={{ background: 'linear-gradient(135deg, hsl(220 40% 12%), hsl(230 35% 15%))', border: '1px solid hsl(220 60% 35% / 0.4)' }}>
@@ -717,7 +717,7 @@ const NewRequest = () => {
                       className="futuristic-btn-royal w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-white transition-all"
                     >
                       <Download className="w-4 h-4" />
-                      {t.downloadForm || 'تحميل الاستمارة'}
+                      {t.downloadFormButton}
                     </a>
                   </div>
 
@@ -728,8 +728,8 @@ const NewRequest = () => {
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <input ref={fileInputRef} type="file" className="hidden" multiple accept={ACCEPTED_TYPES.join(',')} onChange={e => handleFiles(e.target.files)} />
-                    <Upload className="w-10 h-10 mb-3 futuristic-text-cyan group-hover:scale-110 transition-transform" />
-                    <p className="text-sm font-bold futuristic-text-cyan mb-1">{t.dragOrClick}</p>
+                    <Upload className="w-12 h-12 mb-3 futuristic-text-cyan group-hover:scale-110 transition-transform" />
+                    <p className="text-sm font-bold futuristic-text-cyan mb-1">{t.clickToUpload || t.dropFiles}</p>
                     <p className="text-xs futuristic-text-muted">{t.maxFiles}</p>
                   </div>
 
@@ -758,7 +758,7 @@ const NewRequest = () => {
 
                   <div className="flex gap-3">
                     <Button onClick={() => setStep(4)} className="flex-1 futuristic-btn-primary">
-                      {files.length > 0 ? t.next : (t.skipAttachments || 'Continuer sans pièces jointes')}
+                      {files.length > 0 ? t.next : t.skipAttachments}
                       {dir === 'rtl' ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                     </Button>
                   </div>
@@ -782,11 +782,11 @@ const NewRequest = () => {
                   animate={{ rotateX: 0 }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
                 >
-                  <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.reviewRequest}</h3>
+                  <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.reviewRequest || t.stepReview}</h3>
 
                   <div className="space-y-4">
                     {/* Category */}
-                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'hsl(210 30% 10%)' }}>
+                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: `linear-gradient(135deg, ${CATEGORIES.find(c => c.key === category)?.color || 'hsl(210 15% 40%)'}12, ${CATEGORIES.find(c => c.key === category)?.color || 'hsl(210 15% 40%)'}06)` }}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: CATEGORIES.find(c => c.key === category)?.color || 'hsl(210 15% 40%)' }}>
                         {(() => { const cat = CATEGORIES.find(c => c.key === category); return cat ? <cat.icon className="w-4 h-4 text-white" /> : null; })()}
                       </div>
@@ -801,7 +801,7 @@ const NewRequest = () => {
 
                     {/* Resolution level */}
                     {resolutionLevel && (
-                      <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'hsl(210 30% 10%)' }}>
+                      <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: `linear-gradient(135deg, ${RESOLUTION_LEVELS.find(l => l.key === resolutionLevel)?.color || 'hsl(210 15% 40%)'}12, ${RESOLUTION_LEVELS.find(l => l.key === resolutionLevel)?.color || 'hsl(210 15% 40%)'}06)` }}>
                         <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: RESOLUTION_LEVELS.find(l => l.key === resolutionLevel)?.color || 'hsl(210 15% 40%)' }}>
                           {(() => { const lvl = RESOLUTION_LEVELS.find(l => l.key === resolutionLevel); return lvl ? <lvl.icon className="w-4 h-4 text-white" /> : null; })()}
                         </div>
@@ -813,14 +813,14 @@ const NewRequest = () => {
                     )}
 
                     {/* Attachments */}
-                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'hsl(210 30% 10%)' }}>
+                    <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'linear-gradient(135deg, hsl(190 80% 40% / 0.08), hsl(190 80% 40% / 0.03))' }}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'hsl(190 80% 40%)' }}>
                         <FileText className="w-4 h-4 text-white" />
                       </div>
                       <div>
                         <p className="text-xs futuristic-text-muted mb-0.5">{t.stepAttachments}</p>
                         <p className="text-sm font-bold" style={{ color: 'hsl(0 0% 90%)' }}>
-                          {files.length > 0 ? `${files.length} ${t.filesAttached || 'fichier(s)'}` : (t.noAttachments || 'Aucune pièce jointe')}
+                          {files.length > 0 ? `${files.length} ${t.filesAttached}` : t.noAttachments}
                         </p>
                         {files.length > 0 && (
                           <div className="mt-1 space-y-0.5">

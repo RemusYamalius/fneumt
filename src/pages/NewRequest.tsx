@@ -698,7 +698,7 @@ const NewRequest = () => {
                 className="max-w-lg mx-auto"
               >
                 <div className="futuristic-card p-6 sm:p-8 space-y-6">
-                  <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.attachDocuments}</h3>
+                   <h3 className="text-lg font-black futuristic-text-cyan text-center">{t.attachDocuments || t.stepAttachments}</h3>
 
                   {/* Download form card */}
                   <div className="rounded-xl p-4 space-y-3" style={{ background: 'linear-gradient(135deg, hsl(220 40% 12%), hsl(230 35% 15%))', border: '1px solid hsl(220 60% 35% / 0.4)' }}>

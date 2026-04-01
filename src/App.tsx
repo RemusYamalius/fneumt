@@ -65,6 +65,7 @@ const App = () => (
               <Route path="/join-requests" element={<RoleGuard allowedRoles={['admin', 'national_secretary', 'deputy_national_secretary', 'deputy_local_primary', 'deputy_local_middle', 'deputy_local_high']}><JoinRequests /></RoleGuard>} />
               <Route path="/local-office" element={<RoleGuard allowedRoles={['local_coordinator']}><LocalOffice /></RoleGuard>} />
               <Route path="/database" element={<RoleGuard allowedRoles={['admin', 'national_secretary', 'deputy_national_secretary']}><DatabaseDashboard /></RoleGuard>} />
+              <Route path="/quick-filter" element={<RoleGuard allowedRoles={['admin', 'national_secretary', 'deputy_national_secretary']}><QuickFilter /></RoleGuard>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

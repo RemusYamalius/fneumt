@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database, MessageSquare, Newspaper, Megaphone } from 'lucide-react';
+import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database, MessageSquare, Newspaper, Megaphone, Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -141,6 +141,7 @@ const Dashboard = () => {
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
     ...(isLocalCoordinator ? [{ icon: Building2, title: t.localOffice, desc: t.localOfficeDesc, to: '/local-office', color: 'from-[hsl(45,80%,45%)] to-[hsl(45,80%,58%)]' }] : []),
     ...(isAdminLike ? [{ icon: Database, title: t.databaseTitle, desc: t.databaseDesc, to: '/database', color: 'from-[hsl(180,60%,35%)] to-[hsl(195,70%,50%)]' }] : []),
+    ...(isAdminLike ? [{ icon: Map, title: lang === 'ar' ? 'فلتر سريع' : 'Filtre rapide', desc: lang === 'ar' ? 'استعراض تفاعلي بالخارطة' : 'Exploration interactive par carte', to: '/quick-filter', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]' }] : []),
   ];
 
   const communicationCards = [

@@ -23,6 +23,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import SupervisorDashboard from "./pages/SupervisorDashboard";
 import Profile from "./pages/Profile";
 import MembershipVerification from "./pages/MembershipVerification";
+import QuickFilter from "./pages/QuickFilter";
 import JoinRequests from "./pages/JoinRequests";
 import RoleGuard from "./components/RoleGuard";
 import NotFound from "./pages/NotFound";

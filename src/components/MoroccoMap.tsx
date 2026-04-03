@@ -281,8 +281,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                       <path
                         key="region-bg"
                         d={regionPath(f as Feature<Geometry>) || ''}
-                        fill="hsl(225, 40%, 15%)"
-                        stroke="hsl(225, 60%, 40%)"
+                        fill="#BDD8E9"
+                        stroke="#0A4174"
                         strokeWidth={2}
                       />
                     ))

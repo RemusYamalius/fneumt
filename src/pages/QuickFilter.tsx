@@ -191,6 +191,15 @@ const QuickFilter = () => {
               onRegionSelect={(r) => { setSelectedRegion(r); setSelectedDirectorate(null); }}
               selectedRegion={selectedRegion}
               regionStats={regionStats}
+              onProvinceSelect={(prov) => {
+                if (prov) {
+                  // Match province name to a directorate
+                  const match = directorates.find(d => prov.includes(d) || d.includes(prov));
+                  setSelectedDirectorate(match || prov);
+                } else {
+                  setSelectedDirectorate(null);
+                }
+              }}
             />
           </motion.div>
 

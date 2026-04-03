@@ -174,8 +174,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                   <g key={geoId || index}>
                     <motion.path
                       d={d}
-                      fill={isSelected ? 'hsl(225, 80%, 55%)' : isHovered ? 'hsl(225, 70%, 50%)' : baseColor}
-                      stroke={isSelected ? 'hsl(225, 90%, 70%)' : 'hsl(225, 30%, 85%)'}
+                      fill={isSelected ? '#0A4174' : isHovered ? '#49769F' : baseColor}
+                      stroke={isSelected ? '#7BBDE8' : '#BDD8E9'}
                       strokeWidth={isSelected ? 2.5 : isHovered ? 2 : 0.8}
                       className="cursor-pointer"
                       style={{ filter: isSelected ? 'url(#glow)' : 'none' }}
@@ -208,13 +208,13 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                         <rect
                           x={center[0] - 50} y={center[1] + 14}
                           width={100} height={36} rx={8}
-                          fill="hsl(225, 50%, 12%)" fillOpacity={0.92}
-                          stroke="hsl(225, 60%, 45%)" strokeWidth={0.5}
+                          fill="#001D39" fillOpacity={0.92}
+                          stroke="#49769F" strokeWidth={0.5}
                         />
-                        <text x={center[0]} y={center[1] + 28} textAnchor="middle" fill="hsl(225, 80%, 80%)" fontSize={8}>
+                        <text x={center[0]} y={center[1] + 28} textAnchor="middle" fill="#7BBDE8" fontSize={8}>
                           {lang === 'ar' ? `${stats.total} مسجل` : `${stats.total} inscrits`}
                         </text>
-                        <text x={center[0]} y={center[1] + 42} textAnchor="middle" fill="hsl(140, 60%, 65%)" fontSize={7.5}>
+                        <text x={center[0]} y={center[1] + 42} textAnchor="middle" fill="#6EA2B3" fontSize={7.5}>
                           {lang === 'ar' ? `${stats.members} منخرط` : `${stats.members} adhérents`}
                         </text>
                       </g>
@@ -238,12 +238,12 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
             <div className="flex items-center gap-2 mb-2 px-1">
               <button
                 onClick={handleBack}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/30 hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-all text-xs font-medium"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0A4174] hover:bg-[#001D39] text-white transition-all text-xs font-medium shadow-md"
               >
                 <BackIcon className="w-3.5 h-3.5" />
                 {lang === 'ar' ? 'رجوع' : 'Retour'}
               </button>
-              <span className="text-sm font-bold text-foreground">
+              <span className="text-sm font-bold text-[#001D39]">
                 {selectedRegion && (lang === 'ar' ? selectedRegion.nameAr : selectedRegion.nameFr)}
               </span>
             </div>
@@ -281,8 +281,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                       <path
                         key="region-bg"
                         d={regionPath(f as Feature<Geometry>) || ''}
-                        fill="hsl(225, 40%, 15%)"
-                        stroke="hsl(225, 60%, 40%)"
+                        fill="#BDD8E9"
+                        stroke="#0A4174"
                         strokeWidth={2}
                       />
                     ))
@@ -301,8 +301,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                       <g key={name || i}>
                         <motion.path
                           d={d}
-                          fill={isHovered ? 'hsl(225, 75%, 55%)' : provinceColor}
-                          stroke="hsl(225, 50%, 75%)"
+                          fill={isHovered ? '#0A4174' : provinceColor}
+                          stroke="#BDD8E9"
                           strokeWidth={isHovered ? 2 : 0.8}
                           className="cursor-pointer"
                           style={{ filter: isHovered ? 'url(#province-glow)' : 'none' }}
@@ -324,7 +324,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                             textAnchor="middle"
                             dominantBaseline="middle"
                             className="pointer-events-none select-none"
-                            fill="white"
+                            fill="#001D39"
                             fontSize={isHovered ? 10 : 7}
                             fontWeight={isHovered ? 700 : 400}
                             opacity={isHovered ? 1 : 0.7}

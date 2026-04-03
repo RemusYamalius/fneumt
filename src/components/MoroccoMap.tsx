@@ -238,12 +238,12 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
             <div className="flex items-center gap-2 mb-2 px-1">
               <button
                 onClick={handleBack}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/30 hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-all text-xs font-medium"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0A4174] hover:bg-[#001D39] text-white transition-all text-xs font-medium shadow-md"
               >
                 <BackIcon className="w-3.5 h-3.5" />
                 {lang === 'ar' ? 'رجوع' : 'Retour'}
               </button>
-              <span className="text-sm font-bold text-foreground">
+              <span className="text-sm font-bold text-[#001D39]">
                 {selectedRegion && (lang === 'ar' ? selectedRegion.nameAr : selectedRegion.nameFr)}
               </span>
             </div>

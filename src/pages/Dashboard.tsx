@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database, MessageSquare, Newspaper, Megaphone, Map } from 'lucide-react';
+import { FilePlus, Search, User, Shield, Inbox, BarChart3, ChevronDown, Briefcase, UserCircle, UserCheck, UserPlus, Clock, Eye, Loader2, CheckCircle2, XCircle, FileText, Copy, ArrowUpDown, Filter, Building2, Database, MessageSquare, Newspaper, Megaphone, Map, ArrowLeft, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -141,7 +141,6 @@ const Dashboard = () => {
     ...(showUserManagement ? [{ icon: Shield, title: t.userManagement, desc: t.userManagementDesc, to: '/admin/users', color: cardColors.userManagement }] : []),
     ...(isLocalCoordinator ? [{ icon: Building2, title: t.localOffice, desc: t.localOfficeDesc, to: '/local-office', color: 'from-[hsl(45,80%,45%)] to-[hsl(45,80%,58%)]' }] : []),
     ...(isAdminLike ? [{ icon: Database, title: t.databaseTitle, desc: t.databaseDesc, to: '/database', color: 'from-[hsl(180,60%,35%)] to-[hsl(195,70%,50%)]' }] : []),
-    ...(isAdminLike ? [{ icon: Map, title: lang === 'ar' ? 'فلتر سريع' : 'Filtre rapide', desc: lang === 'ar' ? 'استعراض تفاعلي بالخارطة' : 'Exploration interactive par carte', to: '/quick-filter', color: 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]' }] : []),
   ];
 
   const communicationCards = [
@@ -360,6 +359,34 @@ const Dashboard = () => {
         {/* Grouped layout for promoter roles */}
         {isPromoterRole ? (
           <div className="space-y-5 mb-10">
+            {/* Standalone Quick Filter card for supreme accounts */}
+            {isAdminLike && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Link
+                  to="/quick-filter"
+                  className="group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 block shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-[hsl(225,70%,45%)] to-[hsl(225,80%,30%)] opacity-[0.12] group-hover:opacity-[0.18] transition-opacity duration-300" />
+                  <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-primary/5 -translate-y-1/2 translate-x-1/4" />
+                  <div className="relative z-10 flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[hsl(225,70%,45%)] to-[hsl(225,80%,30%)] flex items-center justify-center shadow-md">
+                      <Map className="w-7 h-7 text-white" />
+                    </div>
+                    <div className="text-start flex-1">
+                      <h2 className="text-xl font-bold text-foreground">{lang === 'ar' ? 'فلتر سريع' : 'Filtre rapide'}</h2>
+                      <p className="text-sm text-muted-foreground">{lang === 'ar' ? 'استعراض تفاعلي بالخارطة حسب الجهات والأقاليم' : 'Exploration interactive par carte — régions et provinces'}</p>
+                    </div>
+                    <div className="shrink-0">
+                      {dir === 'rtl' ? <ArrowLeft className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" /> : <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />}
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            )}
             {renderGroupCard('personal', UserCircle, t.personalSection, personalCards, 'from-[hsl(207,62%,40%)] to-[hsl(120,61%,34%)]')}
             {professionalCards.length > 0 && renderGroupCard('professional', Briefcase, t.professionalSection, professionalCards, 'from-[hsl(260,60%,50%)] to-[hsl(340,65%,47%)]')}
             {renderGroupCard('communication', MessageSquare, lang === 'ar' ? 'ركن التواصل' : 'Espace Communication', communicationCards, 'from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)]')}

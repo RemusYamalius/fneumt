@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import MoroccoMap from '@/components/MoroccoMap';
 import OrbitalStats, { buildRegionStats } from '@/components/OrbitalStats';
-import { MOROCCO_REGIONS, type RegionData } from '@/lib/morocco-regions';
+import { type RegionMapping } from '@/lib/morocco-regions';
 import { ACADEMIES } from '@/lib/academies-data';
 import { Button } from '@/components/ui/button';
 
@@ -17,7 +17,7 @@ const QuickFilter = () => {
   const { t, dir, lang } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [selectedRegion, setSelectedRegion] = useState<RegionData | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<RegionMapping | null>(null);
   const [selectedDirectorate, setSelectedDirectorate] = useState<string | null>(null);
 
   // Fetch all profiles for stats
@@ -99,10 +99,6 @@ const QuickFilter = () => {
       ? (p: any) => p.academy === academyLabel && p.directorate === selectedDirectorate
       : (p: any) => p.academy === academyLabel;
 
-    const filteredProfiles = profiles.filter(filterFn);
-    const filteredUserIds = new Set(filteredProfiles.map(p => (p as any).user_id));
-
-    // We don't have user_id on profiles list, use profile-level filtering
     const regionProfiles = profiles.filter(filterFn);
 
     const filteredRequests = requests.filter(r => {

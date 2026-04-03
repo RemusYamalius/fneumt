@@ -85,18 +85,18 @@ export const REGION_MAPPINGS: RegionMapping[] = [
 
 // Color palette for regions (royal blue shades)
 export const REGION_COLORS = [
-  'hsl(225, 70%, 45%)',
-  'hsl(225, 65%, 50%)',
-  'hsl(220, 70%, 42%)',
-  'hsl(230, 65%, 48%)',
-  'hsl(225, 60%, 52%)',
-  'hsl(220, 75%, 40%)',
-  'hsl(228, 68%, 46%)',
-  'hsl(222, 72%, 44%)',
-  'hsl(226, 62%, 50%)',
-  'hsl(218, 70%, 43%)',
-  'hsl(232, 65%, 47%)',
-  'hsl(224, 68%, 42%)',
+  '#001D39',
+  '#0A4174',
+  '#49769F',
+  '#4E8EA2',
+  '#6EA2B3',
+  '#7BBDE8',
+  '#0A4174',
+  '#49769F',
+  '#001D39',
+  '#4E8EA2',
+  '#6EA2B3',
+  '#7BBDE8',
 ];
 
 // Helper to find mapping by GeoJSON feature id

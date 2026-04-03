@@ -178,14 +178,14 @@ const QuickFilter = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[600px]">
           {/* Map Section */}
           <motion.div
-            className="relative rounded-3xl overflow-hidden border border-primary/10 bg-gradient-to-br from-[hsl(225,40%,8%)] to-[hsl(225,50%,12%)] p-4 shadow-2xl"
+            className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl"
             initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
             {/* Decorative glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-[#7BBDE8]/20 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#49769F]/10 rounded-full blur-2xl" />
 
             <MoroccoMap
               onRegionSelect={(r) => { setSelectedRegion(r); setSelectedDirectorate(null); }}
@@ -193,7 +193,6 @@ const QuickFilter = () => {
               regionStats={regionStats}
               onProvinceSelect={(prov) => {
                 if (prov) {
-                  // Match province name to a directorate
                   const match = directorates.find(d => prov.includes(d) || d.includes(prov));
                   setSelectedDirectorate(match || prov);
                 } else {

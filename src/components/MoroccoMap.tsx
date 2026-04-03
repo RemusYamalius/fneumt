@@ -208,13 +208,13 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                         <rect
                           x={center[0] - 50} y={center[1] + 14}
                           width={100} height={36} rx={8}
-                          fill="hsl(225, 50%, 12%)" fillOpacity={0.92}
-                          stroke="hsl(225, 60%, 45%)" strokeWidth={0.5}
+                          fill="#001D39" fillOpacity={0.92}
+                          stroke="#49769F" strokeWidth={0.5}
                         />
-                        <text x={center[0]} y={center[1] + 28} textAnchor="middle" fill="hsl(225, 80%, 80%)" fontSize={8}>
+                        <text x={center[0]} y={center[1] + 28} textAnchor="middle" fill="#7BBDE8" fontSize={8}>
                           {lang === 'ar' ? `${stats.total} مسجل` : `${stats.total} inscrits`}
                         </text>
-                        <text x={center[0]} y={center[1] + 42} textAnchor="middle" fill="hsl(140, 60%, 65%)" fontSize={7.5}>
+                        <text x={center[0]} y={center[1] + 42} textAnchor="middle" fill="#6EA2B3" fontSize={7.5}>
                           {lang === 'ar' ? `${stats.members} منخرط` : `${stats.members} adhérents`}
                         </text>
                       </g>

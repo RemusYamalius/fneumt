@@ -301,8 +301,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                       <g key={name || i}>
                         <motion.path
                           d={d}
-                          fill={isHovered ? 'hsl(225, 75%, 55%)' : provinceColor}
-                          stroke="hsl(225, 50%, 75%)"
+                          fill={isHovered ? '#0A4174' : provinceColor}
+                          stroke="#BDD8E9"
                           strokeWidth={isHovered ? 2 : 0.8}
                           className="cursor-pointer"
                           style={{ filter: isHovered ? 'url(#province-glow)' : 'none' }}

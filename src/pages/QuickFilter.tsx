@@ -1,17 +1,18 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Map, RotateCcw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import MoroccoMap from '@/components/MoroccoMap';
-import OrbitalStats, { buildRegionStats } from '@/components/OrbitalStats';
+import OrbitalFilter, { type OrbitalFilterValues } from '@/components/OrbitalFilter';
 import { type RegionMapping } from '@/lib/morocco-regions';
 import { ACADEMIES } from '@/lib/academies-data';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const QuickFilter = () => {
   const { t, dir, lang } = useI18n();
@@ -52,16 +53,6 @@ const QuickFilter = () => {
     staleTime: 60_000,
   });
 
-  // Fetch local offices
-  const { data: offices } = useQuery({
-    queryKey: ['quick-filter-offices'],
-    queryFn: async () => {
-      const { data } = await supabase.from('local_offices').select('id, academy, directorate');
-      return data || [];
-    },
-    staleTime: 60_000,
-  });
-
   // Build per-academy stats for map
   const regionStats = useMemo(() => {
     if (!profiles || !requests || !userProfileMap) return {};
@@ -88,51 +79,36 @@ const QuickFilter = () => {
     return stats;
   }, [profiles, requests, userProfileMap]);
 
-  // Build stats for selected region or directorate
-  const selectedStats = useMemo(() => {
-    if (!profiles || !requests || !userProfileMap || !offices) return null;
-
-    const academyLabel = selectedRegion?.academyLabel;
-    if (!academyLabel) return null;
-
-    const filterFn = selectedDirectorate
-      ? (p: any) => p.academy === academyLabel && p.directorate === selectedDirectorate
-      : (p: any) => p.academy === academyLabel;
-
-    const regionProfiles = profiles.filter(filterFn);
-
-    const filteredRequests = requests.filter(r => {
-      const profile = userProfileMap[r.user_id];
-      if (!profile) return false;
-      return selectedDirectorate
-        ? profile.academy === academyLabel && profile.directorate === selectedDirectorate
-        : profile.academy === academyLabel;
-    });
-
-    const filteredOffices = offices.filter(o =>
-      selectedDirectorate
-        ? o.academy === academyLabel && o.directorate === selectedDirectorate
-        : o.academy === academyLabel
-    );
-
-    return buildRegionStats({
-      totalUsers: regionProfiles.length,
-      members: regionProfiles.filter(p => p.is_member).length,
-      nonMembers: regionProfiles.filter(p => !p.is_member).length,
-      totalRequests: filteredRequests.length,
-      submittedRequests: filteredRequests.filter(r => r.status === 'submitted').length,
-      acceptedRequests: filteredRequests.filter(r => r.status === 'accepted').length,
-      cancelledRequests: filteredRequests.filter(r => r.status === 'cancelled').length,
-      totalOffices: filteredOffices.length,
-    });
-  }, [profiles, requests, userProfileMap, offices, selectedRegion, selectedDirectorate]);
-
   // Get directorates for selected region
   const directorates = useMemo(() => {
     if (!selectedRegion) return [];
     const academy = ACADEMIES.find(a => a.label === selectedRegion.academyLabel);
     return academy?.directorates || [];
   }, [selectedRegion]);
+
+  const handleSearch = (filters: OrbitalFilterValues) => {
+    // Build query params and navigate to database dashboard
+    const params = new URLSearchParams();
+    if (filters.academy) params.set('academy', filters.academy);
+    if (filters.directorate) params.set('directorate', filters.directorate);
+    if (filters.institution) params.set('institution', filters.institution);
+    if (filters.gender !== 'all') params.set('gender', filters.gender);
+    if (filters.mission) params.set('mission', filters.mission);
+    if (filters.ageMin) params.set('ageMin', filters.ageMin);
+    if (filters.ageMax) params.set('ageMax', filters.ageMax);
+    if (filters.membership !== 'all') params.set('membership', filters.membership);
+    if (filters.ppr) params.set('ppr', filters.ppr);
+    if (filters.phone) params.set('phone', filters.phone);
+    params.set('mode', filters.mode);
+
+    const queryStr = params.toString();
+    if (!queryStr || queryStr === 'mode=users') {
+      toast.info(lang === 'ar' ? 'اختر فلتراً واحداً على الأقل' : 'Sélectionnez au moins un filtre');
+      return;
+    }
+
+    navigate(`/database?${queryStr}`);
+  };
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
@@ -149,7 +125,7 @@ const QuickFilter = () => {
             <BackIcon className="w-5 h-5 text-muted-foreground" />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(225,70%,45%)] to-[hsl(225,80%,35%)] flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0A4174] to-[#001D39] flex items-center justify-center shadow-md">
               <Map className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -183,7 +159,6 @@ const QuickFilter = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Decorative glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-[#7BBDE8]/20 rounded-full blur-3xl" />
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#49769F]/10 rounded-full blur-2xl" />
 
@@ -202,72 +177,18 @@ const QuickFilter = () => {
             />
           </motion.div>
 
-          {/* Stats Section */}
+          {/* Orbital Filter Section */}
           <motion.div
             className="rounded-3xl overflow-hidden border border-primary/10 bg-card/50 backdrop-blur-xl shadow-2xl flex flex-col"
             initial={{ opacity: 0, x: dir === 'rtl' ? -30 : 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            {/* Directorate selector when region is selected */}
-            <AnimatePresence>
-              {selectedRegion && directorates.length > 0 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="border-b border-border/50 overflow-hidden"
-                >
-                  <div className="p-4">
-                    <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
-                      {lang === 'ar' ? 'الأقاليم' : 'Provinces'}
-                    </h4>
-                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto scrollbar-hide">
-                      <button
-                        onClick={() => setSelectedDirectorate(null)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                          !selectedDirectorate
-                            ? 'bg-primary text-primary-foreground shadow-md'
-                            : 'bg-accent/50 text-muted-foreground hover:bg-accent'
-                        }`}
-                      >
-                        {lang === 'ar' ? 'الكل' : 'Toutes'}
-                      </button>
-                      {directorates.map(d => (
-                        <button
-                          key={d}
-                          onClick={() => setSelectedDirectorate(selectedDirectorate === d ? null : d)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                            selectedDirectorate === d
-                              ? 'bg-primary text-primary-foreground shadow-md'
-                              : 'bg-accent/50 text-muted-foreground hover:bg-accent'
-                          }`}
-                        >
-                          {d}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Orbital Stats */}
-            <div className="flex-1 p-6 min-h-[400px]">
-              <OrbitalStats
-                stats={selectedStats || []}
-                title={
-                  selectedRegion
-                    ? selectedDirectorate || (lang === 'ar' ? selectedRegion.nameAr : selectedRegion.nameFr)
-                    : lang === 'ar' ? 'اختر جهة من الخارطة' : 'Sélectionnez une région'
-                }
-                subtitle={
-                  selectedRegion && selectedDirectorate
-                    ? lang === 'ar' ? selectedRegion.nameAr : selectedRegion.nameFr
-                    : undefined
-                }
-              />
-            </div>
+            <OrbitalFilter
+              selectedAcademy={selectedRegion?.academyLabel || null}
+              selectedDirectorate={selectedDirectorate}
+              onSearch={handleSearch}
+            />
           </motion.div>
         </div>
       </main>

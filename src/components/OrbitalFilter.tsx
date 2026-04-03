@@ -1,40 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useClickSound } from '@/hooks/useClickSound';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, RotateCcw, Users, Building2 } from 'lucide-react';
 import { ACADEMIES } from '@/lib/academies-data';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
-// Ring colors from palette
-const RING_COLORS = [
-  '#0A4174', // 1 - Academy
-  '#49769F', // 2 - Directorate
-  '#4E8EA2', // 3 - Institution
-  '#6EA2B3', // 4 - Gender
-  '#7BBDE8', // 5 - Mission
-  '#001D39', // 6 - Age
-  '#0A4174', // 7 - Membership
-  '#49769F', // 8 - PPR
-  '#4E8EA2', // 9 - Phone
-];
-
-const MISSIONS = [
-  'أستاذ(ة) التعليم الابتدائي',
-  'أستاذ(ة) التعليم الثانوي الإعدادي',
-  'أستاذ(ة) التعليم الثانوي التأهيلي',
-  'أستاذ(ة) مبرز(ة)',
-  'ملحق(ة) تربوي',
-  'ملحق(ة) إداري',
-  'مدير(ة)',
-  'حارس(ة) عام(ة)',
-  'مفتش(ة)',
-  'تقني',
-  'مساعد(ة) تقني',
-];
-
+// ─── Types ──────────────────────────────────────────────
 export interface OrbitalFilterValues {
   mode: 'users' | 'offices';
   academy: string | null;
@@ -55,29 +29,220 @@ interface OrbitalFilterProps {
   onSearch: (filters: OrbitalFilterValues) => void;
 }
 
-interface FilterRing {
-  id: string;
-  labelAr: string;
-  labelFr: string;
-  index: number;
-}
-
-const FILTER_RINGS: FilterRing[] = [
-  { id: 'academy', labelAr: 'الأكاديمية', labelFr: 'Académie', index: 0 },
-  { id: 'directorate', labelAr: 'المديرية', labelFr: 'Direction', index: 1 },
-  { id: 'institution', labelAr: 'المؤسسة', labelFr: 'Établissement', index: 2 },
-  { id: 'gender', labelAr: 'النوع', labelFr: 'Genre', index: 3 },
-  { id: 'mission', labelAr: 'الإطار', labelFr: 'Mission', index: 4 },
-  { id: 'age', labelAr: 'العمر', labelFr: 'Âge', index: 5 },
-  { id: 'membership', labelAr: 'الانخراط', labelFr: 'Adhésion', index: 6 },
-  { id: 'ppr', labelAr: 'ر.التأجير', labelFr: 'N°PPR', index: 7 },
-  { id: 'phone', labelAr: 'الهاتف', labelFr: 'Téléphone', index: 8 },
+// ─── Constants ──────────────────────────────────────────
+const MISSIONS = [
+  'أستاذ(ة) التعليم الابتدائي',
+  'أستاذ(ة) التعليم الثانوي الإعدادي',
+  'أستاذ(ة) التعليم الثانوي التأهيلي',
+  'أستاذ(ة) مبرز(ة)',
+  'ملحق(ة) تربوي',
+  'ملحق(ة) إداري',
+  'مدير(ة)',
+  'حارس(ة) عام(ة)',
+  'مفتش(ة)',
+  'تقني',
+  'مساعد(ة) تقني',
 ];
 
+const GENDER_OPTIONS = [
+  { val: 'all' as const, ar: 'الكل', fr: 'Tous' },
+  { val: 'male' as const, ar: 'ذكر', fr: 'M' },
+  { val: 'female' as const, ar: 'أنثى', fr: 'F' },
+];
+
+const MEMBERSHIP_OPTIONS = [
+  { val: 'all' as const, ar: 'الكل', fr: 'Tous' },
+  { val: 'member' as const, ar: 'منخرط', fr: 'Membre' },
+  { val: 'non_member' as const, ar: 'غير منخرط', fr: 'Non' },
+  { val: 'pending' as const, ar: 'قيد التحقق', fr: 'Attente' },
+];
+
+// Color palettes per ring (inspired by color wheel)
+const GENDER_COLORS = ['#C77EB5', '#8E6BAF', '#E8A0BF'];
+const MEMBERSHIP_COLORS = ['#4A6FA5', '#6B9BC3', '#2C4A7C', '#89B4D4'];
+const MISSION_COLORS = [
+  '#2D8B6F', '#3A9E7E', '#48B08D', '#56C29C', '#64D4AB',
+  '#4ABFAD', '#3DADAA', '#2F9BA7', '#2189A4', '#1477A1',
+  '#07659E',
+];
+const ACADEMY_COLORS = [
+  '#E74C3C', '#E67E22', '#F1C40F', '#F39C12', '#D4AC0D',
+  '#E8B739', '#C0392B', '#D35400', '#E57E22', '#F4A62A',
+  '#E88B30', '#D97538',
+];
+
+// ─── SVG Arc Helpers ────────────────────────────────────
+function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function describeArc(
+  cx: number, cy: number,
+  innerR: number, outerR: number,
+  startAngle: number, endAngle: number
+): string {
+  const gap = 1.5; // gap in degrees between segments
+  const s = startAngle + gap / 2;
+  const e = endAngle - gap / 2;
+  if (e <= s) return '';
+
+  const outerStart = polarToCartesian(cx, cy, outerR, s);
+  const outerEnd = polarToCartesian(cx, cy, outerR, e);
+  const innerStart = polarToCartesian(cx, cy, innerR, e);
+  const innerEnd = polarToCartesian(cx, cy, innerR, s);
+
+  const largeArc = e - s > 180 ? 1 : 0;
+
+  return [
+    `M ${outerStart.x} ${outerStart.y}`,
+    `A ${outerR} ${outerR} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}`,
+    `L ${innerStart.x} ${innerStart.y}`,
+    `A ${innerR} ${innerR} 0 ${largeArc} 0 ${innerEnd.x} ${innerEnd.y}`,
+    'Z',
+  ].join(' ');
+}
+
+function labelPosition(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
+  const mid = (startAngle + endAngle) / 2;
+  return polarToCartesian(cx, cy, r, mid);
+}
+
+// ─── Arc Segment Component ──────────────────────────────
+interface ArcSegmentProps {
+  cx: number; cy: number;
+  innerR: number; outerR: number;
+  startAngle: number; endAngle: number;
+  color: string;
+  selected: boolean;
+  label: string;
+  onClick: () => void;
+}
+
+const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selected, label, onClick }: ArcSegmentProps) => {
+  const d = describeArc(cx, cy, innerR, outerR, startAngle, endAngle);
+  const midR = (innerR + outerR) / 2;
+  const pos = labelPosition(cx, cy, midR, startAngle, endAngle);
+  const angleDeg = endAngle - startAngle;
+  const showLabel = angleDeg > 18;
+
+  // Truncate label for display
+  const displayLabel = label.length > 8 ? label.slice(0, 7) + '…' : label;
+
+  // Compute font size based on segment size
+  const segWidth = outerR - innerR;
+  const fontSize = Math.max(5, Math.min(8, segWidth * 0.22));
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <g className="cursor-pointer" onClick={onClick}>
+            <path
+              d={d}
+              fill={selected ? color : `${color}99`}
+              stroke={selected ? '#fff' : `${color}CC`}
+              strokeWidth={selected ? 2 : 0.5}
+              className="transition-all duration-200"
+              style={{
+                filter: selected ? 'brightness(1.1) drop-shadow(0 0 4px rgba(0,0,0,0.3))' : 'none',
+              }}
+            />
+            <path
+              d={d}
+              fill="transparent"
+              className="hover:fill-white/20 transition-colors duration-150"
+            />
+            {showLabel && (
+              <text
+                x={pos.x}
+                y={pos.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill={selected ? '#fff' : '#1a1a1a'}
+                fontSize={fontSize}
+                fontWeight={selected ? 700 : 500}
+                className="pointer-events-none select-none"
+                style={{ textShadow: selected ? '0 1px 2px rgba(0,0,0,0.3)' : 'none' }}
+              >
+                {displayLabel}
+              </text>
+            )}
+          </g>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs z-50 max-w-[200px]">
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+// ─── Ring Component ─────────────────────────────────────
+interface RingData {
+  items: { label: string; value: string }[];
+  colors: string[];
+  innerR: number;
+  outerR: number;
+  selected: string | null;
+  onSelect: (val: string | null) => void;
+  rotationDir: 1 | -1;
+  speed: number;
+}
+
+const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotationDir, speed }: RingData & { cx: number; cy: number }) => {
+  const [hovered, setHovered] = useState(false);
+  const cx = 250;
+  const cy = 250;
+  const anglePerItem = 360 / items.length;
+  const playClick = useClickSound();
+
+  return (
+    <motion.g
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      animate={{ rotate: hovered ? 0 : rotationDir * 360 }}
+      transition={{
+        duration: speed,
+        repeat: Infinity,
+        ease: 'linear',
+        ...(hovered ? { duration: 0.3 } : {}),
+      }}
+      style={{ transformOrigin: `${cx}px ${cy}px` }}
+    >
+      {items.map((item, i) => {
+        const startAngle = i * anglePerItem;
+        const endAngle = startAngle + anglePerItem;
+        const isSelected = selected === item.value;
+        const color = colors[i % colors.length];
+
+        return (
+          <ArcSegment
+            key={item.value}
+            cx={cx}
+            cy={cy}
+            innerR={innerR}
+            outerR={outerR}
+            startAngle={startAngle}
+            endAngle={endAngle}
+            color={color}
+            selected={isSelected}
+            label={item.label}
+            onClick={() => {
+              playClick();
+              onSelect(isSelected ? null : item.value);
+            }}
+          />
+        );
+      })}
+    </motion.g>
+  );
+};
+
+// ─── Main Component ─────────────────────────────────────
 const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: OrbitalFilterProps) => {
   const { lang } = useI18n();
   const playClick = useClickSound();
-  const [openPopover, setOpenPopover] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<OrbitalFilterValues>({
     mode: 'users',
@@ -106,9 +271,46 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
     }
   }, [selectedDirectorate]);
 
-  const directorates = filters.academy
-    ? ACADEMIES.find(a => a.label === filters.academy)?.directorates || []
-    : [];
+  const directorates = useMemo(() => {
+    if (!filters.academy) return [];
+    return ACADEMIES.find(a => a.label === filters.academy)?.directorates || [];
+  }, [filters.academy]);
+
+  // Build ring data
+  const genderItems = GENDER_OPTIONS.map(o => ({
+    label: lang === 'ar' ? o.ar : o.fr,
+    value: o.val,
+  }));
+
+  const membershipItems = MEMBERSHIP_OPTIONS.map(o => ({
+    label: lang === 'ar' ? o.ar : o.fr,
+    value: o.val,
+  }));
+
+  const missionItems = MISSIONS.map(m => ({
+    label: m,
+    value: m,
+  }));
+
+  const academyItems = ACADEMIES.map(a => ({
+    label: a.label.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', ''),
+    value: a.label,
+  }));
+
+  const directorateItems = directorates.map(d => ({
+    label: d,
+    value: d,
+  }));
+
+  // Generate dynamic colors for directorates
+  const dirColors = useMemo(() => {
+    return directorates.map((_, i) => {
+      const hue = 25 + (i * 15) % 50; // earthy browns/oranges
+      const sat = 40 + (i * 5) % 30;
+      const light = 40 + (i * 4) % 25;
+      return `hsl(${hue}, ${sat}%, ${light}%)`;
+    });
+  }, [directorates]);
 
   const handleReset = () => {
     playClick();
@@ -127,333 +329,270 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
     });
   };
 
-  const hasActiveFilter = (id: string): boolean => {
-    switch (id) {
-      case 'academy': return !!filters.academy;
-      case 'directorate': return !!filters.directorate;
-      case 'institution': return !!filters.institution;
-      case 'gender': return filters.gender !== 'all';
-      case 'mission': return !!filters.mission;
-      case 'age': return !!filters.ageMin || !!filters.ageMax;
-      case 'membership': return filters.membership !== 'all';
-      case 'ppr': return !!filters.ppr;
-      case 'phone': return !!filters.phone;
-      default: return false;
-    }
-  };
+  const cx = 250;
+  const cy = 250;
+  const size = 500;
 
-  const getFilterSummary = (id: string): string => {
-    switch (id) {
-      case 'academy': return filters.academy ? (lang === 'ar' ? filters.academy.slice(0, 20) + '…' : filters.academy.slice(0, 20) + '…') : '';
-      case 'directorate': return filters.directorate || '';
-      case 'institution': return filters.institution;
-      case 'gender':
-        if (filters.gender === 'male') return lang === 'ar' ? 'ذكر' : 'M';
-        if (filters.gender === 'female') return lang === 'ar' ? 'أنثى' : 'F';
-        return '';
-      case 'mission': return filters.mission ? (filters.mission.slice(0, 15) + '…') : '';
-      case 'age':
-        if (filters.ageMin && filters.ageMax) return `${filters.ageMin}-${filters.ageMax}`;
-        if (filters.ageMin) return `>${filters.ageMin}`;
-        if (filters.ageMax) return `<${filters.ageMax}`;
-        return '';
-      case 'membership':
-        if (filters.membership === 'member') return lang === 'ar' ? 'منخرط' : 'Membre';
-        if (filters.membership === 'non_member') return lang === 'ar' ? 'غير منخرط' : 'Non';
-        if (filters.membership === 'pending') return lang === 'ar' ? 'قيد الانتظار' : 'En attente';
-        return '';
-      case 'ppr': return filters.ppr;
-      case 'phone': return filters.phone;
-      default: return '';
-    }
-  };
+  // Ring radii (from inside out): gender, membership, mission, academy, directorate
+  const rings = [
+    { innerR: 52, outerR: 82 },   // gender (3)
+    { innerR: 84, outerR: 114 },   // membership (4)
+    { innerR: 116, outerR: 158 },  // mission (11)
+    { innerR: 160, outerR: 205 },  // academy (12)
+    { innerR: 207, outerR: 245 },  // directorate (dynamic)
+  ];
 
-  // Container size
-  const containerSize = 420;
-  const center = containerSize / 2;
-  const minRadius = 38;
-  const ringSpacing = (center - minRadius - 10) / 9;
+  return (
+    <div className="flex flex-col lg:flex-row items-start gap-4 p-4 h-full">
+      {/* Color Wheel */}
+      <div className="flex-1 flex items-center justify-center min-w-0">
+        <svg
+          viewBox={`0 0 ${size} ${size}`}
+          className="w-full max-w-[420px] aspect-square"
+        >
+          {/* Ring labels (static, behind everything) */}
+          <defs>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
 
-  const renderPopoverContent = (ring: FilterRing) => {
-    switch (ring.id) {
-      case 'academy':
-        return (
-          <div className="max-h-48 overflow-y-auto space-y-1">
-            {ACADEMIES.map(a => (
-              <button
-                key={a.label}
-                onClick={() => { playClick(); setFilters(prev => ({ ...prev, academy: a.label, directorate: null })); setOpenPopover(null); }}
-                className={`w-full text-start px-3 py-2 rounded-lg text-xs transition-colors ${filters.academy === a.label ? 'bg-[#0A4174] text-white' : 'hover:bg-accent'}`}
+          {/* Directorate ring (outermost) - only if academy selected */}
+          {directorateItems.length > 0 && (
+            <FilterRing
+              cx={cx} cy={cy}
+              innerR={rings[4].innerR}
+              outerR={rings[4].outerR}
+              items={directorateItems}
+              colors={dirColors}
+              selected={filters.directorate}
+              onSelect={(val) => setFilters(prev => ({ ...prev, directorate: val }))}
+              rotationDir={-1}
+              speed={80}
+            />
+          )}
+
+          {/* Academy ring */}
+          <FilterRing
+            cx={cx} cy={cy}
+            innerR={rings[3].innerR}
+            outerR={rings[3].outerR}
+            items={academyItems}
+            colors={ACADEMY_COLORS}
+            selected={filters.academy}
+            onSelect={(val) => setFilters(prev => ({ ...prev, academy: val, directorate: null }))}
+            rotationDir={1}
+            speed={90}
+          />
+
+          {/* Mission ring */}
+          <FilterRing
+            cx={cx} cy={cy}
+            innerR={rings[2].innerR}
+            outerR={rings[2].outerR}
+            items={missionItems}
+            colors={MISSION_COLORS}
+            selected={filters.mission}
+            onSelect={(val) => setFilters(prev => ({ ...prev, mission: val }))}
+            rotationDir={-1}
+            speed={60}
+          />
+
+          {/* Membership ring */}
+          <FilterRing
+            cx={cx} cy={cy}
+            innerR={rings[1].innerR}
+            outerR={rings[1].outerR}
+            items={membershipItems}
+            colors={MEMBERSHIP_COLORS}
+            selected={filters.membership === 'all' ? null : filters.membership}
+            onSelect={(val) => setFilters(prev => ({ ...prev, membership: (val || 'all') as OrbitalFilterValues['membership'] }))}
+            rotationDir={1}
+            speed={45}
+          />
+
+          {/* Gender ring (innermost) */}
+          <FilterRing
+            cx={cx} cy={cy}
+            innerR={rings[0].innerR}
+            outerR={rings[0].outerR}
+            items={genderItems}
+            colors={GENDER_COLORS}
+            selected={filters.gender === 'all' ? null : filters.gender}
+            onSelect={(val) => setFilters(prev => ({ ...prev, gender: (val || 'all') as OrbitalFilterValues['gender'] }))}
+            rotationDir={-1}
+            speed={35}
+          />
+
+          {/* Center hub */}
+          <g
+            className="cursor-pointer"
+            onClick={() => {
+              playClick();
+              setFilters(prev => ({ ...prev, mode: prev.mode === 'users' ? 'offices' : 'users' }));
+            }}
+          >
+            <circle cx={cx} cy={cy} r={48} fill="url(#centerGrad)" className="transition-all duration-300" />
+            <defs>
+              <radialGradient id="centerGrad" cx="40%" cy="40%">
+                <stop offset="0%" stopColor="#0A4174" />
+                <stop offset="100%" stopColor="#001D39" />
+              </radialGradient>
+            </defs>
+            <AnimatePresence mode="wait">
+              <motion.g
+                key={filters.mode}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                style={{ transformOrigin: `${cx}px ${cy}px` }}
               >
-                {a.label.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '')}
-              </button>
-            ))}
-          </div>
-        );
-      case 'directorate':
-        return (
-          <div className="max-h-48 overflow-y-auto space-y-1">
-            {directorates.length === 0 && <p className="text-xs text-muted-foreground p-2">{lang === 'ar' ? 'اختر أكاديمية أولاً' : 'Sélectionnez une académie'}</p>}
-            {directorates.map(d => (
-              <button
-                key={d}
-                onClick={() => { playClick(); setFilters(prev => ({ ...prev, directorate: d })); setOpenPopover(null); }}
-                className={`w-full text-start px-3 py-2 rounded-lg text-xs transition-colors ${filters.directorate === d ? 'bg-[#0A4174] text-white' : 'hover:bg-accent'}`}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        );
-      case 'institution':
-        return (
+                {filters.mode === 'users' ? (
+                  <>
+                    <foreignObject x={cx - 10} y={cy - 14} width={20} height={20}>
+                      <Users className="w-5 h-5 text-white" />
+                    </foreignObject>
+                    <text x={cx} y={cy + 16} textAnchor="middle" fill="white" fontSize="7" opacity={0.9} fontWeight={600}>
+                      {lang === 'ar' ? 'المسجلون' : 'Inscrits'}
+                    </text>
+                  </>
+                ) : (
+                  <>
+                    <foreignObject x={cx - 10} y={cy - 14} width={20} height={20}>
+                      <Building2 className="w-5 h-5 text-white" />
+                    </foreignObject>
+                    <text x={cx} y={cy + 16} textAnchor="middle" fill="white" fontSize="7" opacity={0.9} fontWeight={600}>
+                      {lang === 'ar' ? 'المكاتب' : 'Bureaux'}
+                    </text>
+                  </>
+                )}
+              </motion.g>
+            </AnimatePresence>
+          </g>
+        </svg>
+      </div>
+
+      {/* Side Input Panel */}
+      <div className="w-full lg:w-52 flex flex-col gap-3 shrink-0">
+        <h3 className="text-sm font-semibold text-foreground mb-1">
+          {lang === 'ar' ? 'فلاتر إضافية' : 'Filtres supplémentaires'}
+        </h3>
+
+        {/* Institution */}
+        <div>
+          <label className="text-[11px] text-muted-foreground mb-1 block">
+            {lang === 'ar' ? 'المؤسسة' : 'Établissement'}
+          </label>
           <Input
-            placeholder={lang === 'ar' ? 'اسم المؤسسة...' : 'Nom de l\'établissement...'}
+            placeholder={lang === 'ar' ? 'اسم المؤسسة...' : 'Nom...'}
             value={filters.institution}
             onChange={e => setFilters(prev => ({ ...prev, institution: e.target.value }))}
-            className="text-xs"
+            className="h-8 text-xs"
           />
-        );
-      case 'gender':
-        return (
-          <div className="flex flex-col gap-1">
-            {[
-              { val: 'all' as const, ar: 'الكل', fr: 'Tous' },
-              { val: 'male' as const, ar: 'ذكر', fr: 'Masculin' },
-              { val: 'female' as const, ar: 'أنثى', fr: 'Féminin' },
-            ].map(opt => (
-              <button
-                key={opt.val}
-                onClick={() => { playClick(); setFilters(prev => ({ ...prev, gender: opt.val })); setOpenPopover(null); }}
-                className={`px-3 py-2 rounded-lg text-xs transition-colors ${filters.gender === opt.val ? 'bg-[#0A4174] text-white' : 'hover:bg-accent'}`}
-              >
-                {lang === 'ar' ? opt.ar : opt.fr}
-              </button>
-            ))}
-          </div>
-        );
-      case 'mission':
-        return (
-          <div className="max-h-48 overflow-y-auto space-y-1">
-            <button
-              onClick={() => { playClick(); setFilters(prev => ({ ...prev, mission: null })); setOpenPopover(null); }}
-              className={`w-full text-start px-3 py-2 rounded-lg text-xs transition-colors ${!filters.mission ? 'bg-[#0A4174] text-white' : 'hover:bg-accent'}`}
-            >
-              {lang === 'ar' ? 'الكل' : 'Tous'}
-            </button>
-            {MISSIONS.map(m => (
-              <button
-                key={m}
-                onClick={() => { playClick(); setFilters(prev => ({ ...prev, mission: m })); setOpenPopover(null); }}
-                className={`w-full text-start px-3 py-2 rounded-lg text-xs transition-colors ${filters.mission === m ? 'bg-[#0A4174] text-white' : 'hover:bg-accent'}`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        );
-      case 'age':
-        return (
-          <div className="flex items-center gap-2">
+        </div>
+
+        {/* Age */}
+        <div>
+          <label className="text-[11px] text-muted-foreground mb-1 block">
+            {lang === 'ar' ? 'الفئة العمرية' : 'Tranche d\'âge'}
+          </label>
+          <div className="flex gap-2">
             <Input
               type="number"
               placeholder="Min"
               value={filters.ageMin}
               onChange={e => setFilters(prev => ({ ...prev, ageMin: e.target.value }))}
-              className="text-xs w-20"
+              className="h-8 text-xs"
             />
-            <span className="text-muted-foreground text-xs">—</span>
             <Input
               type="number"
               placeholder="Max"
               value={filters.ageMax}
               onChange={e => setFilters(prev => ({ ...prev, ageMax: e.target.value }))}
-              className="text-xs w-20"
+              className="h-8 text-xs"
             />
           </div>
-        );
-      case 'membership':
-        return (
-          <div className="flex flex-col gap-1">
-            {[
-              { val: 'all' as const, ar: 'الكل', fr: 'Tous' },
-              { val: 'member' as const, ar: 'منخرط', fr: 'Membre' },
-              { val: 'non_member' as const, ar: 'غير منخرط', fr: 'Non membre' },
-              { val: 'pending' as const, ar: 'قيد التحقق', fr: 'En attente' },
-            ].map(opt => (
-              <button
-                key={opt.val}
-                onClick={() => { playClick(); setFilters(prev => ({ ...prev, membership: opt.val })); setOpenPopover(null); }}
-                className={`px-3 py-2 rounded-lg text-xs transition-colors ${filters.membership === opt.val ? 'bg-[#0A4174] text-white' : 'hover:bg-accent'}`}
-              >
-                {lang === 'ar' ? opt.ar : opt.fr}
-              </button>
-            ))}
-          </div>
-        );
-      case 'ppr':
-        return (
+        </div>
+
+        {/* PPR */}
+        <div>
+          <label className="text-[11px] text-muted-foreground mb-1 block">
+            {lang === 'ar' ? 'رقم التأجير' : 'N° PPR'}
+          </label>
           <Input
             placeholder={lang === 'ar' ? 'رقم التأجير...' : 'N° PPR...'}
             value={filters.ppr}
             onChange={e => setFilters(prev => ({ ...prev, ppr: e.target.value }))}
-            className="text-xs"
+            className="h-8 text-xs"
           />
-        );
-      case 'phone':
-        return (
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label className="text-[11px] text-muted-foreground mb-1 block">
+            {lang === 'ar' ? 'رقم الهاتف' : 'Téléphone'}
+          </label>
           <Input
-            placeholder={lang === 'ar' ? 'رقم الهاتف...' : 'Téléphone...'}
+            placeholder={lang === 'ar' ? '06xxxxxxxx' : '06xxxxxxxx'}
             value={filters.phone}
             onChange={e => setFilters(prev => ({ ...prev, phone: e.target.value }))}
-            className="text-xs"
+            className="h-8 text-xs"
           />
-        );
-      default:
-        return null;
-    }
-  };
+        </div>
 
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-4 py-4">
-      {/* Orbital rings */}
-      <div className="relative" style={{ width: containerSize, height: containerSize }}>
-        {/* Rings */}
-        {FILTER_RINGS.map((ring, i) => {
-          const radius = minRadius + (i + 1) * ringSpacing;
-          const size = radius * 2;
-          const active = hasActiveFilter(ring.id);
-          const clockwise = i % 2 === 0;
-          const duration = 30 + i * 8;
+        {/* Active filters summary */}
+        <div className="flex flex-wrap gap-1 mt-1">
+          {filters.academy && (
+            <span className="text-[9px] bg-orange-100 text-orange-800 rounded-full px-2 py-0.5 truncate max-w-full">
+              {filters.academy.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '')}
+            </span>
+          )}
+          {filters.directorate && (
+            <span className="text-[9px] bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 truncate">
+              {filters.directorate}
+            </span>
+          )}
+          {filters.gender !== 'all' && (
+            <span className="text-[9px] bg-pink-100 text-pink-800 rounded-full px-2 py-0.5">
+              {lang === 'ar' ? (filters.gender === 'male' ? 'ذكر' : 'أنثى') : (filters.gender === 'male' ? 'M' : 'F')}
+            </span>
+          )}
+          {filters.mission && (
+            <span className="text-[9px] bg-teal-100 text-teal-800 rounded-full px-2 py-0.5 truncate max-w-[120px]">
+              {filters.mission}
+            </span>
+          )}
+          {filters.membership !== 'all' && (
+            <span className="text-[9px] bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
+              {MEMBERSHIP_OPTIONS.find(o => o.val === filters.membership)?.[lang === 'ar' ? 'ar' : 'fr']}
+            </span>
+          )}
+        </div>
 
-          return (
-            <motion.div
-              key={ring.id}
-              className="absolute rounded-full"
-              style={{
-                width: size,
-                height: size,
-                top: center - radius,
-                left: center - radius,
-                border: `${active ? 2.5 : 1.5}px ${active ? 'solid' : 'dashed'} ${RING_COLORS[i]}`,
-                opacity: active ? 1 : 0.5,
-              }}
-              animate={{ rotate: clockwise ? 360 : -360 }}
-              transition={{ duration, repeat: Infinity, ease: 'linear' }}
-            >
-              {/* Filter node on the ring */}
-              <Popover
-                open={openPopover === ring.id}
-                onOpenChange={(open) => {
-                  if (open) playClick();
-                  setOpenPopover(open ? ring.id : null);
-                }}
-              >
-                <PopoverTrigger asChild>
-                  <motion.button
-                    className="absolute flex items-center justify-center rounded-full shadow-lg cursor-pointer z-10 select-none"
-                    style={{
-                      width: 36,
-                      height: 36,
-                      top: -18,
-                      left: radius - 18,
-                      backgroundColor: active ? RING_COLORS[i] : '#ffffff',
-                      color: active ? '#ffffff' : RING_COLORS[i],
-                      border: `2px solid ${RING_COLORS[i]}`,
-                    }}
-                    animate={{ rotate: clockwise ? -360 : 360 }}
-                    transition={{ duration, repeat: Infinity, ease: 'linear' }}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <span className="text-[8px] font-bold leading-none text-center whitespace-nowrap">
-                      {lang === 'ar' ? ring.labelAr : ring.labelFr}
-                    </span>
-                  </motion.button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-64 p-3 z-50"
-                  side="right"
-                  align="center"
-                  sideOffset={8}
-                >
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-[#001D39]">
-                      {lang === 'ar' ? ring.labelAr : ring.labelFr}
-                    </h4>
-                    {renderPopoverContent(ring)}
-                    {active && (
-                      <p className="text-[10px] text-muted-foreground mt-1 truncate">
-                        ✓ {getFilterSummary(ring.id)}
-                      </p>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </motion.div>
-          );
-        })}
-
-        {/* Center hub */}
-        <motion.div
-          className="absolute rounded-full flex flex-col items-center justify-center shadow-xl cursor-pointer z-20"
-          style={{
-            width: minRadius * 2,
-            height: minRadius * 2,
-            top: center - minRadius,
-            left: center - minRadius,
-            background: 'linear-gradient(135deg, #0A4174, #001D39)',
-          }}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {
-            playClick();
-            setFilters(prev => ({ ...prev, mode: prev.mode === 'users' ? 'offices' : 'users' }));
-          }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={filters.mode}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="flex flex-col items-center"
-            >
-              {filters.mode === 'users' ? (
-                <Users className="w-4 h-4 text-white mb-0.5" />
-              ) : (
-                <Building2 className="w-4 h-4 text-white mb-0.5" />
-              )}
-              <span className="text-[8px] text-white/90 font-medium">
-                {filters.mode === 'users'
-                  ? (lang === 'ar' ? 'المسجلون' : 'Inscrits')
-                  : (lang === 'ar' ? 'المكاتب' : 'Bureaux')
-                }
-              </span>
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleReset}
-          className="gap-1.5 text-xs"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          {lang === 'ar' ? 'إعادة ضبط' : 'Réinitialiser'}
-        </Button>
-        <Button
-          size="sm"
-          onClick={() => { playClick(); onSearch(filters); }}
-          className="gap-1.5 text-xs bg-[#0A4174] hover:bg-[#001D39]"
-        >
-          <Search className="w-3.5 h-3.5" />
-          {lang === 'ar' ? 'بحث' : 'Rechercher'}
-        </Button>
+        {/* Action buttons */}
+        <div className="flex gap-2 mt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReset}
+            className="flex-1 gap-1 text-xs h-8"
+          >
+            <RotateCcw className="w-3 h-3" />
+            {lang === 'ar' ? 'ضبط' : 'Reset'}
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => { playClick(); onSearch(filters); }}
+            className="flex-1 gap-1 text-xs h-8 bg-[#0A4174] hover:bg-[#001D39]"
+          >
+            <Search className="w-3 h-3" />
+            {lang === 'ar' ? 'بحث' : 'Rechercher'}
+          </Button>
+        </div>
       </div>
     </div>
   );

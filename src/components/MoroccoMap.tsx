@@ -1,24 +1,67 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOROCCO_REGIONS, REGION_COLORS, type RegionData } from '@/lib/morocco-regions';
+import { geoMercator, geoPath, geoCentroid } from 'd3-geo';
+import { REGION_MAPPINGS, REGION_COLORS, getRegionMapping, type RegionMapping } from '@/lib/morocco-regions';
 import { useI18n } from '@/lib/i18n';
+import type { Feature, FeatureCollection, Geometry } from 'geojson';
 
 interface MoroccoMapProps {
-  onRegionSelect: (region: RegionData | null) => void;
-  selectedRegion: RegionData | null;
+  onRegionSelect: (region: RegionMapping | null) => void;
+  selectedRegion: RegionMapping | null;
   regionStats?: Record<string, { total: number; members: number; requests: number }>;
 }
 
 const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats }: MoroccoMapProps) => {
   const { lang } = useI18n();
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+  const [geoData, setGeoData] = useState<FeatureCollection | null>(null);
 
-  const viewBox = '0 0 450 720';
+  useEffect(() => {
+    fetch('/geo/regions.geojson')
+      .then(r => r.json())
+      .then(data => setGeoData(data))
+      .catch(console.error);
+  }, []);
+
+  const width = 500;
+  const height = 700;
+
+  const projection = useMemo(() => {
+    if (!geoData) return null;
+    return geoMercator().fitSize([width, height], geoData);
+  }, [geoData]);
+
+  const pathGenerator = useMemo(() => {
+    if (!projection) return null;
+    return geoPath().projection(projection);
+  }, [projection]);
+
+  const regionFeatures = useMemo(() => {
+    if (!geoData) return [];
+    return geoData.features.map((feature, i) => {
+      const geoId = feature.properties?.id || '';
+      const mapping = getRegionMapping(geoId);
+      return { feature, mapping, index: i };
+    });
+  }, [geoData]);
+
+  const handleClick = useCallback((mapping: RegionMapping | undefined) => {
+    if (!mapping) return;
+    onRegionSelect(selectedRegion?.geoId === mapping.geoId ? null : mapping);
+  }, [selectedRegion, onRegionSelect]);
+
+  if (!geoData || !pathGenerator || !projection) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <svg
-        viewBox={viewBox}
+        viewBox={`0 0 ${width} ${height}`}
         className="w-full h-full max-h-[600px]"
         style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
       >
@@ -30,84 +73,83 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats }: MoroccoMapP
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <linearGradient id="mapBg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="hsl(225, 40%, 15%)" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="hsl(225, 60%, 10%)" stopOpacity="0.3" />
-          </linearGradient>
         </defs>
 
-        {MOROCCO_REGIONS.map((region, i) => {
-          const isHovered = hoveredRegion === region.id;
-          const isSelected = selectedRegion?.id === region.id;
-          const baseColor = REGION_COLORS[i % REGION_COLORS.length];
-          const stats = regionStats?.[region.academyLabel];
+        {regionFeatures.map(({ feature, mapping, index }) => {
+          const geoId = feature.properties?.id || '';
+          const isHovered = hoveredRegion === geoId;
+          const isSelected = selectedRegion?.geoId === geoId;
+          const baseColor = REGION_COLORS[index % REGION_COLORS.length];
+          const stats = mapping ? regionStats?.[mapping.academyLabel] : undefined;
+          const d = pathGenerator(feature as Feature<Geometry>) || '';
+          const centroid = projection ? geoCentroid(feature as Feature<Geometry>) : null;
+          const center = centroid ? projection(centroid) : null;
 
           return (
-            <g key={region.id}>
+            <g key={geoId || index}>
               <motion.path
-                d={region.path}
+                d={d}
                 fill={isSelected ? 'hsl(225, 80%, 55%)' : isHovered ? 'hsl(225, 70%, 50%)' : baseColor}
-                stroke={isSelected ? 'hsl(225, 90%, 70%)' : 'hsl(225, 30%, 75%)'}
-                strokeWidth={isSelected ? 2.5 : isHovered ? 2 : 1}
-                className="cursor-pointer transition-colors duration-200"
-                style={{
-                  filter: isSelected ? 'url(#glow)' : 'none',
-                }}
+                stroke={isSelected ? 'hsl(225, 90%, 70%)' : 'hsl(225, 30%, 85%)'}
+                strokeWidth={isSelected ? 2.5 : isHovered ? 2 : 0.8}
+                className="cursor-pointer"
+                style={{ filter: isSelected ? 'url(#glow)' : 'none' }}
                 initial={false}
                 animate={{
-                  scale: isSelected ? 1.02 : 1,
-                  opacity: selectedRegion && !isSelected ? 0.5 : 1,
+                  opacity: selectedRegion && !isSelected ? 0.45 : 1,
                 }}
-                transition={{ duration: 0.3, type: 'spring', stiffness: 300 }}
-                onMouseEnter={() => setHoveredRegion(region.id)}
+                transition={{ duration: 0.3 }}
+                onMouseEnter={() => setHoveredRegion(geoId)}
                 onMouseLeave={() => setHoveredRegion(null)}
-                onClick={() => onRegionSelect(isSelected ? null : region)}
+                onClick={() => handleClick(mapping)}
               />
               {/* Region label */}
-              {(!selectedRegion || isSelected) && (
+              {mapping && center && (!selectedRegion || isSelected) && (
                 <text
-                  x={region.center[0]}
-                  y={region.center[1]}
+                  x={center[0]}
+                  y={center[1]}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   className="pointer-events-none select-none"
                   fill="white"
-                  fontSize={isSelected ? 10 : 8}
+                  fontSize={isSelected ? 11 : 8}
                   fontWeight={isSelected ? 700 : 500}
-                  opacity={isHovered || isSelected ? 1 : 0.8}
+                  opacity={isHovered || isSelected ? 1 : 0.85}
                 >
-                  {lang === 'ar' ? region.nameAr.split(' – ')[0].split(' ').slice(-1)[0] : region.nameFr.split('-')[0]}
+                  {lang === 'ar'
+                    ? mapping.nameAr.split(' – ')[0]
+                    : mapping.nameFr.split('-')[0]}
                 </text>
               )}
               {/* Stats bubble on hover */}
-              {isHovered && stats && !isSelected && (
+              {isHovered && stats && !isSelected && center && (
                 <g>
                   <rect
-                    x={region.center[0] - 45}
-                    y={region.center[1] + 12}
-                    width={90}
-                    height={32}
-                    rx={6}
-                    fill="hsl(225, 50%, 15%)"
-                    fillOpacity={0.9}
+                    x={center[0] - 50}
+                    y={center[1] + 14}
+                    width={100}
+                    height={36}
+                    rx={8}
+                    fill="hsl(225, 50%, 12%)"
+                    fillOpacity={0.92}
                     stroke="hsl(225, 60%, 45%)"
                     strokeWidth={0.5}
                   />
                   <text
-                    x={region.center[0]}
-                    y={region.center[1] + 24}
+                    x={center[0]}
+                    y={center[1] + 28}
                     textAnchor="middle"
                     fill="hsl(225, 80%, 80%)"
-                    fontSize={7}
+                    fontSize={8}
                   >
                     {lang === 'ar' ? `${stats.total} مسجل` : `${stats.total} inscrits`}
                   </text>
                   <text
-                    x={region.center[0]}
-                    y={region.center[1] + 36}
+                    x={center[0]}
+                    y={center[1] + 42}
                     textAnchor="middle"
                     fill="hsl(140, 60%, 65%)"
-                    fontSize={6.5}
+                    fontSize={7.5}
                   >
                     {lang === 'ar' ? `${stats.members} منخرط` : `${stats.members} adhérents`}
                   </text>

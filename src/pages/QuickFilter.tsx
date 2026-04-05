@@ -20,6 +20,7 @@ const QuickFilter = () => {
   const navigate = useNavigate();
   const [selectedRegion, setSelectedRegion] = useState<RegionMapping | null>(null);
   const [selectedDirectorate, setSelectedDirectorate] = useState<string | null>(null);
+  const [selectedProvinceName, setSelectedProvinceName] = useState<string | null>(null);
 
   // Fetch all profiles for stats
   const { data: profiles } = useQuery({
@@ -129,8 +130,16 @@ const QuickFilter = () => {
               <Map className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
                 {lang === 'ar' ? 'فلتر سريع' : 'Filtre rapide'}
+                {selectedRegion && (
+                  <span className="text-sm font-medium text-[#0A4174]">
+                    — {lang === 'ar' ? selectedRegion.nameAr : selectedRegion.nameFr}
+                    {selectedProvinceName && (
+                      <span className="text-[#49769F]"> › {selectedProvinceName}</span>
+                    )}
+                  </span>
+                )}
               </h1>
               <p className="text-xs text-muted-foreground">
                 {lang === 'ar' ? 'استعراض تفاعلي حسب الجهات والأقاليم' : 'Exploration interactive par régions et provinces'}
@@ -141,7 +150,7 @@ const QuickFilter = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { setSelectedRegion(null); setSelectedDirectorate(null); }}
+              onClick={() => { setSelectedRegion(null); setSelectedDirectorate(null); setSelectedProvinceName(null); }}
               className="ms-auto"
             >
               <RotateCcw className="w-4 h-4 me-1" />
@@ -151,10 +160,10 @@ const QuickFilter = () => {
         </motion.div>
 
         {/* Main Content - Split View */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Map Section */}
           <motion.div
-            className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl"
+            className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl min-h-[500px]"
             initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
@@ -163,7 +172,7 @@ const QuickFilter = () => {
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#49769F]/10 rounded-full blur-2xl" />
 
             <MoroccoMap
-              onRegionSelect={(r) => { setSelectedRegion(r); setSelectedDirectorate(null); }}
+              onRegionSelect={(r) => { setSelectedRegion(r); setSelectedDirectorate(null); setSelectedProvinceName(null); }}
               selectedRegion={selectedRegion}
               regionStats={regionStats}
               onProvinceSelect={(prov) => {
@@ -174,12 +183,13 @@ const QuickFilter = () => {
                   setSelectedDirectorate(null);
                 }
               }}
+              onProvinceNameChange={setSelectedProvinceName}
             />
           </motion.div>
 
           {/* Orbital Filter Section */}
           <motion.div
-            className="rounded-3xl overflow-hidden border border-primary/10 bg-card/50 backdrop-blur-xl shadow-2xl flex flex-col"
+            className="rounded-3xl overflow-hidden border border-primary/10 bg-card/50 backdrop-blur-xl shadow-2xl"
             initial={{ opacity: 0, x: dir === 'rtl' ? -30 : 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}

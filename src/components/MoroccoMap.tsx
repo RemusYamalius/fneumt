@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { geoMercator, geoPath, geoCentroid } from 'd3-geo';
 import { REGION_COLORS, getRegionMapping, type RegionMapping } from '@/lib/morocco-regions';
 import { useI18n } from '@/lib/i18n';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Users, UserCheck, FileText, TrendingUp } from 'lucide-react';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 
 interface MoroccoMapProps {
@@ -11,79 +11,115 @@ interface MoroccoMapProps {
   selectedRegion: RegionMapping | null;
   regionStats?: Record<string, { total: number; members: number; requests: number }>;
   onProvinceSelect?: (provinceName: string | null) => void;
+  onProvinceNameChange?: (name: string | null) => void;
 }
 
 const WIDTH = 500;
 const HEIGHT = 700;
 
-const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSelect }: MoroccoMapProps) => {
+// ─── Stat Panel ─────────────────────────────────────────
+const StatPanel = ({ title, items, position }: {
+  title: string;
+  items: { label: string; value: number | string; color: string; icon?: React.ReactNode }[];
+  position: 'left-top' | 'left-bottom' | 'right-top' | 'right-bottom';
+}) => {
+  const posMap = {
+    'left-top': 'top-3 left-3',
+    'left-bottom': 'bottom-3 left-3',
+    'right-top': 'top-3 right-3',
+    'right-bottom': 'bottom-3 right-3',
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.85 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      className={`absolute ${posMap[position]} z-10 min-w-[130px] max-w-[160px]`}
+    >
+      <div className="rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] p-3">
+        <h4 className="text-[10px] font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5">
+          {title}
+        </h4>
+        <div className="space-y-2">
+          {items.map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              {item.icon && (
+                <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ backgroundColor: `${item.color}22` }}>
+                  {item.icon}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-[9px] text-[#6EA2B3] truncate">{item.label}</p>
+                <p className="text-sm font-bold" style={{ color: item.color }}>{item.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ─── Progress Bar ───────────────────────────────────────
+const MiniProgress = ({ value, max, color }: { value: number; max: number; color: string }) => {
+  const pct = max > 0 ? (value / max) * 100 : 0;
+  return (
+    <div className="w-full h-1.5 rounded-full bg-[#49769F]/20 overflow-hidden">
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="h-full rounded-full"
+        style={{ backgroundColor: color }}
+      />
+    </div>
+  );
+};
+
+const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSelect, onProvinceNameChange }: MoroccoMapProps) => {
   const { lang, dir } = useI18n();
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
   const [hoveredProvince, setHoveredProvince] = useState<string | null>(null);
+  const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
   const [geoData, setGeoData] = useState<FeatureCollection | null>(null);
   const [provincesData, setProvincesData] = useState<FeatureCollection | null>(null);
   const [view, setView] = useState<'country' | 'region'>('country');
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
-  // Load regions
   useEffect(() => {
-    fetch('/geo/regions.geojson')
-      .then(r => r.json())
-      .then(setGeoData)
-      .catch(console.error);
+    fetch('/geo/regions.geojson').then(r => r.json()).then(setGeoData).catch(console.error);
   }, []);
 
-  // Lazy-load provinces on first region click
   useEffect(() => {
     if (view === 'region' && !provincesData) {
-      fetch('/geo/provinces.geojson')
-        .then(r => r.json())
-        .then(setProvincesData)
-        .catch(console.error);
+      fetch('/geo/provinces.geojson').then(r => r.json()).then(setProvincesData).catch(console.error);
     }
   }, [view, provincesData]);
 
-  // Country-level projection
   const countryProjection = useMemo(() => {
     if (!geoData) return null;
     return geoMercator().fitSize([WIDTH, HEIGHT], geoData);
   }, [geoData]);
 
-  const countryPath = useMemo(() => {
-    if (!countryProjection) return null;
-    return geoPath().projection(countryProjection);
-  }, [countryProjection]);
+  const countryPath = useMemo(() => countryProjection ? geoPath().projection(countryProjection) : null, [countryProjection]);
 
-  // Region-level projection (zoomed into selected region)
   const regionProjection = useMemo(() => {
     if (!selectedRegion || !geoData) return null;
     const feature = geoData.features.find(f => f.properties?.id === selectedRegion.geoId);
     if (!feature) return null;
-    const fc: FeatureCollection = { type: 'FeatureCollection', features: [feature] };
-    return geoMercator().fitSize([WIDTH, HEIGHT], fc);
+    return geoMercator().fitSize([WIDTH, HEIGHT], { type: 'FeatureCollection', features: [feature] } as FeatureCollection);
   }, [selectedRegion, geoData]);
 
-  const regionPath = useMemo(() => {
-    if (!regionProjection) return null;
-    return geoPath().projection(regionProjection);
-  }, [regionProjection]);
+  const regionPath = useMemo(() => regionProjection ? geoPath().projection(regionProjection) : null, [regionProjection]);
 
-  // Province features for selected region
   const provinceFeatures = useMemo(() => {
     if (!provincesData || !selectedRegion) return [];
-    return provincesData.features.filter(
-      f => f.properties?.region_id === selectedRegion.geoId
-    );
+    return provincesData.features.filter(f => f.properties?.region_id === selectedRegion.geoId);
   }, [provincesData, selectedRegion]);
 
-  // Parse province name
   const parseProvinceName = useCallback((name: string) => {
-    // Format: "Province de X إقليم ي" or "Préfecture de X عمالة ي"
-    const parts = name.split(/\s{2,}|(?<=[\u0600-\u06FF])\s(?=[A-Z])|(?<=[a-zé])\s(?=[\u0600-\u06FF])/);
-    if (parts.length >= 2) {
-      return { fr: parts[0].trim(), ar: parts[1].trim() };
-    }
-    // Try splitting by known Arabic prefix
     const arMatch = name.match(/(عمالة|إقليم).+$/);
     const frMatch = name.match(/^(Province|Préfecture).+?(?=\s+(عمالة|إقليم))/);
     return {
@@ -94,33 +130,42 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
 
   const regionFeatures = useMemo(() => {
     if (!geoData) return [];
-    return geoData.features.map((feature, i) => {
-      const geoId = feature.properties?.id || '';
-      const mapping = getRegionMapping(geoId);
-      return { feature, mapping, index: i };
-    });
+    return geoData.features.map((feature, i) => ({
+      feature,
+      mapping: getRegionMapping(feature.properties?.id || ''),
+      index: i,
+    }));
   }, [geoData]);
+
+  // Current stats for selected region
+  const currentStats = useMemo(() => {
+    if (!selectedRegion || !regionStats) return null;
+    return regionStats[selectedRegion.academyLabel] || null;
+  }, [selectedRegion, regionStats]);
 
   const handleRegionClick = useCallback((mapping: RegionMapping | undefined) => {
     if (!mapping) return;
-    if (selectedRegion?.geoId === mapping.geoId) {
-      // Already selected — drill down
-      setView('region');
-    } else {
-      onRegionSelect(mapping);
-      setView('region');
-    }
-  }, [selectedRegion, onRegionSelect]);
+    onRegionSelect(mapping);
+    setView('region');
+    setSelectedProvince(null);
+    onProvinceNameChange?.(null);
+  }, [onRegionSelect, onProvinceNameChange]);
 
   const handleBack = useCallback(() => {
     setView('country');
     setHoveredProvince(null);
+    setSelectedProvince(null);
     onProvinceSelect?.(null);
-  }, [onProvinceSelect]);
+    onProvinceNameChange?.(null);
+  }, [onProvinceSelect, onProvinceNameChange]);
 
-  const handleProvinceClick = useCallback((provinceName: string) => {
-    onProvinceSelect?.(provinceName);
-  }, [onProvinceSelect]);
+  const handleProvinceClick = useCallback((rawName: string) => {
+    const parsed = parseProvinceName(rawName);
+    const displayName = lang === 'ar' ? parsed.ar : parsed.fr;
+    setSelectedProvince(displayName);
+    onProvinceSelect?.(parsed.fr);
+    onProvinceNameChange?.(displayName);
+  }, [onProvinceSelect, onProvinceNameChange, parseProvinceName, lang]);
 
   if (!geoData || !countryPath || !countryProjection) {
     return (
@@ -136,7 +181,6 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     <div className="relative w-full h-full flex items-center justify-center">
       <AnimatePresence mode="wait">
         {view === 'country' ? (
-          /* ─── COUNTRY VIEW ─── */
           <motion.div
             key="country"
             className="w-full h-full flex items-center justify-center"
@@ -153,13 +197,9 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
               <defs>
                 <filter id="glow">
                   <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
+                  <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                 </filter>
               </defs>
-
               {regionFeatures.map(({ feature, mapping, index }) => {
                 const geoId = feature.properties?.id || '';
                 const isHovered = hoveredRegion === geoId;
@@ -188,29 +228,19 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                     />
                     {mapping && center && (!selectedRegion || isSelected) && (
                       <text
-                        x={center[0]}
-                        y={center[1]}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
+                        x={center[0]} y={center[1]}
+                        textAnchor="middle" dominantBaseline="middle"
                         className="pointer-events-none select-none"
-                        fill="white"
-                        fontSize={isSelected ? 11 : 8}
-                        fontWeight={isSelected ? 700 : 500}
+                        fill="white" fontSize={isSelected ? 11 : 8} fontWeight={isSelected ? 700 : 500}
                         opacity={isHovered || isSelected ? 1 : 0.85}
                       >
-                        {lang === 'ar'
-                          ? mapping.nameAr.split(' – ')[0]
-                          : mapping.nameFr.split('-')[0]}
+                        {lang === 'ar' ? mapping.nameAr.split(' – ')[0] : mapping.nameFr.split('-')[0]}
                       </text>
                     )}
                     {isHovered && stats && !isSelected && center && (
                       <g>
-                        <rect
-                          x={center[0] - 50} y={center[1] + 14}
-                          width={100} height={36} rx={8}
-                          fill="#001D39" fillOpacity={0.92}
-                          stroke="#49769F" strokeWidth={0.5}
-                        />
+                        <rect x={center[0] - 50} y={center[1] + 14} width={100} height={36} rx={8}
+                          fill="#001D39" fillOpacity={0.92} stroke="#49769F" strokeWidth={0.5} />
                         <text x={center[0]} y={center[1] + 28} textAnchor="middle" fill="#7BBDE8" fontSize={8}>
                           {lang === 'ar' ? `${stats.total} مسجل` : `${stats.total} inscrits`}
                         </text>
@@ -225,7 +255,6 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
             </svg>
           </motion.div>
         ) : (
-          /* ─── REGION DRILL-DOWN VIEW ─── */
           <motion.div
             key="region"
             className="w-full h-full flex flex-col"
@@ -234,8 +263,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
             exit={{ opacity: 0, scale: 0.85 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Back button + Region name */}
-            <div className="flex items-center gap-2 mb-2 px-1">
+            {/* Back + Region / Province name */}
+            <div className="flex items-center gap-2 mb-2 px-1 flex-wrap">
               <button
                 onClick={handleBack}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0A4174] hover:bg-[#001D39] text-white transition-all text-xs font-medium shadow-md"
@@ -243,12 +272,27 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                 <BackIcon className="w-3.5 h-3.5" />
                 {lang === 'ar' ? 'رجوع' : 'Retour'}
               </button>
-              <span className="text-sm font-bold text-[#001D39]">
-                {selectedRegion && (lang === 'ar' ? selectedRegion.nameAr : selectedRegion.nameFr)}
-              </span>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span className="font-bold text-[#001D39]">
+                  {selectedRegion && (lang === 'ar' ? selectedRegion.nameAr : selectedRegion.nameFr)}
+                </span>
+                <AnimatePresence>
+                  {selectedProvince && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      className="flex items-center gap-1 text-[#0A4174] font-semibold"
+                    >
+                      <span className="text-[#49769F]">›</span>
+                      {selectedProvince}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
-            {/* Zoomed region SVG with provinces */}
+            {/* Zoomed region SVG */}
             <div className="flex-1 relative">
               {(!provincesData || !regionProjection || !regionPath) ? (
                 <div className="w-full h-full flex items-center justify-center">
@@ -267,32 +311,23 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                   <defs>
                     <filter id="province-glow">
                       <feGaussianBlur stdDeviation="2" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                     </filter>
                   </defs>
 
-                  {/* Region outline (background) */}
                   {geoData.features
                     .filter(f => f.properties?.id === selectedRegion?.geoId)
                     .map(f => (
-                      <path
-                        key="region-bg"
-                        d={regionPath(f as Feature<Geometry>) || ''}
-                        fill="#BDD8E9"
-                        stroke="#0A4174"
-                        strokeWidth={2}
-                      />
-                    ))
-                  }
+                      <path key="region-bg" d={regionPath(f as Feature<Geometry>) || ''} fill="#BDD8E9" stroke="#0A4174" strokeWidth={2} />
+                    ))}
 
-                  {/* Province boundaries */}
                   {provinceFeatures.map((feature, i) => {
                     const name = feature.properties?.name || '';
                     const isHovered = hoveredProvince === name;
-                    const provinceColor = REGION_COLORS[i % REGION_COLORS.length];
+                    const parsed = parseProvinceName(name);
+                    const displayName = lang === 'ar' ? parsed.ar : parsed.fr;
+                    const isSelected = selectedProvince === displayName;
+                    const provinceColor = isSelected ? '#0A4174' : REGION_COLORS[i % REGION_COLORS.length];
                     const d = regionPath(feature as Feature<Geometry>) || '';
                     const centroid = geoCentroid(feature as Feature<Geometry>);
                     const center = regionProjection(centroid);
@@ -302,38 +337,28 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                         <motion.path
                           d={d}
                           fill={isHovered ? '#0A4174' : provinceColor}
-                          stroke="#BDD8E9"
-                          strokeWidth={isHovered ? 2 : 0.8}
+                          stroke={isSelected ? '#7BBDE8' : '#BDD8E9'}
+                          strokeWidth={isHovered || isSelected ? 2 : 0.8}
                           className="cursor-pointer"
-                          style={{ filter: isHovered ? 'url(#province-glow)' : 'none' }}
-                          initial={{ opacity: 0, pathLength: 0 }}
-                          animate={{ opacity: 1, pathLength: 1 }}
+                          style={{ filter: isHovered || isSelected ? 'url(#province-glow)' : 'none' }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{ duration: 0.5, delay: i * 0.03 }}
                           onMouseEnter={() => setHoveredProvince(name)}
                           onMouseLeave={() => setHoveredProvince(null)}
-                          onClick={() => {
-                            const parsed = parseProvinceName(name);
-                            handleProvinceClick(parsed.fr);
-                          }}
+                          onClick={() => handleProvinceClick(name)}
                         />
-                        {/* Province label */}
                         {center && (
                           <text
-                            x={center[0]}
-                            y={center[1]}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
+                            x={center[0]} y={center[1]}
+                            textAnchor="middle" dominantBaseline="middle"
                             className="pointer-events-none select-none"
-                            fill="#001D39"
-                            fontSize={isHovered ? 10 : 7}
-                            fontWeight={isHovered ? 700 : 400}
-                            opacity={isHovered ? 1 : 0.7}
+                            fill={isSelected ? '#7BBDE8' : '#001D39'}
+                            fontSize={isHovered || isSelected ? 10 : 7}
+                            fontWeight={isHovered || isSelected ? 700 : 400}
+                            opacity={isHovered || isSelected ? 1 : 0.7}
                           >
-                            {(() => {
-                              const parsed = parseProvinceName(name);
-                              const label = lang === 'ar' ? parsed.ar : parsed.fr;
-                              return label.length > 18 ? label.slice(0, 16) + '…' : label;
-                            })()}
+                            {displayName.length > 18 ? displayName.slice(0, 16) + '…' : displayName}
                           </text>
                         )}
                       </g>
@@ -346,25 +371,94 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
               <AnimatePresence>
                 {hoveredProvince && tooltipPos && (
                   <motion.div
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
+                    initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
                     className="absolute pointer-events-none z-20 px-3 py-2 rounded-xl bg-popover/95 backdrop-blur-md border border-border shadow-xl"
-                    style={{
-                      left: Math.min(tooltipPos.x + 12, WIDTH - 180),
-                      top: tooltipPos.y - 40,
-                    }}
+                    style={{ left: Math.min(tooltipPos.x + 12, WIDTH - 180), top: tooltipPos.y - 40 }}
                   >
                     <p className="text-xs font-bold text-foreground">
-                      {(() => {
-                        const parsed = parseProvinceName(hoveredProvince);
-                        return lang === 'ar' ? parsed.ar : parsed.fr;
-                      })()}
+                      {(() => { const p = parseProvinceName(hoveredProvince); return lang === 'ar' ? p.ar : p.fr; })()}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {lang === 'ar' ? 'انقر لعرض الإحصائيات' : 'Cliquez pour voir les stats'}
+                      {lang === 'ar' ? 'انقر للتحديد' : 'Cliquez pour sélectionner'}
                     </p>
                   </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ─── Stat Side Panels ─── */}
+              <AnimatePresence>
+                {currentStats && view === 'region' && (
+                  <>
+                    <StatPanel
+                      position="left-top"
+                      title={lang === 'ar' ? 'ملخص' : 'Résumé'}
+                      items={[
+                        {
+                          label: lang === 'ar' ? 'إجمالي المسجلين' : 'Total inscrits',
+                          value: currentStats.total,
+                          color: '#7BBDE8',
+                          icon: <Users className="w-3 h-3 text-[#7BBDE8]" />,
+                        },
+                        {
+                          label: lang === 'ar' ? 'الطلبات' : 'Demandes',
+                          value: currentStats.requests,
+                          color: '#F39C12',
+                          icon: <FileText className="w-3 h-3 text-[#F39C12]" />,
+                        },
+                      ]}
+                    />
+                    <StatPanel
+                      position="left-bottom"
+                      title={lang === 'ar' ? 'الانخراط' : 'Adhésion'}
+                      items={[
+                        {
+                          label: lang === 'ar' ? 'منخرطون' : 'Membres',
+                          value: currentStats.members,
+                          color: '#2ECC71',
+                          icon: <UserCheck className="w-3 h-3 text-[#2ECC71]" />,
+                        },
+                        {
+                          label: lang === 'ar' ? 'غير منخرطين' : 'Non-membres',
+                          value: currentStats.total - currentStats.members,
+                          color: '#E74C3C',
+                          icon: <Users className="w-3 h-3 text-[#E74C3C]" />,
+                        },
+                      ]}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.85 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.85 }}
+                      className="absolute top-3 right-3 z-10 min-w-[130px] max-w-[160px]"
+                    >
+                      <div className="rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] p-3">
+                        <h4 className="text-[10px] font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5 flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3" />
+                          {lang === 'ar' ? 'النسب' : 'Ratios'}
+                        </h4>
+                        <div className="space-y-2.5">
+                          <div>
+                            <div className="flex justify-between text-[9px] mb-1">
+                              <span className="text-[#6EA2B3]">{lang === 'ar' ? 'نسبة الانخراط' : 'Taux adhésion'}</span>
+                              <span className="text-[#2ECC71] font-bold">
+                                {currentStats.total > 0 ? Math.round((currentStats.members / currentStats.total) * 100) : 0}%
+                              </span>
+                            </div>
+                            <MiniProgress value={currentStats.members} max={currentStats.total} color="#2ECC71" />
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-[9px] mb-1">
+                              <span className="text-[#6EA2B3]">{lang === 'ar' ? 'الطلبات/مسجل' : 'Dem./inscrit'}</span>
+                              <span className="text-[#F39C12] font-bold">
+                                {currentStats.total > 0 ? (currentStats.requests / currentStats.total).toFixed(1) : '0'}
+                              </span>
+                            </div>
+                            <MiniProgress value={currentStats.requests} max={currentStats.total} color="#F39C12" />
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </>
                 )}
               </AnimatePresence>
             </div>
@@ -372,13 +466,11 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
         )}
       </AnimatePresence>
 
-      {/* Selected region info overlay (country view only) */}
+      {/* Selected region info overlay (country view) */}
       <AnimatePresence>
         {view === 'country' && selectedRegion && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
             className="absolute bottom-4 left-4 right-4 bg-card/90 backdrop-blur-xl border border-primary/20 rounded-2xl p-4 shadow-2xl"
           >
             <p className="text-xs text-muted-foreground text-center">

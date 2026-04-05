@@ -150,7 +150,7 @@ const QuickFilter = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { setSelectedRegion(null); setSelectedDirectorate(null); }}
+              onClick={() => { setSelectedRegion(null); setSelectedDirectorate(null); setSelectedProvinceName(null); }}
               className="ms-auto"
             >
               <RotateCcw className="w-4 h-4 me-1" />

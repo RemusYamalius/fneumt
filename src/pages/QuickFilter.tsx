@@ -160,10 +160,10 @@ const QuickFilter = () => {
         </motion.div>
 
         {/* Main Content - Split View */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Map Section */}
           <motion.div
-            className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl"
+            className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl min-h-[500px]"
             initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
@@ -172,7 +172,7 @@ const QuickFilter = () => {
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-[#49769F]/10 rounded-full blur-2xl" />
 
             <MoroccoMap
-              onRegionSelect={(r) => { setSelectedRegion(r); setSelectedDirectorate(null); }}
+              onRegionSelect={(r) => { setSelectedRegion(r); setSelectedDirectorate(null); setSelectedProvinceName(null); }}
               selectedRegion={selectedRegion}
               regionStats={regionStats}
               onProvinceSelect={(prov) => {
@@ -183,12 +183,13 @@ const QuickFilter = () => {
                   setSelectedDirectorate(null);
                 }
               }}
+              onProvinceNameChange={setSelectedProvinceName}
             />
           </motion.div>
 
           {/* Orbital Filter Section */}
           <motion.div
-            className="rounded-3xl overflow-hidden border border-primary/10 bg-card/50 backdrop-blur-xl shadow-2xl flex flex-col"
+            className="rounded-3xl overflow-hidden border border-primary/10 bg-card/50 backdrop-blur-xl shadow-2xl"
             initial={{ opacity: 0, x: dir === 'rtl' ? -30 : 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}

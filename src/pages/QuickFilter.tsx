@@ -20,6 +20,7 @@ const QuickFilter = () => {
   const navigate = useNavigate();
   const [selectedRegion, setSelectedRegion] = useState<RegionMapping | null>(null);
   const [selectedDirectorate, setSelectedDirectorate] = useState<string | null>(null);
+  const [selectedProvinceName, setSelectedProvinceName] = useState<string | null>(null);
 
   // Fetch all profiles for stats
   const { data: profiles } = useQuery({

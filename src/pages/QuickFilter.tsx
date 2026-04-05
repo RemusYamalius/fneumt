@@ -130,8 +130,16 @@ const QuickFilter = () => {
               <Map className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
                 {lang === 'ar' ? 'فلتر سريع' : 'Filtre rapide'}
+                {selectedRegion && (
+                  <span className="text-sm font-medium text-[#0A4174]">
+                    — {lang === 'ar' ? selectedRegion.nameAr : selectedRegion.nameFr}
+                    {selectedProvinceName && (
+                      <span className="text-[#49769F]"> › {selectedProvinceName}</span>
+                    )}
+                  </span>
+                )}
               </h1>
               <p className="text-xs text-muted-foreground">
                 {lang === 'ar' ? 'استعراض تفاعلي حسب الجهات والأقاليم' : 'Exploration interactive par régions et provinces'}

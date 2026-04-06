@@ -37,10 +37,11 @@ function getContrastColor(bgColor: string): string {
 }
 
 // ─── Stat Panel ─────────────────────────────────────────
-const StatPanel = ({ title, items, position }: {
+const StatPanel = ({ title, items, position, large }: {
   title: string;
   items: { label: string; value: number | string; color: string; icon?: React.ReactNode }[];
   position: 'left-top' | 'left-bottom' | 'right-top' | 'right-bottom';
+  large?: boolean;
 }) => {
   const posMap = {
     'left-top': 'top-3 left-3',
@@ -55,23 +56,23 @@ const StatPanel = ({ title, items, position }: {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.85 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className={`absolute ${posMap[position]} z-10 min-w-[130px] max-w-[160px]`}
+      className={`absolute ${posMap[position]} z-10 ${large ? 'min-w-[170px] max-w-[220px]' : 'min-w-[130px] max-w-[160px]'}`}
     >
-      <div className="rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] p-3">
-        <h4 className="text-[10px] font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5">
+      <div className={`rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] ${large ? 'p-4' : 'p-3'}`}>
+        <h4 className={`${large ? 'text-xs' : 'text-[10px]'} font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5`}>
           {title}
         </h4>
         <div className="space-y-2">
           {items.map((item, i) => (
             <div key={i} className="flex items-center gap-2">
               {item.icon && (
-                <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ backgroundColor: `${item.color}22` }}>
+                <div className={`${large ? 'w-6 h-6' : 'w-5 h-5'} rounded-md flex items-center justify-center`} style={{ backgroundColor: `${item.color}22` }}>
                   {item.icon}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-[9px] text-[#6EA2B3] truncate">{item.label}</p>
-                <p className="text-sm font-bold" style={{ color: item.color }}>{item.value}</p>
+                <p className={`${large ? 'text-[10px]' : 'text-[9px]'} text-[#6EA2B3] truncate`}>{item.label}</p>
+                <p className={`${large ? 'text-base' : 'text-sm'} font-bold`} style={{ color: item.color }}>{item.value}</p>
               </div>
             </div>
           ))}
@@ -119,7 +120,6 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     }
   }, [view, provincesData]);
 
-  // Reset view when selectedRegion becomes null (parent reset)
   useEffect(() => {
     if (!selectedRegion) {
       setView('country');
@@ -193,6 +193,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     const parsed = parseProvinceName(rawName);
     const displayName = lang === 'ar' ? parsed.ar : parsed.fr;
     setSelectedProvince(displayName);
+    // Always pass FR name for data matching, but display name for UI
     onProvinceSelect?.(parsed.fr);
     onProvinceNameChange?.(displayName);
   }, [onProvinceSelect, onProvinceNameChange, parseProvinceName, lang]);
@@ -211,14 +212,15 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
   }
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
+  const isLarge = isFullscreen;
 
   const mapContent = (
     <div className="relative w-full h-full flex items-center justify-center">
-      {/* Fullscreen toggle button */}
+      {/* Fullscreen toggle button — top-left to avoid overlapping back button */}
       <button
         onClick={toggleFullscreen}
-        className="absolute top-2 right-2 z-20 p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
-        title={isFullscreen ? 'تصغير' : 'تكبير'}
+        className="absolute top-2 start-2 z-20 p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
+        title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
       >
         {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
       </button>
@@ -235,7 +237,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
           >
             <svg
               viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-              className="w-full h-full max-h-[600px]"
+              className={`w-full h-full ${isFullscreen ? 'max-h-[90vh]' : 'max-h-[600px]'}`}
               style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
             >
               <defs>
@@ -354,7 +356,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
               ) : (
                 <svg
                   viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-                  className="w-full h-full max-h-[540px]"
+                  className={`w-full h-full ${isFullscreen ? 'max-h-[80vh]' : 'max-h-[540px]'}`}
                   style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
                   onMouseMove={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
@@ -453,37 +455,39 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                   <>
                     <StatPanel
                       position="left-top"
+                      large={isLarge}
                       title={lang === 'ar' ? 'ملخص' : 'Résumé'}
                       items={[
                         {
                           label: lang === 'ar' ? 'إجمالي المسجلين' : 'Total inscrits',
                           value: currentStats.total,
                           color: '#7BBDE8',
-                          icon: <Users className="w-3 h-3 text-[#7BBDE8]" />,
+                          icon: <Users className={`${isLarge ? 'w-4 h-4' : 'w-3 h-3'} text-[#7BBDE8]`} />,
                         },
                         {
                           label: lang === 'ar' ? 'الطلبات' : 'Demandes',
                           value: currentStats.requests,
                           color: '#F39C12',
-                          icon: <FileText className="w-3 h-3 text-[#F39C12]" />,
+                          icon: <FileText className={`${isLarge ? 'w-4 h-4' : 'w-3 h-3'} text-[#F39C12]`} />,
                         },
                       ]}
                     />
                     <StatPanel
                       position="left-bottom"
+                      large={isLarge}
                       title={lang === 'ar' ? 'الانخراط' : 'Adhésion'}
                       items={[
                         {
                           label: lang === 'ar' ? 'منخرطون' : 'Membres',
                           value: currentStats.members,
                           color: '#2ECC71',
-                          icon: <UserCheck className="w-3 h-3 text-[#2ECC71]" />,
+                          icon: <UserCheck className={`${isLarge ? 'w-4 h-4' : 'w-3 h-3'} text-[#2ECC71]`} />,
                         },
                         {
                           label: lang === 'ar' ? 'غير منخرطين' : 'Non-membres',
                           value: currentStats.total - currentStats.members,
                           color: '#E74C3C',
-                          icon: <Users className="w-3 h-3 text-[#E74C3C]" />,
+                          icon: <Users className={`${isLarge ? 'w-4 h-4' : 'w-3 h-3'} text-[#E74C3C]`} />,
                         },
                       ]}
                     />
@@ -491,16 +495,16 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                       initial={{ opacity: 0, scale: 0.85 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.85 }}
-                      className="absolute top-3 right-3 z-10 min-w-[130px] max-w-[160px]"
+                      className={`absolute top-3 right-3 z-10 ${isLarge ? 'min-w-[170px] max-w-[220px]' : 'min-w-[130px] max-w-[160px]'}`}
                     >
-                      <div className="rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] p-3">
-                        <h4 className="text-[10px] font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5 flex items-center gap-1">
+                      <div className={`rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] ${isLarge ? 'p-4' : 'p-3'}`}>
+                        <h4 className={`${isLarge ? 'text-xs' : 'text-[10px]'} font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5 flex items-center gap-1`}>
                           <TrendingUp className="w-3 h-3" />
                           {lang === 'ar' ? 'النسب' : 'Ratios'}
                         </h4>
                         <div className="space-y-2.5">
                           <div>
-                            <div className="flex justify-between text-[9px] mb-1">
+                            <div className={`flex justify-between ${isLarge ? 'text-[10px]' : 'text-[9px]'} mb-1`}>
                               <span className="text-[#6EA2B3]">{lang === 'ar' ? 'نسبة الانخراط' : 'Taux adhésion'}</span>
                               <span className="text-[#2ECC71] font-bold">
                                 {currentStats.total > 0 ? Math.round((currentStats.members / currentStats.total) * 100) : 0}%
@@ -509,7 +513,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                             <MiniProgress value={currentStats.members} max={currentStats.total} color="#2ECC71" />
                           </div>
                           <div>
-                            <div className="flex justify-between text-[9px] mb-1">
+                            <div className={`flex justify-between ${isLarge ? 'text-[10px]' : 'text-[9px]'} mb-1`}>
                               <span className="text-[#6EA2B3]">{lang === 'ar' ? 'الطلبات/مسجل' : 'Dem./inscrit'}</span>
                               <span className="text-[#F39C12] font-bold">
                                 {currentStats.total > 0 ? (currentStats.requests / currentStats.total).toFixed(1) : '0'}
@@ -544,7 +548,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     </div>
   );
 
-  // Fullscreen mode
+  // Fullscreen mode — render BEFORE returning plain mapContent
   if (isFullscreen) {
     return (
       <AnimatePresence>
@@ -553,10 +557,9 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-50 bg-[#BDD8E9] flex items-center justify-center p-6"
-          style={{ backdropFilter: 'blur(20px)' }}
+          className="fixed inset-0 z-50 bg-[#BDD8E9] flex items-center justify-center p-4"
         >
-          <div className="w-full h-full max-w-[1200px] relative">
+          <div className="w-full h-full max-w-[1400px] relative">
             {mapContent}
           </div>
         </motion.div>

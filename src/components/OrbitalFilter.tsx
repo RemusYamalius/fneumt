@@ -436,7 +436,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
   const filterContent = (
     <div className="flex flex-col items-center w-full h-full">
       {/* ─── Search Scope Toggle (above the wheel) ─── */}
-      <div className="w-full px-4 pt-4 pb-2">
+      <div className="w-full px-4 pt-1 pb-1">
         <div className="flex flex-col items-center gap-2">
           <p className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase">
             {lang === 'ar' ? 'نطاق البحث' : 'Portée de recherche'}
@@ -503,11 +503,21 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             </radialGradient>
           </defs>
 
-          {/* Directorate ring (outermost) */}
+          {/* Mission ring (outermost — 11 items need max space) */}
+          <FilterRing
+            cx={CX} cy={CY}
+            innerR={rings[4].innerR} outerR={rings[4].outerR}
+            items={missionItems} colors={MISSION_COLORS}
+            selected={filters.mission}
+            onSelect={(val) => setFilters(prev => ({ ...prev, mission: val }))}
+            rotationDir={-1} speed={60}
+          />
+
+          {/* Directorate ring (conditional) */}
           {directorateItems.length > 0 && (
             <FilterRing
               cx={CX} cy={CY}
-              innerR={rings[4].innerR} outerR={rings[4].outerR}
+              innerR={rings[3].innerR} outerR={rings[3].outerR}
               items={directorateItems} colors={dirColors}
               selected={filters.directorate}
               onSelect={(val) => setFilters(prev => ({ ...prev, directorate: val }))}
@@ -518,21 +528,11 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
           {/* Academy ring */}
           <FilterRing
             cx={CX} cy={CY}
-            innerR={rings[3].innerR} outerR={rings[3].outerR}
+            innerR={rings[2].innerR} outerR={rings[2].outerR}
             items={academyItems} colors={ACADEMY_COLORS}
             selected={filters.academy}
             onSelect={(val) => setFilters(prev => ({ ...prev, academy: val, directorate: null }))}
             rotationDir={1} speed={90}
-          />
-
-          {/* Mission ring */}
-          <FilterRing
-            cx={CX} cy={CY}
-            innerR={rings[2].innerR} outerR={rings[2].outerR}
-            items={missionItems} colors={MISSION_COLORS}
-            selected={filters.mission}
-            onSelect={(val) => setFilters(prev => ({ ...prev, mission: val }))}
-            rotationDir={-1} speed={60}
           />
 
           {/* Membership ring */}
@@ -557,8 +557,8 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
 
           {/* Center hub — Logo */}
           <circle cx={CX} cy={CY} r={58} fill="url(#centerGrad)" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,29,57,0.5))' }} />
-          <foreignObject x={CX - 28} y={CY - 28} width={56} height={56}>
-            <AnimatedLogo size="w-14 h-14" />
+          <foreignObject x={CX - 50} y={CY - 50} width={100} height={100}>
+            <AnimatedLogo size="w-24 h-24" />
           </foreignObject>
         </svg>
       </div>

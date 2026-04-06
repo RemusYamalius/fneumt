@@ -557,8 +557,8 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
 
           {/* Center hub — Logo */}
           <circle cx={CX} cy={CY} r={58} fill="url(#centerGrad)" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,29,57,0.5))' }} />
-          <foreignObject x={CX - 28} y={CY - 28} width={56} height={56}>
-            <AnimatedLogo size="w-14 h-14" />
+          <foreignObject x={CX - 50} y={CY - 50} width={100} height={100}>
+            <AnimatedLogo size="w-24 h-24" />
           </foreignObject>
         </svg>
       </div>

@@ -295,8 +295,9 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
     const svg = (e.target as Element).closest('svg');
     if (!svg) return 0;
     const rect = svg.getBoundingClientRect();
-    const svgX = (e.clientX - rect.left) / rect.width * 600;
-    const svgY = (e.clientY - rect.top) / rect.height * 600;
+    const vb = svg.getAttribute('viewBox')?.split(' ').map(Number) || [0,0,700,700];
+    const svgX = (e.clientX - rect.left) / rect.width * vb[2];
+    const svgY = (e.clientY - rect.top) / rect.height * vb[3];
     return Math.atan2(svgY - cy, svgX - cx) * (180 / Math.PI);
   }, [cx, cy]);
 

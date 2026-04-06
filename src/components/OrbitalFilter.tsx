@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useAnimationFrame } from 'framer-motion';
+import { motion, AnimatePresence, useAnimationFrame } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useClickSound } from '@/hooks/useClickSound';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, RotateCcw, Users, Building2, X, School, Phone, Hash, Calendar } from 'lucide-react';
+import { Search, RotateCcw, Users, Building2, X, School, Phone, Hash, Calendar, Maximize2, Minimize2 } from 'lucide-react';
 import { ACADEMIES } from '@/lib/academies-data';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import AnimatedLogo from '@/components/AnimatedLogo';
 
 // ─── Types ──────────────────────────────────────────────
 export interface OrbitalFilterValues {
@@ -117,11 +118,12 @@ interface ArcSegmentProps {
   selected: boolean;
   hovered: boolean;
   label: string;
+  ringRotation: number;
   onClick: () => void;
   onHover: (h: boolean) => void;
 }
 
-const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selected, hovered, label, onClick, onHover }: ArcSegmentProps) => {
+const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selected, hovered, label, ringRotation, onClick, onHover }: ArcSegmentProps) => {
   const d = describeArc(cx, cy, innerR, outerR, startAngle, endAngle);
   const midR = (innerR + outerR) / 2;
   const pos = labelPosition(cx, cy, midR, startAngle, endAngle);
@@ -133,21 +135,12 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
   const maxChars = Math.floor(arcLen / 5.5);
   const displayLabel = label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label;
 
-  // base font size, bigger when hovered
   const baseFontSize = Math.max(5.5, Math.min(10, segWidth * 0.28));
   const fontSize = hovered ? Math.min(baseFontSize * 1.6, 14) : baseFontSize;
 
-  // Correct text rotation: ensure text is never upside-down
-  const midAngle = (startAngle + endAngle) / 2;
-  // midAngle is 0=top, 90=right, 180=bottom, 270=left
-  // We want the text to be readable (not flipped)
-  const rawRotation = midAngle; // rotation from top
-  // If angle is in bottom half (90..270), flip by adding 180
-  const textRotation = (rawRotation > 90 && rawRotation < 270)
-    ? rawRotation + 180
-    : rawRotation;
+  // Counter-rotate text so it stays horizontal (readable)
+  const counterRotation = -ringRotation;
 
-  // Scale effect for hovered segment
   const scale = hovered ? 1.08 : 1;
 
   return (
@@ -185,7 +178,7 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
                 fontSize={fontSize}
                 fontWeight={selected ? 700 : hovered ? 600 : 500}
                 className="pointer-events-none select-none"
-                transform={`rotate(${textRotation - 90}, ${pos.x}, ${pos.y})`}
+                transform={`rotate(${counterRotation}, ${pos.x}, ${pos.y})`}
                 style={{
                   textShadow: selected || hovered
                     ? '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.3)'
@@ -224,24 +217,65 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
   const anglePerItem = 360 / items.length;
   const playClick = useClickSound();
   const rotationRef = useRef(0);
-  const rotation = useMotionValue(0);
+  const [currentRotation, setCurrentRotation] = useState(0);
 
-  // Manual rotation: stop when hovered or when a selection is made
-  const shouldRotate = !ringHovered && selected === null;
+  // Manual drag state
+  const isDragging = useRef(false);
+  const dragStartAngle = useRef(0);
+  const dragStartRotation = useRef(0);
+
+  const shouldRotate = !ringHovered && selected === null && !isDragging.current;
 
   useAnimationFrame((_, delta) => {
     if (shouldRotate) {
       rotationRef.current += (rotationDir * 360 * delta) / (speed * 1000);
       rotationRef.current = rotationRef.current % 360;
-      rotation.set(rotationRef.current);
+      setCurrentRotation(rotationRef.current);
     }
   });
 
+  const getAngleFromMouse = useCallback((e: React.MouseEvent) => {
+    const svg = (e.target as Element).closest('svg');
+    if (!svg) return 0;
+    const rect = svg.getBoundingClientRect();
+    const svgX = (e.clientX - rect.left) / rect.width * 600;
+    const svgY = (e.clientY - rect.top) / rect.height * 600;
+    return Math.atan2(svgY - cy, svgX - cx) * (180 / Math.PI);
+  }, [cx, cy]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    isDragging.current = true;
+    dragStartAngle.current = getAngleFromMouse(e);
+    dragStartRotation.current = rotationRef.current;
+  }, [getAngleFromMouse]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const angle = getAngleFromMouse(e);
+    const delta = angle - dragStartAngle.current;
+    rotationRef.current = dragStartRotation.current + delta;
+    setCurrentRotation(rotationRef.current);
+  }, [getAngleFromMouse]);
+
+  const handleMouseUp = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.stopPropagation();
+    rotationRef.current += e.deltaY > 0 ? 8 : -8;
+    setCurrentRotation(rotationRef.current);
+  }, []);
+
   return (
-    <motion.g
+    <g
       onMouseEnter={() => setRingHovered(true)}
-      onMouseLeave={() => { setRingHovered(false); setHoveredSegment(null); }}
-      style={{ rotate: rotation, transformOrigin: `${cx}px ${cy}px` }}
+      onMouseLeave={() => { setRingHovered(false); setHoveredSegment(null); handleMouseUp(); }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onWheel={handleWheel}
+      style={{ transform: `rotate(${currentRotation}deg)`, transformOrigin: `${cx}px ${cy}px` }}
     >
       {items.map((item, i) => {
         const startAngle = i * anglePerItem;
@@ -260,6 +294,7 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
             selected={isSelected}
             hovered={isHovered}
             label={item.label}
+            ringRotation={currentRotation}
             onHover={(h) => setHoveredSegment(h ? item.value : null)}
             onClick={() => {
               playClick();
@@ -268,7 +303,7 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
           />
         );
       })}
-    </motion.g>
+    </g>
   );
 };
 
@@ -276,6 +311,7 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
 const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: OrbitalFilterProps) => {
   const { lang } = useI18n();
   const playClick = useClickSound();
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [filters, setFilters] = useState<OrbitalFilterValues>({
     mode: 'users',
@@ -396,13 +432,59 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
     { innerR: 262, outerR: 295 },
   ];
 
-  return (
+  const filterContent = (
     <div className="flex flex-col items-center w-full h-full">
+      {/* ─── Search Scope Toggle (above the wheel) ─── */}
+      <div className="w-full px-4 pt-4 pb-2">
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase">
+            {lang === 'ar' ? 'نطاق البحث' : 'Portée de recherche'}
+          </p>
+          <div className="flex items-center gap-1 p-1 rounded-2xl bg-muted/60 border border-border/50 shadow-inner">
+            <motion.button
+              onClick={() => { playClick(); setFilters(prev => ({ ...prev, mode: 'users' })); }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                filters.mode === 'users'
+                  ? 'bg-gradient-to-r from-[#0A4174] to-[#001D39] text-white shadow-lg'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Users className="w-4 h-4" />
+              {lang === 'ar' ? 'بحث عام — المسجلون' : 'Recherche générale — Inscrits'}
+            </motion.button>
+            <motion.button
+              onClick={() => { playClick(); setFilters(prev => ({ ...prev, mode: 'offices' })); }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                filters.mode === 'offices'
+                  ? 'bg-gradient-to-r from-[#0A4174] to-[#001D39] text-white shadow-lg'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Building2 className="w-4 h-4" />
+              {lang === 'ar' ? 'حسب المكاتب المحلية' : 'Par bureaux locaux'}
+            </motion.button>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Fullscreen toggle for orbital ─── */}
+      <div className="w-full flex justify-end px-4">
+        <button
+          onClick={() => { playClick(); setIsFullscreen(prev => !prev); }}
+          className="p-1.5 rounded-lg bg-muted/60 hover:bg-muted border border-border/40 text-muted-foreground hover:text-foreground transition-all"
+          title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
+        >
+          {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+        </button>
+      </div>
+
       {/* ─── Color Wheel ─── */}
-      <div className="w-full flex items-center justify-center px-2 pt-2">
+      <div className="w-full flex items-center justify-center px-2">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
-          className="w-full max-w-[560px] aspect-square"
+          className={`w-full ${isFullscreen ? 'max-w-[700px]' : 'max-w-[560px]'} aspect-square`}
         >
           <defs>
             <filter id="ring-glow">
@@ -470,45 +552,11 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
             rotationDir={-1} speed={35}
           />
 
-          {/* Center hub */}
-          <g
-            className="cursor-pointer"
-            onClick={() => {
-              playClick();
-              setFilters(prev => ({ ...prev, mode: prev.mode === 'users' ? 'offices' : 'users' }));
-            }}
-          >
-            <circle cx={CX} cy={CY} r={58} fill="url(#centerGrad)" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,29,57,0.5))' }} />
-            <AnimatePresence mode="wait">
-              <motion.g
-                key={filters.mode}
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.7 }}
-                style={{ transformOrigin: `${CX}px ${CY}px` }}
-              >
-                {filters.mode === 'users' ? (
-                  <>
-                    <foreignObject x={CX - 12} y={CY - 18} width={24} height={24}>
-                      <Users className="w-6 h-6 text-white" />
-                    </foreignObject>
-                    <text x={CX} y={CY + 18} textAnchor="middle" fill="white" fontSize="9" opacity={0.95} fontWeight={600}>
-                      {lang === 'ar' ? 'المسجلون' : 'Inscrits'}
-                    </text>
-                  </>
-                ) : (
-                  <>
-                    <foreignObject x={CX - 12} y={CY - 18} width={24} height={24}>
-                      <Building2 className="w-6 h-6 text-white" />
-                    </foreignObject>
-                    <text x={CX} y={CY + 18} textAnchor="middle" fill="white" fontSize="9" opacity={0.95} fontWeight={600}>
-                      {lang === 'ar' ? 'المكاتب' : 'Bureaux'}
-                    </text>
-                  </>
-                )}
-              </motion.g>
-            </AnimatePresence>
-          </g>
+          {/* Center hub — Logo */}
+          <circle cx={CX} cy={CY} r={58} fill="url(#centerGrad)" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,29,57,0.5))' }} />
+          <foreignObject x={CX - 28} y={CY - 28} width={56} height={56}>
+            <AnimatedLogo size="w-14 h-14" />
+          </foreignObject>
         </svg>
       </div>
 
@@ -628,6 +676,24 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
       </div>
     </div>
   );
+
+  if (isFullscreen) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex items-start justify-center p-4"
+      >
+        <div className="w-full max-w-[900px]">
+          {filterContent}
+        </div>
+      </motion.div>
+    );
+  }
+
+  return filterContent;
 };
 
 export default OrbitalFilter;

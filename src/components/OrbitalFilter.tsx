@@ -684,9 +684,9 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex items-start justify-center p-4"
+        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex items-center justify-center p-6"
       >
-        <div className="w-full max-w-[900px]">
+        <div className="w-full max-w-[900px] flex flex-col items-center">
           {filterContent}
         </div>
       </motion.div>

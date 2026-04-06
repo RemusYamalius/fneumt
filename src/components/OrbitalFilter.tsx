@@ -243,7 +243,7 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
                   transition: 'font-size 0.2s ease',
                 }}
               >
-                {displayLabel}
+                {label}
               </text>
             )}
           </g>

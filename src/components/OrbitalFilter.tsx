@@ -189,14 +189,10 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
   const midR = (innerR + outerR) / 2;
   const pos = labelPosition(cx, cy, midR, startAngle, endAngle);
   const angleDeg = endAngle - startAngle;
-  const showLabel = angleDeg > 15;
+  const showLabel = angleDeg > 8;
 
   const segWidth = outerR - innerR;
-  const arcLen = (angleDeg / 360) * 2 * Math.PI * midR;
-  const maxChars = Math.floor(arcLen / 5.5);
-  const displayLabel = label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label;
-
-  const baseFontSize = Math.max(5.5, Math.min(10, segWidth * 0.28));
+  const baseFontSize = Math.max(4.5, Math.min(9, segWidth * 0.24));
   const fontSize = hovered ? Math.min(baseFontSize * 1.6, 14) : baseFontSize;
 
   // Counter-rotate text so it stays horizontal (readable)

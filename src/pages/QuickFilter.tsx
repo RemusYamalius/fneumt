@@ -118,7 +118,42 @@ const QuickFilter = () => {
 
     setIsSearching(true);
     try {
+      // When mode is 'offices', restrict to local_office_members only
+      let officeMemberIds: string[] | null = null;
+      if (filters.mode === 'offices') {
+        // Step 1: fetch offices matching academy/directorate
+        let officeQuery = supabase.from('local_offices').select('id');
+        if (filters.academy) officeQuery = officeQuery.eq('academy', filters.academy);
+        if (filters.directorate) officeQuery = officeQuery.eq('directorate', filters.directorate);
+        const { data: offices } = await officeQuery;
+        const officeIds = offices?.map(o => o.id) || [];
+
+        if (officeIds.length === 0) {
+          setSearchResults([]);
+          setTimeout(() => { resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+          return;
+        }
+
+        // Step 2: fetch member user_ids from those offices
+        const { data: members } = await supabase
+          .from('local_office_members')
+          .select('user_id')
+          .in('office_id', officeIds);
+        officeMemberIds = members?.map(m => m.user_id) || [];
+
+        if (officeMemberIds.length === 0) {
+          setSearchResults([]);
+          setTimeout(() => { resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+          return;
+        }
+      }
+
       let query = supabase.from('profiles').select('user_id, full_name, academy, directorate, mission, is_member, phone, email, employee_number, date_of_birth, gender, membership_verified');
+
+      // If offices mode, restrict to office members
+      if (officeMemberIds) {
+        query = query.in('user_id', officeMemberIds);
+      }
 
       if (filters.academy) query = query.eq('academy', filters.academy);
       if (filters.directorate) query = query.eq('directorate', filters.directorate);

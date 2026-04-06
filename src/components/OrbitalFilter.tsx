@@ -484,7 +484,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
       <div className="w-full flex items-center justify-center px-2">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
-          className={`w-full ${isFullscreen ? 'max-w-[700px]' : 'max-w-[560px]'} aspect-square`}
+          className={`w-full ${isFullscreen ? 'max-w-[85vh]' : 'max-w-[560px]'} aspect-square`}
         >
           <defs>
             <filter id="ring-glow">

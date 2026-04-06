@@ -473,10 +473,10 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
       <div className="w-full flex justify-end px-4">
         <button
           onClick={() => { playClick(); setIsFullscreen(prev => !prev); }}
-          className="p-1.5 rounded-lg bg-muted/60 hover:bg-muted border border-border/40 text-muted-foreground hover:text-foreground transition-all"
+          className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
           title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
         >
-          {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
       </div>
 

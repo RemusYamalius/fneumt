@@ -503,11 +503,21 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             </radialGradient>
           </defs>
 
-          {/* Directorate ring (outermost) */}
+          {/* Mission ring (outermost — 11 items need max space) */}
+          <FilterRing
+            cx={CX} cy={CY}
+            innerR={rings[4].innerR} outerR={rings[4].outerR}
+            items={missionItems} colors={MISSION_COLORS}
+            selected={filters.mission}
+            onSelect={(val) => setFilters(prev => ({ ...prev, mission: val }))}
+            rotationDir={-1} speed={60}
+          />
+
+          {/* Directorate ring (conditional) */}
           {directorateItems.length > 0 && (
             <FilterRing
               cx={CX} cy={CY}
-              innerR={rings[4].innerR} outerR={rings[4].outerR}
+              innerR={rings[3].innerR} outerR={rings[3].outerR}
               items={directorateItems} colors={dirColors}
               selected={filters.directorate}
               onSelect={(val) => setFilters(prev => ({ ...prev, directorate: val }))}
@@ -518,21 +528,11 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
           {/* Academy ring */}
           <FilterRing
             cx={CX} cy={CY}
-            innerR={rings[3].innerR} outerR={rings[3].outerR}
+            innerR={rings[2].innerR} outerR={rings[2].outerR}
             items={academyItems} colors={ACADEMY_COLORS}
             selected={filters.academy}
             onSelect={(val) => setFilters(prev => ({ ...prev, academy: val, directorate: null }))}
             rotationDir={1} speed={90}
-          />
-
-          {/* Mission ring */}
-          <FilterRing
-            cx={CX} cy={CY}
-            innerR={rings[2].innerR} outerR={rings[2].outerR}
-            items={missionItems} colors={MISSION_COLORS}
-            selected={filters.mission}
-            onSelect={(val) => setFilters(prev => ({ ...prev, mission: val }))}
-            rotationDir={-1} speed={60}
           />
 
           {/* Membership ring */}

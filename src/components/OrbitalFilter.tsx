@@ -436,7 +436,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
   const filterContent = (
     <div className="flex flex-col items-center w-full h-full">
       {/* ─── Search Scope Toggle (above the wheel) ─── */}
-      <div className="w-full px-4 pt-4 pb-2">
+      <div className="w-full px-4 pt-1 pb-1">
         <div className="flex flex-col items-center gap-2">
           <p className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase">
             {lang === 'ar' ? 'نطاق البحث' : 'Portée de recherche'}

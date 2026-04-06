@@ -341,8 +341,9 @@ const QuickFilter = () => {
               {searchResults.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  animate={{ opacity: [0, 1, 1, 0], scale: [0.9, 1, 1, 0.95] }}
+                  transition={{ duration: 3.5, times: [0, 0.12, 0.8, 1], ease: 'easeInOut' }}
+                  onAnimationComplete={() => setSearchResults(null)}
                   className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none"
                 >
                   <div className="bg-card/70 backdrop-blur-xl border border-border/50 rounded-3xl px-10 py-8 shadow-2xl text-center pointer-events-auto">

@@ -45,7 +45,7 @@ interface AttachmentPreview {
   type: 'image' | 'pdf' | 'video' | 'other';
 }
 
-const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
+const PostComposer = ({ onPostCreated, preSelectedRecipientIds }: { onPostCreated?: () => void; preSelectedRecipientIds?: string[] }) => {
   const { t, lang, dir } = useI18n();
 
   const getMissionLabel = (val: string) => {

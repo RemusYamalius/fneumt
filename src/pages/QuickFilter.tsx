@@ -64,8 +64,6 @@ const QuickFilter = () => {
   // Build per-academy stats for map
   const regionStats = useMemo(() => {
     if (!profiles || !requests || !userProfileMap) return {};
-    const stats: Record<string, { total: number; members: number; requests: number }> = {};
-
     const stats: Record<string, { total: number; members: number; requests: number; directorates: Record<string, { total: number; members: number; requests: number }> }> = {};
 
     ACADEMIES.forEach(a => {

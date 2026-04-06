@@ -25,6 +25,7 @@ const QuickFilter = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [showComposer, setShowComposer] = useState(false);
+  const [isOrbitalFullscreen, setIsOrbitalFullscreen] = useState(false);
   const [messageRecipients, setMessageRecipients] = useState<string[]>([]);
   const resultsRef = useRef<HTMLDivElement>(null);
 

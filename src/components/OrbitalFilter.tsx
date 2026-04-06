@@ -29,6 +29,8 @@ interface OrbitalFilterProps {
   selectedAcademy: string | null;
   selectedDirectorate: string | null;
   onSearch: (filters: OrbitalFilterValues) => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 // ─── Constants ──────────────────────────────────────────

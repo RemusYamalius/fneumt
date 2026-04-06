@@ -450,9 +450,10 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
       });
     }
     if (filters.mission) {
+      const mLabel = (lang === 'ar' ? MISSION_LABEL_MAP_AR : MISSION_LABEL_MAP_FR)[filters.mission] || filters.mission;
       items.push({
         key: 'mission',
-        label: `${lang === 'ar' ? 'المهمة' : 'Mission'}: ${filters.mission.length > 20 ? filters.mission.slice(0, 18) + '…' : filters.mission}`,
+        label: `${lang === 'ar' ? 'المهمة' : 'Mission'}: ${mLabel}`,
         color: '#2D8B6F',
         onRemove: () => setFilters(p => ({ ...p, mission: null })),
       });

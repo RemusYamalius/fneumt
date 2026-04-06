@@ -406,7 +406,8 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
 
   const genderItems = GENDER_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
   const membershipItems = MEMBERSHIP_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
-  const missionItems = MISSIONS.map(m => ({ label: m, value: m }));
+  const labelMap = lang === 'ar' ? MISSION_LABEL_MAP_AR : MISSION_LABEL_MAP_FR;
+  const missionItems = MISSION_KEYS.map(k => ({ label: labelMap[k] || k, value: k }));
   const academyItems = ACADEMIES.map(a => ({
     label: a.label.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', ''),
     value: a.label,

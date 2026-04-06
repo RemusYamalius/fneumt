@@ -471,15 +471,17 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
       </div>
 
       {/* ─── Fullscreen toggle for orbital ─── */}
-      <div className="w-full flex justify-end px-4">
-        <button
-          onClick={() => { playClick(); setIsFullscreen(prev => !prev); }}
-          className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
-          title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
-        >
-          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-        </button>
-      </div>
+      {onToggleFullscreen && (
+        <div className="w-full flex justify-end px-4">
+          <button
+            onClick={() => { playClick(); onToggleFullscreen(); }}
+            className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
+            title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+        </div>
+      )}
 
       {/* ─── Color Wheel ─── */}
       <div className="w-full flex items-center justify-center px-2">

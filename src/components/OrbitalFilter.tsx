@@ -34,19 +34,75 @@ interface OrbitalFilterProps {
 }
 
 // ─── Constants ──────────────────────────────────────────
-const MISSIONS = [
-  'أستاذ(ة) التعليم الابتدائي',
-  'أستاذ(ة) التعليم الثانوي الإعدادي',
-  'أستاذ(ة) التعليم الثانوي التأهيلي',
-  'أستاذ(ة) مبرز(ة)',
-  'ملحق(ة) تربوي',
-  'ملحق(ة) إداري',
-  'مدير(ة)',
-  'حارس(ة) عام(ة)',
-  'مفتش(ة)',
-  'تقني',
-  'مساعد(ة) تقني',
+const MISSION_KEYS = [
+  'teacher_primary', 'teacher_middle', 'teacher_high',
+  'specialist_educational', 'specialist_social', 'specialist_admin_econ',
+  'admin_director', 'admin_guard_ext', 'admin_guard_int',
+  'admin_nazir', 'admin_work_chief', 'admin_study_dir',
+  'admin_cross_sector', 'admin_ministry',
+  'supplier', 'editor', 'educational_assistant', 'technician',
+  'inspector_primary', 'inspector_middle', 'inspector_high',
+  'inspector_guidance', 'inspector_planning', 'inspector_finance',
+  'economy_admin', 'doctor',
 ];
+
+const MISSION_LABEL_MAP_AR: Record<string, string> = {
+  teacher_primary: 'أستاذ(ة) إبتدائي',
+  teacher_middle: 'أستاذ(ة) إعدادي',
+  teacher_high: 'أستاذ(ة) تأهيلي',
+  specialist_educational: 'مختص(ة) تربوي',
+  specialist_social: 'مختص(ة) إجتماعي',
+  specialist_admin_econ: 'مختص إدارة واقتصاد',
+  admin_director: 'مدير(ة)',
+  admin_guard_ext: 'حارس(ة) خارجية',
+  admin_guard_int: 'حارس(ة) داخلية',
+  admin_nazir: 'ناظر(ة)',
+  admin_work_chief: 'رئيس أشغال',
+  admin_study_dir: 'مدير دراسات',
+  admin_cross_sector: 'متصرف ق.مشتركة',
+  admin_ministry: 'متصرف وزارة',
+  supplier: 'ممون(ة)',
+  editor: 'محرر(ة)',
+  educational_assistant: 'مساعد(ة) تربوي',
+  technician: 'تقني(ة)',
+  inspector_primary: 'مفتش إبتدائي',
+  inspector_middle: 'مفتش إعدادي',
+  inspector_high: 'مفتش تأهيلي',
+  inspector_guidance: 'مفتش توجيه',
+  inspector_planning: 'مفتش تخطيط',
+  inspector_finance: 'مفتش مالية',
+  economy_admin: 'ملحق اقتصاد',
+  doctor: 'طبيب(ة)',
+};
+
+const MISSION_LABEL_MAP_FR: Record<string, string> = {
+  teacher_primary: 'Ens. primaire',
+  teacher_middle: 'Ens. collégial',
+  teacher_high: 'Ens. qualifiant',
+  specialist_educational: 'Spéc. pédagogique',
+  specialist_social: 'Spéc. social',
+  specialist_admin_econ: 'Spéc. admin/éco',
+  admin_director: 'Directeur',
+  admin_guard_ext: 'Surveillant ext.',
+  admin_guard_int: 'Surveillant int.',
+  admin_nazir: 'Nazir',
+  admin_work_chief: 'Chef travaux',
+  admin_study_dir: 'Dir. études',
+  admin_cross_sector: 'Admin inter-sect.',
+  admin_ministry: 'Admin ministère',
+  supplier: 'Intendant',
+  editor: 'Rédacteur',
+  educational_assistant: 'Assist. pédag.',
+  technician: 'Technicien',
+  inspector_primary: 'Insp. primaire',
+  inspector_middle: 'Insp. collégial',
+  inspector_high: 'Insp. qualifiant',
+  inspector_guidance: 'Insp. orientation',
+  inspector_planning: 'Insp. planification',
+  inspector_finance: 'Insp. finances',
+  economy_admin: 'Attaché éco/admin',
+  doctor: 'Médecin',
+};
 
 const GENDER_OPTIONS = [
   { val: 'all' as const, ar: 'الكل', fr: 'Tous' },
@@ -66,7 +122,10 @@ const MEMBERSHIP_COLORS = ['#4A6FA5', '#6B9BC3', '#2C4A7C', '#89B4D4'];
 const MISSION_COLORS = [
   '#2D8B6F', '#3A9E7E', '#48B08D', '#56C29C', '#64D4AB',
   '#4ABFAD', '#3DADAA', '#2F9BA7', '#2189A4', '#1477A1',
-  '#07659E',
+  '#07659E', '#1B7A8A', '#2E6E76', '#3F8F6B',
+  '#5AA85E', '#6DBF52', '#4CAF50', '#388E3C',
+  '#2E7D32', '#1B5E20', '#0D47A1', '#1565C0',
+  '#1976D2', '#1E88E5', '#2196F3', '#42A5F5',
 ];
 const ACADEMY_COLORS = [
   '#E74C3C', '#E67E22', '#F1C40F', '#F39C12', '#D4AC0D',
@@ -130,14 +189,10 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
   const midR = (innerR + outerR) / 2;
   const pos = labelPosition(cx, cy, midR, startAngle, endAngle);
   const angleDeg = endAngle - startAngle;
-  const showLabel = angleDeg > 15;
+  const showLabel = angleDeg > 8;
 
   const segWidth = outerR - innerR;
-  const arcLen = (angleDeg / 360) * 2 * Math.PI * midR;
-  const maxChars = Math.floor(arcLen / 5.5);
-  const displayLabel = label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label;
-
-  const baseFontSize = Math.max(5.5, Math.min(10, segWidth * 0.28));
+  const baseFontSize = Math.max(4.5, Math.min(9, segWidth * 0.24));
   const fontSize = hovered ? Math.min(baseFontSize * 1.6, 14) : baseFontSize;
 
   // Counter-rotate text so it stays horizontal (readable)
@@ -188,7 +243,7 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
                   transition: 'font-size 0.2s ease',
                 }}
               >
-                {displayLabel}
+                {label}
               </text>
             )}
           </g>
@@ -347,7 +402,8 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
 
   const genderItems = GENDER_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
   const membershipItems = MEMBERSHIP_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
-  const missionItems = MISSIONS.map(m => ({ label: m, value: m }));
+  const labelMap = lang === 'ar' ? MISSION_LABEL_MAP_AR : MISSION_LABEL_MAP_FR;
+  const missionItems = MISSION_KEYS.map(k => ({ label: labelMap[k] || k, value: k }));
   const academyItems = ACADEMIES.map(a => ({
     label: a.label.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', ''),
     value: a.label,
@@ -394,9 +450,10 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
       });
     }
     if (filters.mission) {
+      const mLabel = (lang === 'ar' ? MISSION_LABEL_MAP_AR : MISSION_LABEL_MAP_FR)[filters.mission] || filters.mission;
       items.push({
         key: 'mission',
-        label: `${lang === 'ar' ? 'المهمة' : 'Mission'}: ${filters.mission.length > 20 ? filters.mission.slice(0, 18) + '…' : filters.mission}`,
+        label: `${lang === 'ar' ? 'المهمة' : 'Mission'}: ${mLabel}`,
         color: '#2D8B6F',
         onRemove: () => setFilters(p => ({ ...p, mission: null })),
       });
@@ -430,14 +487,27 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
     { innerR: 102, outerR: 142 },
     { innerR: 146, outerR: 198 },
     { innerR: 202, outerR: 258 },
-    { innerR: 262, outerR: 295 },
+    { innerR: 260, outerR: 298 },
   ];
 
   const filterContent = (
     <div className="flex flex-col items-center w-full h-full">
-      {/* ─── Search Scope Toggle (above the wheel) ─── */}
+      {/* ─── Fullscreen toggle for orbital ─── */}
+      {onToggleFullscreen && (
+        <div className="w-full flex justify-end px-4 pt-1">
+          <button
+            onClick={() => { playClick(); onToggleFullscreen(); }}
+            className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
+            title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+        </div>
+      )}
+
+      {/* ─── Search Scope Toggle ─── */}
       <div className="w-full px-4 pt-1 pb-1">
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
           <p className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase">
             {lang === 'ar' ? 'نطاق البحث' : 'Portée de recherche'}
           </p>
@@ -469,19 +539,6 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
           </div>
         </div>
       </div>
-
-      {/* ─── Fullscreen toggle for orbital ─── */}
-      {onToggleFullscreen && (
-        <div className="w-full flex justify-end px-4">
-          <button
-            onClick={() => { playClick(); onToggleFullscreen(); }}
-            className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
-            title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
-        </div>
-      )}
 
       {/* ─── Color Wheel ─── */}
       <div className="w-full flex items-center justify-center px-2">

@@ -238,8 +238,8 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
                 transform={`rotate(${counterRotation}, ${pos.x}, ${pos.y})`}
                 style={{
                   textShadow: selected || hovered
-                    ? '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.3)'
-                    : '0 0 3px rgba(255,255,255,0.8)',
+                    ? '0 1px 4px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.4)'
+                    : '0 1px 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5)',
                   transition: 'font-size 0.2s ease',
                 }}
               >

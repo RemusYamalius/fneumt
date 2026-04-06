@@ -173,6 +173,14 @@ const QuickFilter = () => {
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex flex-col items-center justify-center p-4"
             >
+              {/* Fixed minimize button — always visible */}
+              <button
+                onClick={() => setIsOrbitalFullscreen(false)}
+                className="fixed top-4 right-4 z-[60] p-3 rounded-xl bg-[#001D39] hover:bg-[#0A4174] text-white border border-[#49769F]/50 shadow-2xl transition-all backdrop-blur-sm"
+                title={lang === 'ar' ? 'تصغير' : 'Réduire'}
+              >
+                <Minimize2 className="w-5 h-5" />
+              </button>
               <div className="w-full max-w-[95vw] flex flex-col items-center">
                 <OrbitalFilter
                   selectedAcademy={selectedRegion?.academyLabel || null}

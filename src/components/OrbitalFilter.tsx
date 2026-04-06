@@ -415,8 +415,8 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
     const goldenAngle = 137.508;
     return directorates.map((_, i) => {
       const hue = (i * goldenAngle) % 360;
-      const sat = 60 + (i % 3) * 8;
-      const light = 48 + (i % 4) * 4;
+      const sat = 70 + (i % 3) * 5;
+      const light = 58 + (i % 4) * 3;
       return `hsl(${Math.round(hue)}, ${sat}%, ${light}%)`;
     });
   }, [directorates]);

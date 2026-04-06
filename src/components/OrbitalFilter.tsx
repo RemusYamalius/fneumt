@@ -213,7 +213,7 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
           >
             <path
               d={d}
-              fill={selected ? color : hovered ? `${color}CC` : `${color}88`}
+              fill={selected ? color : hovered ? `${color}DD` : `${color}BB`}
               stroke={selected ? '#fff' : hovered ? '#fff' : `${color}BB`}
               strokeWidth={selected ? 2.5 : hovered ? 1.5 : 0.5}
               className="transition-all duration-200"
@@ -231,15 +231,15 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
                 y={pos.y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill={selected ? '#fff' : hovered ? '#fff' : '#222'}
+                fill={selected ? '#fff' : hovered ? '#fff' : '#fff'}
                 fontSize={fontSize}
                 fontWeight={selected ? 700 : hovered ? 600 : 500}
                 className="pointer-events-none select-none"
                 transform={`rotate(${counterRotation}, ${pos.x}, ${pos.y})`}
                 style={{
                   textShadow: selected || hovered
-                    ? '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.3)'
-                    : '0 0 3px rgba(255,255,255,0.8)',
+                    ? '0 1px 4px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.4)'
+                    : '0 1px 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5)',
                   transition: 'font-size 0.2s ease',
                 }}
               >
@@ -295,8 +295,9 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
     const svg = (e.target as Element).closest('svg');
     if (!svg) return 0;
     const rect = svg.getBoundingClientRect();
-    const svgX = (e.clientX - rect.left) / rect.width * 600;
-    const svgY = (e.clientY - rect.top) / rect.height * 600;
+    const vb = svg.getAttribute('viewBox')?.split(' ').map(Number) || [0,0,700,700];
+    const svgX = (e.clientX - rect.left) / rect.width * vb[2];
+    const svgY = (e.clientY - rect.top) / rect.height * vb[3];
     return Math.atan2(svgY - cy, svgX - cx) * (180 / Math.PI);
   }, [cx, cy]);
 
@@ -414,8 +415,8 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
     const goldenAngle = 137.508;
     return directorates.map((_, i) => {
       const hue = (i * goldenAngle) % 360;
-      const sat = 60 + (i % 3) * 8;
-      const light = 48 + (i % 4) * 4;
+      const sat = 70 + (i % 3) * 5;
+      const light = 58 + (i % 4) * 3;
       return `hsl(${Math.round(hue)}, ${sat}%, ${light}%)`;
     });
   }, [directorates]);
@@ -479,16 +480,16 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
     return items;
   }, [filters, lang]);
 
-  const CX = 300;
-  const CY = 300;
-  const SIZE = 600;
+  const CX = 350;
+  const CY = 350;
+  const SIZE = 700;
 
   const rings = [
     { innerR: 62, outerR: 98 },
     { innerR: 102, outerR: 142 },
     { innerR: 146, outerR: 198 },
     { innerR: 202, outerR: 258 },
-    { innerR: 260, outerR: 298 },
+    { innerR: 260, outerR: 340 },
   ];
 
   const filterContent = (
@@ -545,6 +546,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
       <div className="w-full flex items-center justify-center px-2">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
+          overflow="visible"
           className={`w-full ${isFullscreen ? 'max-w-[85vh]' : 'max-w-[560px]'} aspect-square`}
         >
           <defs>

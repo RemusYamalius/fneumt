@@ -310,6 +310,33 @@ const PostComposer = ({ onPostCreated, preSelectedRecipientIds }: { onPostCreate
       </div>
 
       <div className="p-5 space-y-4">
+        {/* Pre-selected recipients from QuickFilter */}
+        {preRecipients.length > 0 && (
+          <div className="bg-[hsl(225,70%,97%)] rounded-2xl p-4 border border-[hsl(225,70%,45%)]/15">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-[hsl(225,70%,45%)]" />
+              <span className="text-sm font-semibold text-[hsl(225,70%,35%)]">
+                {lang === 'ar' ? `المستلمون المحددون (${preRecipients.length})` : `Destinataires sélectionnés (${preRecipients.length})`}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {preRecipients.map(r => (
+                <span
+                  key={r.id}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[hsl(225,70%,45%)] text-white shadow-sm"
+                >
+                  {r.name}
+                  <button
+                    onClick={() => setPreRecipients(prev => prev.filter(p => p.id !== r.id))}
+                    className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         {/* Content area */}
         <div className="relative">
           <Textarea

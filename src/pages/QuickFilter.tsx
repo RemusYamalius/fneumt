@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Map, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import MoroccoMap from '@/components/MoroccoMap';
 import OrbitalFilter, { type OrbitalFilterValues } from '@/components/OrbitalFilter';
+import SearchResultsTable, { type SearchResult } from '@/components/SearchResultsTable';
 import { type RegionMapping } from '@/lib/morocco-regions';
 import { ACADEMIES } from '@/lib/academies-data';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,11 @@ const QuickFilter = () => {
   const [selectedRegion, setSelectedRegion] = useState<RegionMapping | null>(null);
   const [selectedDirectorate, setSelectedDirectorate] = useState<string | null>(null);
   const [selectedProvinceName, setSelectedProvinceName] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResult[] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showComposer, setShowComposer] = useState(false);
+  const [messageRecipients, setMessageRecipients] = useState<string[]>([]);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Fetch all profiles for stats
   const { data: profiles } = useQuery({
@@ -87,29 +93,69 @@ const QuickFilter = () => {
     return academy?.directorates || [];
   }, [selectedRegion]);
 
-  const handleSearch = (filters: OrbitalFilterValues) => {
-    // Build query params and navigate to database dashboard
-    const params = new URLSearchParams();
-    if (filters.academy) params.set('academy', filters.academy);
-    if (filters.directorate) params.set('directorate', filters.directorate);
-    if (filters.institution) params.set('institution', filters.institution);
-    if (filters.gender !== 'all') params.set('gender', filters.gender);
-    if (filters.mission) params.set('mission', filters.mission);
-    if (filters.ageMin) params.set('ageMin', filters.ageMin);
-    if (filters.ageMax) params.set('ageMax', filters.ageMax);
-    if (filters.membership !== 'all') params.set('membership', filters.membership);
-    if (filters.ppr) params.set('ppr', filters.ppr);
-    if (filters.phone) params.set('phone', filters.phone);
-    params.set('mode', filters.mode);
+  const handleSearch = useCallback(async (filters: OrbitalFilterValues) => {
+    // Check if at least one filter is set
+    const hasFilter = filters.academy || filters.directorate || filters.institution ||
+      filters.gender !== 'all' || filters.mission || filters.ageMin || filters.ageMax ||
+      filters.membership !== 'all' || filters.ppr || filters.phone;
 
-    const queryStr = params.toString();
-    if (!queryStr || queryStr === 'mode=users') {
+    if (!hasFilter) {
       toast.info(lang === 'ar' ? 'اختر فلتراً واحداً على الأقل' : 'Sélectionnez au moins un filtre');
       return;
     }
 
-    navigate(`/database?${queryStr}`);
-  };
+    setIsSearching(true);
+    try {
+      let query = supabase.from('profiles').select('user_id, full_name, academy, directorate, mission, is_member, phone, email, employee_number, date_of_birth, gender, membership_verified');
+
+      if (filters.academy) query = query.eq('academy', filters.academy);
+      if (filters.directorate) query = query.eq('directorate', filters.directorate);
+      if (filters.institution) query = query.ilike('institution', `%${filters.institution}%`);
+      if (filters.gender !== 'all') query = query.eq('gender', filters.gender);
+      if (filters.mission) query = query.eq('mission', filters.mission);
+      if (filters.ppr) query = query.eq('employee_number', filters.ppr);
+      if (filters.phone) query = query.ilike('phone', `%${filters.phone}%`);
+      if (filters.membership === 'member') query = query.eq('is_member', true);
+      else if (filters.membership === 'non_member') query = query.eq('is_member', false);
+      else if (filters.membership === 'pending') query = query.eq('membership_verified', false).eq('is_member', true);
+
+      // Age filters
+      if (filters.ageMin || filters.ageMax) {
+        const now = new Date();
+        if (filters.ageMax) {
+          const minDate = new Date(now.getFullYear() - parseInt(filters.ageMax), now.getMonth(), now.getDate()).toISOString().split('T')[0];
+          query = query.gte('date_of_birth', minDate);
+        }
+        if (filters.ageMin) {
+          const maxDate = new Date(now.getFullYear() - parseInt(filters.ageMin), now.getMonth(), now.getDate()).toISOString().split('T')[0];
+          query = query.lte('date_of_birth', maxDate);
+        }
+      }
+
+      const { data, error } = await query.limit(500);
+
+      if (error) {
+        console.error('Search error:', error);
+        toast.error(lang === 'ar' ? 'خطأ في البحث' : 'Erreur de recherche');
+        return;
+      }
+
+      setSearchResults(data as SearchResult[]);
+
+      // Auto-scroll to results
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [lang]);
+
+  const handleMessage = useCallback((selectedUserIds: string[]) => {
+    setMessageRecipients(selectedUserIds);
+    // Navigate to communication hub with pre-selected recipients
+    navigate('/communication', { state: { recipientIds: selectedUserIds } });
+  }, [navigate]);
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
@@ -200,6 +246,37 @@ const QuickFilter = () => {
               onSearch={handleSearch}
             />
           </motion.div>
+        </div>
+
+        {/* Search Results */}
+        {isSearching && (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
+        <div ref={resultsRef}>
+          {searchResults && !isSearching && (
+            <div className="mt-8">
+              {searchResults.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center py-12 rounded-3xl border border-muted bg-card/50"
+                >
+                  <p className="text-muted-foreground text-sm">
+                    {lang === 'ar' ? 'لا توجد نتائج مطابقة' : 'Aucun résultat trouvé'}
+                  </p>
+                </motion.div>
+              ) : (
+                <SearchResultsTable
+                  results={searchResults}
+                  onMessage={handleMessage}
+                  lang={lang}
+                />
+              )}
+            </div>
+          )}
         </div>
       </main>
     </AuthenticatedLayout>

@@ -480,16 +480,16 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
     return items;
   }, [filters, lang]);
 
-  const CX = 300;
-  const CY = 300;
-  const SIZE = 600;
+  const CX = 350;
+  const CY = 350;
+  const SIZE = 700;
 
   const rings = [
     { innerR: 62, outerR: 98 },
     { innerR: 102, outerR: 142 },
     { innerR: 146, outerR: 198 },
     { innerR: 202, outerR: 258 },
-    { innerR: 260, outerR: 298 },
+    { innerR: 260, outerR: 340 },
   ];
 
   const filterContent = (

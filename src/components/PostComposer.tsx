@@ -45,7 +45,7 @@ interface AttachmentPreview {
   type: 'image' | 'pdf' | 'video' | 'other';
 }
 
-const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
+const PostComposer = ({ onPostCreated, preSelectedRecipientIds }: { onPostCreated?: () => void; preSelectedRecipientIds?: string[] }) => {
   const { t, lang, dir } = useI18n();
 
   const getMissionLabel = (val: string) => {
@@ -77,6 +77,20 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
   const [filterLocalOffice, setFilterLocalOffice] = useState('');
   const [showToSupreme, setShowToSupreme] = useState(true);
   const [localOffices, setLocalOffices] = useState<{ id: string; office_name: string | null; academy: string | null; directorate: string | null }[]>([]);
+  const [preRecipients, setPreRecipients] = useState<{ id: string; name: string }[]>([]);
+
+  // Fetch pre-selected recipient names
+  useEffect(() => {
+    if (!preSelectedRecipientIds?.length) return;
+    const fetchNames = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', preSelectedRecipientIds);
+      setPreRecipients((data || []).map(p => ({ id: p.user_id, name: p.full_name || p.user_id })));
+    };
+    fetchNames();
+  }, [preSelectedRecipientIds]);
 
   const directorates = filterAcademy
     ? ACADEMIES.find(a => a.label === filterAcademy)?.directorates || []
@@ -203,7 +217,10 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
 
     setPublishing(true);
     try {
-      const recipientIds = await fetchRecipientIds();
+      // Use pre-selected recipients if available, otherwise use filter-based
+      const recipientIds = preRecipients.length > 0
+        ? preRecipients.map(r => r.id)
+        : await fetchRecipientIds();
       if (recipientIds.length === 0) {
         toast({ title: lang === 'ar' ? 'لا يوجد مستلمون' : 'Aucun destinataire', variant: 'destructive' });
         setPublishing(false);
@@ -293,6 +310,33 @@ const PostComposer = ({ onPostCreated }: { onPostCreated?: () => void }) => {
       </div>
 
       <div className="p-5 space-y-4">
+        {/* Pre-selected recipients from QuickFilter */}
+        {preRecipients.length > 0 && (
+          <div className="bg-[hsl(225,70%,97%)] rounded-2xl p-4 border border-[hsl(225,70%,45%)]/15">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-[hsl(225,70%,45%)]" />
+              <span className="text-sm font-semibold text-[hsl(225,70%,35%)]">
+                {lang === 'ar' ? `المستلمون المحددون (${preRecipients.length})` : `Destinataires sélectionnés (${preRecipients.length})`}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {preRecipients.map(r => (
+                <span
+                  key={r.id}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[hsl(225,70%,45%)] text-white shadow-sm"
+                >
+                  {r.name}
+                  <button
+                    onClick={() => setPreRecipients(prev => prev.filter(p => p.id !== r.id))}
+                    className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         {/* Content area */}
         <div className="relative">
           <Textarea

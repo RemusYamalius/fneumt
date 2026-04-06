@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, Map, RotateCcw } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Map, RotateCcw, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,16 +64,24 @@ const QuickFilter = () => {
   // Build per-academy stats for map
   const regionStats = useMemo(() => {
     if (!profiles || !requests || !userProfileMap) return {};
-    const stats: Record<string, { total: number; members: number; requests: number }> = {};
+    const stats: Record<string, { total: number; members: number; requests: number; directorates: Record<string, { total: number; members: number; requests: number }> }> = {};
 
     ACADEMIES.forEach(a => {
-      stats[a.label] = { total: 0, members: 0, requests: 0 };
+      stats[a.label] = { total: 0, members: 0, requests: 0, directorates: {} };
+      a.directorates.forEach(d => {
+        stats[a.label].directorates[d] = { total: 0, members: 0, requests: 0 };
+      });
     });
 
     profiles.forEach(p => {
       if (p.academy && stats[p.academy]) {
         stats[p.academy].total++;
         if (p.is_member) stats[p.academy].members++;
+        // Directorate level
+        if (p.directorate && stats[p.academy].directorates[p.directorate]) {
+          stats[p.academy].directorates[p.directorate].total++;
+          if (p.is_member) stats[p.academy].directorates[p.directorate].members++;
+        }
       }
     });
 
@@ -81,6 +89,9 @@ const QuickFilter = () => {
       const profile = userProfileMap[r.user_id];
       if (profile?.academy && stats[profile.academy]) {
         stats[profile.academy].requests++;
+        if (profile.directorate && stats[profile.academy].directorates[profile.directorate]) {
+          stats[profile.academy].directorates[profile.directorate].requests++;
+        }
       }
     });
 
@@ -173,6 +184,14 @@ const QuickFilter = () => {
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex flex-col items-center justify-center p-4"
             >
+              {/* Fixed minimize button — always visible */}
+              <button
+                onClick={() => setIsOrbitalFullscreen(false)}
+                className="fixed top-4 right-4 z-[60] p-3 rounded-xl bg-[#001D39] hover:bg-[#0A4174] text-white border border-[#49769F]/50 shadow-2xl transition-all backdrop-blur-sm"
+                title={lang === 'ar' ? 'تصغير' : 'Réduire'}
+              >
+                <Minimize2 className="w-5 h-5" />
+              </button>
               <div className="w-full max-w-[95vw] flex flex-col items-center">
                 <OrbitalFilter
                   selectedAcademy={selectedRegion?.academyLabel || null}

@@ -7,10 +7,17 @@ import { useClickSound } from '@/hooks/useClickSound';
 import { ArrowRight, ArrowLeft, Users, UserCheck, FileText, TrendingUp, Maximize2, Minimize2 } from 'lucide-react';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 
+interface RegionStatsData {
+  total: number;
+  members: number;
+  requests: number;
+  directorates?: Record<string, { total: number; members: number; requests: number }>;
+}
+
 interface MoroccoMapProps {
   onRegionSelect: (region: RegionMapping | null) => void;
   selectedRegion: RegionMapping | null;
-  regionStats?: Record<string, { total: number; members: number; requests: number }>;
+  regionStats?: Record<string, RegionStatsData>;
   onProvinceSelect?: (provinceName: string | null) => void;
   onProvinceNameChange?: (name: string | null) => void;
 }
@@ -169,8 +176,22 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
 
   const currentStats = useMemo(() => {
     if (!selectedRegion || !regionStats) return null;
-    return regionStats[selectedRegion.academyLabel] || null;
-  }, [selectedRegion, regionStats]);
+    const regionData = regionStats[selectedRegion.academyLabel];
+    if (!regionData) return null;
+
+    // If a province is selected, try to find its directorate-level stats
+    if (selectedProvince && regionData.directorates) {
+      // Match province display name against directorate names
+      for (const [dirName, dirStats] of Object.entries(regionData.directorates)) {
+        if (selectedProvince.includes(dirName) || dirName.includes(selectedProvince) ||
+            selectedProvince.replace(/(عمالة|إقليم|Province|Préfecture)\s*/g, '').trim() === dirName ||
+            dirName.includes(selectedProvince.replace(/(عمالة|إقليم|Province|Préfecture)\s*/g, '').trim())) {
+          return dirStats;
+        }
+      }
+    }
+    return regionData;
+  }, [selectedRegion, regionStats, selectedProvince]);
 
   const handleRegionClick = useCallback((mapping: RegionMapping | undefined) => {
     if (!mapping) return;

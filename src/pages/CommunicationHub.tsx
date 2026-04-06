@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MessageSquare, Send, BarChart3, ArrowRight, ArrowLeft, Settings } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
@@ -14,6 +14,8 @@ const CommunicationHub = () => {
   const { t, lang, dir } = useI18n();
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const preSelectedRecipientIds = (location.state as any)?.recipientIds as string[] | undefined;
   const [activeTab, setActiveTab] = useState<'compose' | 'stats' | 'feed' | 'settings'>('feed');
 
   const isSupreme = role && ['admin', 'national_secretary', 'deputy_national_secretary'].includes(role);
@@ -23,8 +25,12 @@ const CommunicationHub = () => {
   }, [loading, user, navigate]);
 
   useEffect(() => {
-    if (isSupreme) setActiveTab('compose');
-  }, [isSupreme]);
+    if (preSelectedRecipientIds?.length) {
+      setActiveTab('compose');
+    } else if (isSupreme) {
+      setActiveTab('compose');
+    }
+  }, [isSupreme, preSelectedRecipientIds]);
 
   if (loading || !user) {
     return (
@@ -101,7 +107,7 @@ const CommunicationHub = () => {
           transition={{ duration: 0.3 }}
         >
           {isSupreme && activeTab === 'compose' && (
-            <PostComposer onPostCreated={() => setActiveTab('stats')} />
+            <PostComposer onPostCreated={() => setActiveTab('stats')} preSelectedRecipientIds={preSelectedRecipientIds} />
           )}
           {isSupreme && activeTab === 'stats' && (
             <PostStats />

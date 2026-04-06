@@ -484,7 +484,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
       <div className="w-full flex items-center justify-center px-2">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
-          className={`w-full ${isFullscreen ? 'max-w-[700px]' : 'max-w-[560px]'} aspect-square`}
+          className={`w-full ${isFullscreen ? 'max-w-[85vh]' : 'max-w-[560px]'} aspect-square`}
         >
           <defs>
             <filter id="ring-glow">
@@ -684,9 +684,9 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex items-center justify-center p-6"
+        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex flex-col items-center justify-start p-4"
       >
-        <div className="w-full max-w-[900px] flex flex-col items-center">
+        <div className="w-full h-full flex flex-col items-center">
           {filterContent}
         </div>
       </motion.div>

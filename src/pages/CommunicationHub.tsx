@@ -25,8 +25,12 @@ const CommunicationHub = () => {
   }, [loading, user, navigate]);
 
   useEffect(() => {
-    if (isSupreme) setActiveTab('compose');
-  }, [isSupreme]);
+    if (preSelectedRecipientIds?.length) {
+      setActiveTab('compose');
+    } else if (isSupreme) {
+      setActiveTab('compose');
+    }
+  }, [isSupreme, preSelectedRecipientIds]);
 
   if (loading || !user) {
     return (

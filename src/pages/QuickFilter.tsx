@@ -340,13 +340,16 @@ const QuickFilter = () => {
             <div className="mt-8">
               {searchResults.length === 0 ? (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-12 rounded-3xl border border-muted bg-card/50"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none"
                 >
-                  <p className="text-muted-foreground text-sm">
-                    {lang === 'ar' ? 'لا توجد نتائج مطابقة' : 'Aucun résultat trouvé'}
-                  </p>
+                  <div className="bg-card/70 backdrop-blur-xl border border-border/50 rounded-3xl px-10 py-8 shadow-2xl text-center pointer-events-auto">
+                    <p className="text-muted-foreground text-base font-medium">
+                      {lang === 'ar' ? 'لا توجد نتائج مطابقة' : 'Aucun résultat trouvé'}
+                    </p>
+                  </div>
                 </motion.div>
               ) : (
                 <SearchResultsTable

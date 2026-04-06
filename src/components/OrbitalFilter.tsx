@@ -411,11 +411,12 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
   const directorateItems = directorates.map(d => ({ label: d, value: d }));
 
   const dirColors = useMemo(() => {
+    const goldenAngle = 137.508;
     return directorates.map((_, i) => {
-      const hue = 25 + (i * 15) % 50;
-      const sat = 40 + (i * 5) % 30;
-      const light = 40 + (i * 4) % 25;
-      return `hsl(${hue}, ${sat}%, ${light}%)`;
+      const hue = (i * goldenAngle) % 360;
+      const sat = 60 + (i % 3) * 8;
+      const light = 48 + (i % 4) * 4;
+      return `hsl(${Math.round(hue)}, ${sat}%, ${light}%)`;
     });
   }, [directorates]);
 

@@ -107,7 +107,7 @@ const CommunicationHub = () => {
           transition={{ duration: 0.3 }}
         >
           {isSupreme && activeTab === 'compose' && (
-            <PostComposer onPostCreated={() => setActiveTab('stats')} />
+            <PostComposer onPostCreated={() => setActiveTab('stats')} preSelectedRecipientIds={preSelectedRecipientIds} />
           )}
           {isSupreme && activeTab === 'stats' && (
             <PostStats />

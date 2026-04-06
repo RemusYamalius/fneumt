@@ -66,14 +66,24 @@ const QuickFilter = () => {
     if (!profiles || !requests || !userProfileMap) return {};
     const stats: Record<string, { total: number; members: number; requests: number }> = {};
 
+    const stats: Record<string, { total: number; members: number; requests: number; directorates: Record<string, { total: number; members: number; requests: number }> }> = {};
+
     ACADEMIES.forEach(a => {
-      stats[a.label] = { total: 0, members: 0, requests: 0 };
+      stats[a.label] = { total: 0, members: 0, requests: 0, directorates: {} };
+      a.directorates.forEach(d => {
+        stats[a.label].directorates[d] = { total: 0, members: 0, requests: 0 };
+      });
     });
 
     profiles.forEach(p => {
       if (p.academy && stats[p.academy]) {
         stats[p.academy].total++;
         if (p.is_member) stats[p.academy].members++;
+        // Directorate level
+        if (p.directorate && stats[p.academy].directorates[p.directorate]) {
+          stats[p.academy].directorates[p.directorate].total++;
+          if (p.is_member) stats[p.academy].directorates[p.directorate].members++;
+        }
       }
     });
 
@@ -81,6 +91,9 @@ const QuickFilter = () => {
       const profile = userProfileMap[r.user_id];
       if (profile?.academy && stats[profile.academy]) {
         stats[profile.academy].requests++;
+        if (profile.directorate && stats[profile.academy].directorates[profile.directorate]) {
+          stats[profile.academy].directorates[profile.directorate].requests++;
+        }
       }
     });
 

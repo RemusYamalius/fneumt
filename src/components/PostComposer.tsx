@@ -77,6 +77,20 @@ const PostComposer = ({ onPostCreated, preSelectedRecipientIds }: { onPostCreate
   const [filterLocalOffice, setFilterLocalOffice] = useState('');
   const [showToSupreme, setShowToSupreme] = useState(true);
   const [localOffices, setLocalOffices] = useState<{ id: string; office_name: string | null; academy: string | null; directorate: string | null }[]>([]);
+  const [preRecipients, setPreRecipients] = useState<{ id: string; name: string }[]>([]);
+
+  // Fetch pre-selected recipient names
+  useEffect(() => {
+    if (!preSelectedRecipientIds?.length) return;
+    const fetchNames = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', preSelectedRecipientIds);
+      setPreRecipients((data || []).map(p => ({ id: p.user_id, name: p.full_name || p.user_id })));
+    };
+    fetchNames();
+  }, [preSelectedRecipientIds]);
 
   const directorates = filterAcademy
     ? ACADEMIES.find(a => a.label === filterAcademy)?.directorates || []

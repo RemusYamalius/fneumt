@@ -680,22 +680,6 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
     </div>
   );
 
-  if (isFullscreen) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex flex-col items-center justify-start p-4"
-      >
-        <div className="w-full h-full flex flex-col items-center">
-          {filterContent}
-        </div>
-      </motion.div>
-    );
-  }
-
   return filterContent;
 };
 

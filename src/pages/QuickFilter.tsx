@@ -163,6 +163,29 @@ const QuickFilter = () => {
   return (
     <AuthenticatedLayout>
       <main className="max-w-7xl mx-auto px-4 py-6">
+        {/* Orbital Fullscreen Overlay */}
+        <AnimatePresence>
+          {isOrbitalFullscreen && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex flex-col items-center justify-center p-4"
+            >
+              <div className="w-full max-w-[min(90vw,85vh)] flex flex-col items-center">
+                <OrbitalFilter
+                  selectedAcademy={selectedRegion?.academyLabel || null}
+                  selectedDirectorate={selectedDirectorate}
+                  onSearch={(f) => { setIsOrbitalFullscreen(false); handleSearch(f); }}
+                  isFullscreen={true}
+                  onToggleFullscreen={() => setIsOrbitalFullscreen(false)}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Header */}
         <motion.div
           className="flex items-center gap-4 mb-6"
@@ -245,6 +268,8 @@ const QuickFilter = () => {
               selectedAcademy={selectedRegion?.academyLabel || null}
               selectedDirectorate={selectedDirectorate}
               onSearch={handleSearch}
+              isFullscreen={false}
+              onToggleFullscreen={() => setIsOrbitalFullscreen(true)}
             />
           </motion.div>
         </div>

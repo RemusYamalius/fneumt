@@ -7,10 +7,17 @@ import { useClickSound } from '@/hooks/useClickSound';
 import { ArrowRight, ArrowLeft, Users, UserCheck, FileText, TrendingUp, Maximize2, Minimize2 } from 'lucide-react';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 
+interface RegionStatsData {
+  total: number;
+  members: number;
+  requests: number;
+  directorates?: Record<string, { total: number; members: number; requests: number }>;
+}
+
 interface MoroccoMapProps {
   onRegionSelect: (region: RegionMapping | null) => void;
   selectedRegion: RegionMapping | null;
-  regionStats?: Record<string, { total: number; members: number; requests: number }>;
+  regionStats?: Record<string, RegionStatsData>;
   onProvinceSelect?: (provinceName: string | null) => void;
   onProvinceNameChange?: (name: string | null) => void;
 }

@@ -173,7 +173,7 @@ const QuickFilter = () => {
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex flex-col items-center justify-center p-4"
             >
-              <div className="w-full max-w-[min(90vw,85vh)] flex flex-col items-center">
+              <div className="w-full max-w-[95vw] flex flex-col items-center">
                 <OrbitalFilter
                   selectedAcademy={selectedRegion?.academyLabel || null}
                   selectedDirectorate={selectedDirectorate}

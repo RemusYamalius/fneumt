@@ -491,9 +491,22 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
 
   const filterContent = (
     <div className="flex flex-col items-center w-full h-full">
-      {/* ─── Search Scope Toggle (above the wheel) ─── */}
+      {/* ─── Fullscreen toggle for orbital ─── */}
+      {onToggleFullscreen && (
+        <div className="w-full flex justify-end px-4 pt-1">
+          <button
+            onClick={() => { playClick(); onToggleFullscreen(); }}
+            className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
+            title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+        </div>
+      )}
+
+      {/* ─── Search Scope Toggle ─── */}
       <div className="w-full px-4 pt-1 pb-1">
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
           <p className="text-[11px] font-semibold text-muted-foreground tracking-wide uppercase">
             {lang === 'ar' ? 'نطاق البحث' : 'Portée de recherche'}
           </p>
@@ -525,19 +538,6 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
           </div>
         </div>
       </div>
-
-      {/* ─── Fullscreen toggle for orbital ─── */}
-      {onToggleFullscreen && (
-        <div className="w-full flex justify-end px-4">
-          <button
-            onClick={() => { playClick(); onToggleFullscreen(); }}
-            className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
-            title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
-        </div>
-      )}
 
       {/* ─── Color Wheel ─── */}
       <div className="w-full flex items-center justify-center px-2">

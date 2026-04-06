@@ -217,7 +217,10 @@ const PostComposer = ({ onPostCreated, preSelectedRecipientIds }: { onPostCreate
 
     setPublishing(true);
     try {
-      const recipientIds = await fetchRecipientIds();
+      // Use pre-selected recipients if available, otherwise use filter-based
+      const recipientIds = preRecipients.length > 0
+        ? preRecipients.map(r => r.id)
+        : await fetchRecipientIds();
       if (recipientIds.length === 0) {
         toast({ title: lang === 'ar' ? 'لا يوجد مستلمون' : 'Aucun destinataire', variant: 'destructive' });
         setPublishing(false);

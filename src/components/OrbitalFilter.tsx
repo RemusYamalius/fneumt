@@ -213,7 +213,7 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
           >
             <path
               d={d}
-              fill={selected ? color : hovered ? `${color}CC` : `${color}88`}
+              fill={selected ? color : hovered ? `${color}DD` : `${color}BB`}
               stroke={selected ? '#fff' : hovered ? '#fff' : `${color}BB`}
               strokeWidth={selected ? 2.5 : hovered ? 1.5 : 0.5}
               className="transition-all duration-200"

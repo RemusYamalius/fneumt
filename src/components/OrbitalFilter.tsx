@@ -486,7 +486,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
     { innerR: 102, outerR: 142 },
     { innerR: 146, outerR: 198 },
     { innerR: 202, outerR: 258 },
-    { innerR: 262, outerR: 295 },
+    { innerR: 260, outerR: 298 },
   ];
 
   const filterContent = (

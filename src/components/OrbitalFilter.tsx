@@ -546,6 +546,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
       <div className="w-full flex items-center justify-center px-2">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
+          overflow="visible"
           className={`w-full ${isFullscreen ? 'max-w-[85vh]' : 'max-w-[560px]'} aspect-square`}
         >
           <defs>

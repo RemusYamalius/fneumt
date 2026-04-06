@@ -29,6 +29,8 @@ interface OrbitalFilterProps {
   selectedAcademy: string | null;
   selectedDirectorate: string | null;
   onSearch: (filters: OrbitalFilterValues) => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 // ─── Constants ──────────────────────────────────────────
@@ -308,10 +310,9 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
 };
 
 // ─── Main Component ─────────────────────────────────────
-const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: OrbitalFilterProps) => {
+const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFullscreen = false, onToggleFullscreen }: OrbitalFilterProps) => {
   const { lang } = useI18n();
   const playClick = useClickSound();
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [filters, setFilters] = useState<OrbitalFilterValues>({
     mode: 'users',
@@ -470,15 +471,17 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
       </div>
 
       {/* ─── Fullscreen toggle for orbital ─── */}
-      <div className="w-full flex justify-end px-4">
-        <button
-          onClick={() => { playClick(); setIsFullscreen(prev => !prev); }}
-          className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
-          title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
-        >
-          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-        </button>
-      </div>
+      {onToggleFullscreen && (
+        <div className="w-full flex justify-end px-4">
+          <button
+            onClick={() => { playClick(); onToggleFullscreen(); }}
+            className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
+            title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+        </div>
+      )}
 
       {/* ─── Color Wheel ─── */}
       <div className="w-full flex items-center justify-center px-2">
@@ -676,22 +679,6 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
       </div>
     </div>
   );
-
-  if (isFullscreen) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex flex-col items-center justify-start p-4"
-      >
-        <div className="w-full h-full flex flex-col items-center">
-          {filterContent}
-        </div>
-      </motion.div>
-    );
-  }
 
   return filterContent;
 };

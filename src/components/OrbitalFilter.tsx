@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue, useAnimationFrame } from 'framer-motion';
 import { useI18n } from '@/lib/i18n';
 import { useClickSound } from '@/hooks/useClickSound';
 import { Input } from '@/components/ui/input';
@@ -58,7 +58,6 @@ const MEMBERSHIP_OPTIONS = [
   { val: 'pending' as const, ar: 'قيد التحقق', fr: 'En attente' },
 ];
 
-// Color palettes per ring
 const GENDER_COLORS = ['#C77EB5', '#8E6BAF', '#E8A0BF'];
 const MEMBERSHIP_COLORS = ['#4A6FA5', '#6B9BC3', '#2C4A7C', '#89B4D4'];
 const MISSION_COLORS = [
@@ -116,11 +115,13 @@ interface ArcSegmentProps {
   startAngle: number; endAngle: number;
   color: string;
   selected: boolean;
+  hovered: boolean;
   label: string;
   onClick: () => void;
+  onHover: (h: boolean) => void;
 }
 
-const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selected, label, onClick }: ArcSegmentProps) => {
+const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selected, hovered, label, onClick, onHover }: ArcSegmentProps) => {
   const d = describeArc(cx, cy, innerR, outerR, startAngle, endAngle);
   const midR = (innerR + outerR) / 2;
   const pos = labelPosition(cx, cy, midR, startAngle, endAngle);
@@ -131,33 +132,48 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
   const arcLen = (angleDeg / 360) * 2 * Math.PI * midR;
   const maxChars = Math.floor(arcLen / 5.5);
   const displayLabel = label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label;
-  const fontSize = Math.max(5.5, Math.min(10, segWidth * 0.28));
 
-  // Rotation for text to follow the arc
+  // base font size, bigger when hovered
+  const baseFontSize = Math.max(5.5, Math.min(10, segWidth * 0.28));
+  const fontSize = hovered ? Math.min(baseFontSize * 1.6, 14) : baseFontSize;
+
+  // Correct text rotation: ensure text is never upside-down
   const midAngle = (startAngle + endAngle) / 2;
-  const textRotation = midAngle > 90 && midAngle < 270 ? midAngle + 180 : midAngle;
+  // midAngle is 0=top, 90=right, 180=bottom, 270=left
+  // We want the text to be readable (not flipped)
+  const rawRotation = midAngle; // rotation from top
+  // If angle is in bottom half (90..270), flip by adding 180
+  const textRotation = (rawRotation > 90 && rawRotation < 270)
+    ? rawRotation + 180
+    : rawRotation;
+
+  // Scale effect for hovered segment
+  const scale = hovered ? 1.08 : 1;
 
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <g className="cursor-pointer" onClick={onClick}>
+          <g
+            className="cursor-pointer"
+            onClick={onClick}
+            onMouseEnter={() => onHover(true)}
+            onMouseLeave={() => onHover(false)}
+            style={{ transformOrigin: `${cx}px ${cy}px`, transform: `scale(${scale})`, transition: 'transform 0.2s ease' }}
+          >
             <path
               d={d}
-              fill={selected ? color : `${color}88`}
-              stroke={selected ? '#fff' : `${color}BB`}
-              strokeWidth={selected ? 2.5 : 0.5}
+              fill={selected ? color : hovered ? `${color}CC` : `${color}88`}
+              stroke={selected ? '#fff' : hovered ? '#fff' : `${color}BB`}
+              strokeWidth={selected ? 2.5 : hovered ? 1.5 : 0.5}
               className="transition-all duration-200"
               style={{
                 filter: selected
-                  ? `brightness(1.15) drop-shadow(0 0 6px ${color}88)`
-                  : 'none',
+                  ? `brightness(1.2) drop-shadow(0 0 10px ${color}) drop-shadow(0 0 20px ${color}66)`
+                  : hovered
+                    ? `brightness(1.1) drop-shadow(0 0 4px ${color}66)`
+                    : 'none',
               }}
-            />
-            <path
-              d={d}
-              fill="transparent"
-              className="hover:fill-white/25 transition-colors duration-150"
             />
             {showLabel && (
               <text
@@ -165,12 +181,17 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
                 y={pos.y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill={selected ? '#fff' : '#111'}
+                fill={selected ? '#fff' : hovered ? '#fff' : '#222'}
                 fontSize={fontSize}
-                fontWeight={selected ? 700 : 500}
+                fontWeight={selected ? 700 : hovered ? 600 : 500}
                 className="pointer-events-none select-none"
                 transform={`rotate(${textRotation - 90}, ${pos.x}, ${pos.y})`}
-                style={{ textShadow: selected ? '0 1px 3px rgba(0,0,0,0.4)' : 'none' }}
+                style={{
+                  textShadow: selected || hovered
+                    ? '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.3)'
+                    : '0 0 3px rgba(255,255,255,0.8)',
+                  transition: 'font-size 0.2s ease',
+                }}
               >
                 {displayLabel}
               </text>
@@ -185,7 +206,7 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
   );
 };
 
-// ─── Ring Component ─────────────────────────────────────
+// ─── Ring Component with Manual Rotation ────────────────
 interface RingData {
   items: { label: string; value: string }[];
   colors: string[];
@@ -198,27 +219,35 @@ interface RingData {
 }
 
 const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotationDir, speed, cx, cy }: RingData & { cx: number; cy: number }) => {
-  const [hovered, setHovered] = useState(false);
+  const [ringHovered, setRingHovered] = useState(false);
+  const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
   const anglePerItem = 360 / items.length;
   const playClick = useClickSound();
+  const rotationRef = useRef(0);
+  const rotation = useMotionValue(0);
+
+  // Manual rotation: stop when hovered or when a selection is made
+  const shouldRotate = !ringHovered && selected === null;
+
+  useAnimationFrame((_, delta) => {
+    if (shouldRotate) {
+      rotationRef.current += (rotationDir * 360 * delta) / (speed * 1000);
+      rotationRef.current = rotationRef.current % 360;
+      rotation.set(rotationRef.current);
+    }
+  });
 
   return (
     <motion.g
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      animate={{ rotate: hovered ? 0 : rotationDir * 360 }}
-      transition={{
-        duration: speed,
-        repeat: Infinity,
-        ease: 'linear',
-        ...(hovered ? { duration: 0.3 } : {}),
-      }}
-      style={{ transformOrigin: `${cx}px ${cy}px` }}
+      onMouseEnter={() => setRingHovered(true)}
+      onMouseLeave={() => { setRingHovered(false); setHoveredSegment(null); }}
+      style={{ rotate: rotation, transformOrigin: `${cx}px ${cy}px` }}
     >
       {items.map((item, i) => {
         const startAngle = i * anglePerItem;
         const endAngle = startAngle + anglePerItem;
         const isSelected = selected === item.value;
+        const isHovered = hoveredSegment === item.value;
         const color = colors[i % colors.length];
 
         return (
@@ -229,7 +258,9 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
             startAngle={startAngle} endAngle={endAngle}
             color={color}
             selected={isSelected}
+            hovered={isHovered}
             label={item.label}
+            onHover={(h) => setHoveredSegment(h ? item.value : null)}
             onClick={() => {
               playClick();
               onSelect(isSelected ? null : item.value);
@@ -260,7 +291,6 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
     phone: '',
   });
 
-  // Sync map selection
   useEffect(() => {
     if (selectedAcademy !== filters.academy) {
       setFilters(prev => ({ ...prev, academy: selectedAcademy, directorate: selectedDirectorate }));
@@ -278,24 +308,13 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
     return ACADEMIES.find(a => a.label === filters.academy)?.directorates || [];
   }, [filters.academy]);
 
-  // Build ring data
-  const genderItems = GENDER_OPTIONS.map(o => ({
-    label: lang === 'ar' ? o.ar : o.fr,
-    value: o.val,
-  }));
-
-  const membershipItems = MEMBERSHIP_OPTIONS.map(o => ({
-    label: lang === 'ar' ? o.ar : o.fr,
-    value: o.val,
-  }));
-
+  const genderItems = GENDER_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
+  const membershipItems = MEMBERSHIP_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
   const missionItems = MISSIONS.map(m => ({ label: m, value: m }));
-
   const academyItems = ACADEMIES.map(a => ({
     label: a.label.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', ''),
     value: a.label,
   }));
-
   const directorateItems = directorates.map(d => ({ label: d, value: d }));
 
   const dirColors = useMemo(() => {
@@ -317,7 +336,6 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
     });
   };
 
-  // Active selections for progressive display
   const activeSelections = useMemo(() => {
     const items: { key: string; label: string; color: string; onRemove: () => void }[] = [];
     if (filters.gender !== 'all') {
@@ -370,13 +388,12 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
   const CY = 300;
   const SIZE = 600;
 
-  // Ring radii — enlarged
   const rings = [
-    { innerR: 62, outerR: 98 },    // gender (3)
-    { innerR: 102, outerR: 142 },   // membership (4)
-    { innerR: 146, outerR: 198 },   // mission (11)
-    { innerR: 202, outerR: 258 },   // academy (12)
-    { innerR: 262, outerR: 295 },   // directorate (dynamic)
+    { innerR: 62, outerR: 98 },
+    { innerR: 102, outerR: 142 },
+    { innerR: 146, outerR: 198 },
+    { innerR: 202, outerR: 258 },
+    { innerR: 262, outerR: 295 },
   ];
 
   return (
@@ -534,7 +551,6 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
       {/* ─── Extra Filters ─── */}
       <div className="w-full px-4 pb-4 pt-2">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Institution */}
           <div className="relative group">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-200/40 shadow-[0_2px_12px_rgba(45,139,111,0.12)]" />
             <div className="relative p-3">
@@ -551,7 +567,6 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
             </div>
           </div>
 
-          {/* Age */}
           <div className="relative group">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-200/40 shadow-[0_2px_12px_rgba(142,107,175,0.12)]" />
             <div className="relative p-3">
@@ -560,23 +575,16 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
                 {lang === 'ar' ? 'الفئة العمرية' : 'Tranche d\'âge'}
               </label>
               <div className="flex gap-2">
-                <Input
-                  type="number" placeholder="Min"
-                  value={filters.ageMin}
+                <Input type="number" placeholder="Min" value={filters.ageMin}
                   onChange={e => setFilters(prev => ({ ...prev, ageMin: e.target.value }))}
-                  className="h-9 text-xs bg-white/70 dark:bg-card/70 border-violet-200/60 focus:border-violet-400 shadow-sm"
-                />
-                <Input
-                  type="number" placeholder="Max"
-                  value={filters.ageMax}
+                  className="h-9 text-xs bg-white/70 dark:bg-card/70 border-violet-200/60 focus:border-violet-400 shadow-sm" />
+                <Input type="number" placeholder="Max" value={filters.ageMax}
                   onChange={e => setFilters(prev => ({ ...prev, ageMax: e.target.value }))}
-                  className="h-9 text-xs bg-white/70 dark:bg-card/70 border-violet-200/60 focus:border-violet-400 shadow-sm"
-                />
+                  className="h-9 text-xs bg-white/70 dark:bg-card/70 border-violet-200/60 focus:border-violet-400 shadow-sm" />
               </div>
             </div>
           </div>
 
-          {/* PPR */}
           <div className="relative group">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-200/40 shadow-[0_2px_12px_rgba(230,126,34,0.12)]" />
             <div className="relative p-3">
@@ -584,16 +592,12 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
                 <Hash className="w-3.5 h-3.5" />
                 {lang === 'ar' ? 'رقم التأجير' : 'N° PPR'}
               </label>
-              <Input
-                placeholder={lang === 'ar' ? 'رقم التأجير...' : 'N° PPR...'}
-                value={filters.ppr}
+              <Input placeholder={lang === 'ar' ? 'رقم التأجير...' : 'N° PPR...'} value={filters.ppr}
                 onChange={e => setFilters(prev => ({ ...prev, ppr: e.target.value }))}
-                className="h-9 text-xs bg-white/70 dark:bg-card/70 border-amber-200/60 focus:border-amber-400 shadow-sm"
-              />
+                className="h-9 text-xs bg-white/70 dark:bg-card/70 border-amber-200/60 focus:border-amber-400 shadow-sm" />
             </div>
           </div>
 
-          {/* Phone */}
           <div className="relative group">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-sky-500/10 to-blue-500/10 border border-sky-200/40 shadow-[0_2px_12px_rgba(74,111,165,0.12)]" />
             <div className="relative p-3">
@@ -601,32 +605,22 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch }: Orbit
                 <Phone className="w-3.5 h-3.5" />
                 {lang === 'ar' ? 'رقم الهاتف' : 'Téléphone'}
               </label>
-              <Input
-                placeholder="06xxxxxxxx"
-                value={filters.phone}
+              <Input placeholder="06xxxxxxxx" value={filters.phone}
                 onChange={e => setFilters(prev => ({ ...prev, phone: e.target.value }))}
-                className="h-9 text-xs bg-white/70 dark:bg-card/70 border-sky-200/60 focus:border-sky-400 shadow-sm"
-              />
+                className="h-9 text-xs bg-white/70 dark:bg-card/70 border-sky-200/60 focus:border-sky-400 shadow-sm" />
             </div>
           </div>
         </div>
 
-        {/* Action buttons */}
         <div className="flex gap-3 mt-4 justify-center">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            className="gap-1.5 text-xs h-9 px-5 rounded-xl shadow-md hover:shadow-lg transition-shadow border-muted-foreground/20"
-          >
+          <Button variant="outline" size="sm" onClick={handleReset}
+            className="gap-1.5 text-xs h-9 px-5 rounded-xl shadow-md hover:shadow-lg transition-shadow border-muted-foreground/20">
             <RotateCcw className="w-3.5 h-3.5" />
             {lang === 'ar' ? 'إعادة ضبط' : 'Réinitialiser'}
           </Button>
-          <Button
-            size="sm"
+          <Button size="sm"
             onClick={() => { playClick(); onSearch(filters); }}
-            className="gap-1.5 text-xs h-9 px-8 rounded-xl bg-gradient-to-r from-[#0A4174] to-[#001D39] hover:from-[#001D39] hover:to-[#0A4174] shadow-lg hover:shadow-xl transition-all text-white"
-          >
+            className="gap-1.5 text-xs h-9 px-8 rounded-xl bg-gradient-to-r from-[#0A4174] to-[#001D39] hover:from-[#001D39] hover:to-[#0A4174] shadow-lg hover:shadow-xl transition-all text-white">
             <Search className="w-3.5 h-3.5" />
             {lang === 'ar' ? 'بحث' : 'Rechercher'}
           </Button>

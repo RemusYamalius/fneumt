@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { geoMercator, geoPath, geoCentroid } from 'd3-geo';
 import { REGION_COLORS, getRegionMapping, type RegionMapping } from '@/lib/morocco-regions';
 import { useI18n } from '@/lib/i18n';
-import { ArrowRight, ArrowLeft, Users, UserCheck, FileText, TrendingUp } from 'lucide-react';
+import { useClickSound } from '@/hooks/useClickSound';
+import { ArrowRight, ArrowLeft, Users, UserCheck, FileText, TrendingUp, Maximize2, Minimize2 } from 'lucide-react';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 
 interface MoroccoMapProps {
@@ -16,6 +17,24 @@ interface MoroccoMapProps {
 
 const WIDTH = 500;
 const HEIGHT = 700;
+
+// ─── Luminance helper ───────────────────────────────────
+function hexToLuminance(hex: string): number {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16) / 255;
+  const g = parseInt(c.substring(2, 4), 16) / 255;
+  const b = parseInt(c.substring(4, 6), 16) / 255;
+  const srgb = [r, g, b].map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+}
+
+function getContrastColor(bgColor: string): string {
+  try {
+    return hexToLuminance(bgColor) > 0.35 ? '#0A1929' : '#FFFFFF';
+  } catch {
+    return '#FFFFFF';
+  }
+}
 
 // ─── Stat Panel ─────────────────────────────────────────
 const StatPanel = ({ title, items, position }: {
@@ -80,6 +99,7 @@ const MiniProgress = ({ value, max, color }: { value: number; max: number; color
 
 const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSelect, onProvinceNameChange }: MoroccoMapProps) => {
   const { lang, dir } = useI18n();
+  const playClick = useClickSound();
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
   const [hoveredProvince, setHoveredProvince] = useState<string | null>(null);
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
@@ -87,6 +107,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
   const [provincesData, setProvincesData] = useState<FeatureCollection | null>(null);
   const [view, setView] = useState<'country' | 'region'>('country');
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     fetch('/geo/regions.geojson').then(r => r.json()).then(setGeoData).catch(console.error);
@@ -97,6 +118,15 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
       fetch('/geo/provinces.geojson').then(r => r.json()).then(setProvincesData).catch(console.error);
     }
   }, [view, provincesData]);
+
+  // Reset view when selectedRegion becomes null (parent reset)
+  useEffect(() => {
+    if (!selectedRegion) {
+      setView('country');
+      setSelectedProvince(null);
+      setHoveredProvince(null);
+    }
+  }, [selectedRegion]);
 
   const countryProjection = useMemo(() => {
     if (!geoData) return null;
@@ -137,7 +167,6 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     }));
   }, [geoData]);
 
-  // Current stats for selected region
   const currentStats = useMemo(() => {
     if (!selectedRegion || !regionStats) return null;
     return regionStats[selectedRegion.academyLabel] || null;
@@ -155,9 +184,10 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     setView('country');
     setHoveredProvince(null);
     setSelectedProvince(null);
+    onRegionSelect(null);
     onProvinceSelect?.(null);
     onProvinceNameChange?.(null);
-  }, [onProvinceSelect, onProvinceNameChange]);
+  }, [onRegionSelect, onProvinceSelect, onProvinceNameChange]);
 
   const handleProvinceClick = useCallback((rawName: string) => {
     const parsed = parseProvinceName(rawName);
@@ -166,6 +196,11 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     onProvinceSelect?.(parsed.fr);
     onProvinceNameChange?.(displayName);
   }, [onProvinceSelect, onProvinceNameChange, parseProvinceName, lang]);
+
+  const toggleFullscreen = useCallback(() => {
+    playClick();
+    setIsFullscreen(prev => !prev);
+  }, [playClick]);
 
   if (!geoData || !countryPath || !countryProjection) {
     return (
@@ -177,8 +212,17 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
-  return (
+  const mapContent = (
     <div className="relative w-full h-full flex items-center justify-center">
+      {/* Fullscreen toggle button */}
+      <button
+        onClick={toggleFullscreen}
+        className="absolute top-2 right-2 z-20 p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
+        title={isFullscreen ? 'تصغير' : 'تكبير'}
+      >
+        {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+      </button>
+
       <AnimatePresence mode="wait">
         {view === 'country' ? (
           <motion.div
@@ -209,30 +253,39 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                 const d = countryPath(feature as Feature<Geometry>) || '';
                 const centroid = geoCentroid(feature as Feature<Geometry>);
                 const center = countryProjection(centroid);
+                const fillColor = isSelected ? '#0A4174' : isHovered ? '#49769F' : baseColor;
+                const textColor = getContrastColor(fillColor);
 
                 return (
                   <g key={geoId || index}>
                     <motion.path
                       d={d}
-                      fill={isSelected ? '#0A4174' : isHovered ? '#49769F' : baseColor}
+                      fill={fillColor}
                       stroke={isSelected ? '#7BBDE8' : '#BDD8E9'}
                       strokeWidth={isSelected ? 2.5 : isHovered ? 2 : 0.8}
                       className="cursor-pointer"
                       style={{ filter: isSelected ? 'url(#glow)' : 'none' }}
                       initial={false}
-                      animate={{ opacity: selectedRegion && !isSelected ? 0.45 : 1 }}
+                      animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                       onMouseEnter={() => setHoveredRegion(geoId)}
                       onMouseLeave={() => setHoveredRegion(null)}
                       onClick={() => handleRegionClick(mapping)}
                     />
-                    {mapping && center && (!selectedRegion || isSelected) && (
+                    {mapping && center && (
                       <text
                         x={center[0]} y={center[1]}
                         textAnchor="middle" dominantBaseline="middle"
                         className="pointer-events-none select-none"
-                        fill="white" fontSize={isSelected ? 11 : 8} fontWeight={isSelected ? 700 : 500}
-                        opacity={isHovered || isSelected ? 1 : 0.85}
+                        fill={textColor}
+                        fontSize={isSelected ? 11 : 8} fontWeight={isSelected ? 700 : 500}
+                        opacity={isHovered || isSelected ? 1 : 0.9}
+                        style={{
+                          textShadow: `0 0 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)`,
+                          paintOrder: 'stroke',
+                          stroke: hexToLuminance(fillColor) > 0.35 ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)',
+                          strokeWidth: 0.5,
+                        }}
                       >
                         {lang === 'ar' ? mapping.nameAr.split(' – ')[0] : mapping.nameFr.split('-')[0]}
                       </text>
@@ -327,16 +380,19 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                     const parsed = parseProvinceName(name);
                     const displayName = lang === 'ar' ? parsed.ar : parsed.fr;
                     const isSelected = selectedProvince === displayName;
-                    const provinceColor = isSelected ? '#0A4174' : REGION_COLORS[i % REGION_COLORS.length];
+                    const baseProvinceColor = REGION_COLORS[i % REGION_COLORS.length];
+                    const provinceColor = isSelected ? '#0A4174' : baseProvinceColor;
                     const d = regionPath(feature as Feature<Geometry>) || '';
                     const centroid = geoCentroid(feature as Feature<Geometry>);
                     const center = regionProjection(centroid);
+                    const fillColor = isHovered ? '#0A4174' : provinceColor;
+                    const textColor = getContrastColor(fillColor);
 
                     return (
                       <g key={name || i}>
                         <motion.path
                           d={d}
-                          fill={isHovered ? '#0A4174' : provinceColor}
+                          fill={fillColor}
                           stroke={isSelected ? '#7BBDE8' : '#BDD8E9'}
                           strokeWidth={isHovered || isSelected ? 2 : 0.8}
                           className="cursor-pointer"
@@ -353,10 +409,16 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                             x={center[0]} y={center[1]}
                             textAnchor="middle" dominantBaseline="middle"
                             className="pointer-events-none select-none"
-                            fill={isSelected ? '#7BBDE8' : '#001D39'}
+                            fill={textColor}
                             fontSize={isHovered || isSelected ? 10 : 7}
                             fontWeight={isHovered || isSelected ? 700 : 400}
-                            opacity={isHovered || isSelected ? 1 : 0.7}
+                            opacity={isHovered || isSelected ? 1 : 0.85}
+                            style={{
+                              textShadow: `0 0 3px rgba(0,0,0,0.3)`,
+                              paintOrder: 'stroke',
+                              stroke: hexToLuminance(fillColor) > 0.35 ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                              strokeWidth: 0.4,
+                            }}
                           >
                             {displayName.length > 18 ? displayName.slice(0, 16) + '…' : displayName}
                           </text>
@@ -481,6 +543,28 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
       </AnimatePresence>
     </div>
   );
+
+  // Fullscreen mode
+  if (isFullscreen) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-0 z-50 bg-[#BDD8E9] flex items-center justify-center p-6"
+          style={{ backdropFilter: 'blur(20px)' }}
+        >
+          <div className="w-full h-full max-w-[1200px] relative">
+            {mapContent}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
+  return mapContent;
 };
 
 export default MoroccoMap;

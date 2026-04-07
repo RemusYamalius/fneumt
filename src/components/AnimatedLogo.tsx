@@ -17,7 +17,7 @@ const AnimatedLogo = ({ size = 'w-10 h-10', className = '' }: AnimatedLogoProps)
       />
 
       {/* Background circle to mask the conic gradient center */}
-      <div className="absolute inset-[2px] rounded-full bg-white/10 backdrop-blur-sm" />
+      <div className="absolute inset-[2px] rounded-full bg-white/15" />
 
       {/* Logo image */}
       <img

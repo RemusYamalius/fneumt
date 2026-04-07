@@ -217,7 +217,7 @@ const QuickFilter = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto flex flex-col items-center justify-center p-4"
+              className="fixed inset-0 z-50 bg-background overflow-y-auto flex flex-col items-center justify-center p-4"
             >
               {/* Fixed minimize button — always visible */}
               <button
@@ -313,7 +313,7 @@ const QuickFilter = () => {
 
           {/* Orbital Filter Section */}
           <motion.div
-            className="rounded-3xl overflow-hidden border border-primary/10 bg-card/50 backdrop-blur-xl shadow-2xl"
+            className="rounded-3xl overflow-hidden border border-primary/10 bg-card shadow-2xl"
             initial={{ opacity: 0, x: dir === 'rtl' ? -30 : 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -346,7 +346,7 @@ const QuickFilter = () => {
                   onAnimationComplete={() => setSearchResults(null)}
                   className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none"
                 >
-                  <div className="bg-card/70 backdrop-blur-xl border border-border/50 rounded-3xl px-10 py-8 shadow-2xl text-center pointer-events-auto">
+                  <div className="bg-card/90 border border-border/50 rounded-3xl px-10 py-8 shadow-2xl text-center pointer-events-auto">
                     <p className="text-muted-foreground text-base font-medium">
                       {lang === 'ar' ? 'لا توجد نتائج مطابقة' : 'Aucun résultat trouvé'}
                     </p>

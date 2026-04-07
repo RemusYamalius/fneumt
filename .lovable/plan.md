@@ -1,32 +1,47 @@
 
 
-# خطة: تقييد بحث "المكاتب المحلية" على أعضاء المكاتب فقط
+# خطة: تحسين أداء التصفح وتقليل البطء
 
-## المشكلة
-عند اختيار نطاق البحث "المكاتب المحلية"، النظام يعرض جميع المسجلين في الإقليم بدل الاقتصار على أعضاء المكاتب النقابية المحلية (المسجلين في جدول `local_office_members`).
+## المشاكل المحددة
 
-## الحل — `src/pages/QuickFilter.tsx` (handleSearch)
+### 1. `useAnimationFrame` يُعيد رسم React على كل إطار (~60 مرة/ثانية)
+في `OrbitalFilter.tsx`، كل `FilterRing` يستخدم `useAnimationFrame` مع `setCurrentRotation()` — أي **setState على كل إطار**. مع 5 حلقات (Gender, Membership, Academy, Directorate, Mission)، هذا يعني **~300 re-render في الثانية**. هذا هو السبب الرئيسي للبطء.
 
-### تعديل `handleSearch` لتمييز وضع البحث
+نفس المشكلة في `NewRequest.tsx` مع `setRotation` على كل إطار.
 
-عندما يكون `filters.mode === 'offices'`:
+### 2. `backdrop-blur` فوق محتوى متحرك
+عدة عناصر في QuickFilter و OrbitalFilter تستخدم `backdrop-blur-xl` فوق محتوى SVG متحرك، مما يُجبر المتصفح على إعادة حساب التمويه في كل إطار.
 
-1. **جلب أعضاء المكاتب أولاً**: استعلام `local_office_members` مع `local_offices` للحصول على `user_id` لجميع أعضاء المكاتب في النطاق المحدد (الأكاديمية/المديرية)
-2. **تصفية النتائج**: استعلام `profiles` مع تقييد `user_id` بقائمة الأعضاء المستخرجة من الخطوة 1 باستخدام `.in('user_id', memberIds)`
-3. **تطبيق باقي الفلاتر** (المهمة، النوع، العمر...) كالمعتاد
+### 3. `AnimatedLogo` يستخدم `backdrop-blur-sm`
+اللوغو المستخدم في كل صفحة (عبر AuthenticatedLayout) يحتوي على `backdrop-blur-sm`، مما يزيد تكلفة الرسم.
 
-```text
-الخطوات التقنية:
-1. إذا mode === 'offices':
-   a. جلب local_offices حسب academy/directorate
-   b. جلب local_office_members حسب office_ids المستخرجة
-   c. استخراج user_ids
-   d. استعلام profiles مع .in('user_id', memberUserIds)
-2. إذا mode === 'users': السلوك الحالي (بدون تغيير)
-```
+## الحلول
+
+### الملف 1: `src/components/OrbitalFilter.tsx`
+- **إزالة `setCurrentRotation` من `useAnimationFrame`**: بدلاً من setState، استخدام `ref` مباشرة لتحديث `transform` عبر DOM API (`groupRef.current.style.transform`). هذا يلغي إعادة رسم React تماماً أثناء الدوران.
+- **إزالة `backdrop-blur-sm`** من زر fullscreen (سطر 502).
+
+### الملف 2: `src/pages/NewRequest.tsx`
+- نفس الإصلاح: تحويل `setRotation` إلى تحديث DOM مباشر عبر ref بدلاً من setState.
+
+### الملف 3: `src/pages/QuickFilter.tsx`
+- إزالة `backdrop-blur-xl` من overlay الـ fullscreen (سطر 220) واستبدالها بـ `bg-background`.
+- إزالة `backdrop-blur-xl` من قسم الفلتر (سطر 316) واستبدالها بـ `bg-card`.
+- إزالة `backdrop-blur-xl` من بطاقة "لا توجد نتائج" (سطر 349) واستبدالها بـ `bg-card/90` مع `text-shadow`.
+
+### الملف 4: `src/components/AnimatedLogo.tsx`
+- إزالة `backdrop-blur-sm` من الطبقة الخلفية (سطر 20) واستبدالها بـ `bg-white/15` فقط.
+
+## النتيجة المتوقعة
+- تقليل re-renders من ~300/ثانية إلى ~0 أثناء الدوران التلقائي
+- إلغاء تكلفة `backdrop-blur` فوق المحتوى المتحرك
+- تحسن ملحوظ في سلاسة التصفح خاصة على الأجهزة المحمولة
 
 ## الملفات المتأثرة
 ```
-src/pages/QuickFilter.tsx  — تعديل handleSearch فقط
+src/components/OrbitalFilter.tsx
+src/pages/NewRequest.tsx
+src/pages/QuickFilter.tsx
+src/components/AnimatedLogo.tsx
 ```
 

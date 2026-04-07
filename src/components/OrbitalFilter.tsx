@@ -274,22 +274,33 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
   const anglePerItem = 360 / items.length;
   const playClick = useClickSound();
   const rotationRef = useRef(0);
-  const [currentRotation, setCurrentRotation] = useState(0);
+  const groupRef = useRef<SVGGElement>(null);
 
   // Manual drag state
   const isDragging = useRef(false);
   const dragStartAngle = useRef(0);
   const dragStartRotation = useRef(0);
 
-  const shouldRotate = !ringHovered && selected === null && !isDragging.current;
+  const shouldRotateRef = useRef(true);
+  shouldRotateRef.current = !ringHovered && selected === null && !isDragging.current;
+
+  const applyRotation = useCallback(() => {
+    if (groupRef.current) {
+      groupRef.current.style.transform = `rotate(${rotationRef.current}deg)`;
+      groupRef.current.style.transformOrigin = `${cx}px ${cy}px`;
+    }
+  }, [cx, cy]);
 
   useAnimationFrame((_, delta) => {
-    if (shouldRotate) {
+    if (shouldRotateRef.current) {
       rotationRef.current += (rotationDir * 360 * delta) / (speed * 1000);
       rotationRef.current = rotationRef.current % 360;
-      setCurrentRotation(rotationRef.current);
+      applyRotation();
     }
   });
+
+  // Current rotation for counter-rotation of text (read from ref, updated on interaction)
+  const [currentRotation, setCurrentRotation] = useState(0);
 
   const getAngleFromMouse = useCallback((e: React.MouseEvent) => {
     const svg = (e.target as Element).closest('svg');
@@ -312,8 +323,9 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
     const angle = getAngleFromMouse(e);
     const delta = angle - dragStartAngle.current;
     rotationRef.current = dragStartRotation.current + delta;
+    applyRotation();
     setCurrentRotation(rotationRef.current);
-  }, [getAngleFromMouse]);
+  }, [getAngleFromMouse, applyRotation]);
 
   const handleMouseUp = useCallback(() => {
     isDragging.current = false;
@@ -322,18 +334,25 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.stopPropagation();
     rotationRef.current += e.deltaY > 0 ? 8 : -8;
+    applyRotation();
+    setCurrentRotation(rotationRef.current);
+  }, [applyRotation]);
+
+  // Sync currentRotation for text counter-rotation when hovering (less frequent)
+  const handleRingEnter = useCallback(() => {
+    setRingHovered(true);
     setCurrentRotation(rotationRef.current);
   }, []);
 
   return (
     <g
-      onMouseEnter={() => setRingHovered(true)}
+      ref={groupRef}
+      onMouseEnter={handleRingEnter}
       onMouseLeave={() => { setRingHovered(false); setHoveredSegment(null); handleMouseUp(); }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onWheel={handleWheel}
-      style={{ transform: `rotate(${currentRotation}deg)`, transformOrigin: `${cx}px ${cy}px` }}
     >
       {items.map((item, i) => {
         const startAngle = i * anglePerItem;
@@ -499,7 +518,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
         <div className="w-full flex justify-end px-4 pt-1">
           <button
             onClick={() => { playClick(); onToggleFullscreen(); }}
-            className="p-2 rounded-xl bg-[#001D39]/80 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all backdrop-blur-sm"
+            className="p-2 rounded-xl bg-[#001D39]/90 hover:bg-[#001D39] text-white border border-[#49769F]/50 shadow-lg transition-all"
             title={isFullscreen ? (lang === 'ar' ? 'تصغير' : 'Réduire') : (lang === 'ar' ? 'تكبير' : 'Agrandir')}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}

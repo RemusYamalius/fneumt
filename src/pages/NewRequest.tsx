@@ -62,6 +62,7 @@ const OrbitalHub = ({
   isSmall?: boolean;
 }) => {
   const [rotation, setRotation] = useState(0);
+  const rotationRef = useRef(0);
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,9 +74,13 @@ const OrbitalHub = ({
   const baseRadius = isSmall ? 100 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 130 : window.innerWidth < 1024 ? 160 : 220);
   const itemSize = isSmall ? 48 : (typeof window !== 'undefined' && window.innerWidth < 640 ? 56 : window.innerWidth < 1024 ? 68 : 76);
 
+  const shouldRotateRef = useRef(true);
+  shouldRotateRef.current = !isHovered && !isDragging.current;
+
   useAnimationFrame((time, delta) => {
-    if (!isHovered && !isDragging.current) {
-      setRotation(prev => (prev + (delta * 0.012)) % 360);
+    if (shouldRotateRef.current) {
+      rotationRef.current = (rotationRef.current + (delta * 0.012)) % 360;
+      setRotation(rotationRef.current);
     }
   });
 
@@ -93,7 +98,7 @@ const OrbitalHub = ({
     if ((e.target as HTMLElement).closest('.orbital-item')) return;
     isDragging.current = true;
     dragStartAngle.current = getAngleFromCenter(e.clientX, e.clientY);
-    rotationAtDragStart.current = rotation;
+    rotationAtDragStart.current = rotationRef.current;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }, [getAngleFromCenter, rotation]);
 
@@ -101,7 +106,8 @@ const OrbitalHub = ({
     if (!isDragging.current) return;
     const currentAngle = getAngleFromCenter(e.clientX, e.clientY);
     const delta = currentAngle - dragStartAngle.current;
-    setRotation((rotationAtDragStart.current + delta) % 360);
+    rotationRef.current = (rotationAtDragStart.current + delta) % 360;
+    setRotation(rotationRef.current);
   }, [getAngleFromCenter]);
 
   const handlePointerUp = useCallback(() => {
@@ -150,7 +156,7 @@ const OrbitalHub = ({
               background: 'conic-gradient(from 0deg, transparent 0%, transparent 60%, hsl(190 100% 60%) 75%, hsl(210 100% 70%) 85%, transparent 100%)',
             }}
           />
-          <div className="absolute inset-[2px] rounded-full bg-white/10 backdrop-blur-sm" />
+          <div className="absolute inset-[2px] rounded-full bg-white/15" />
           <img src={logoFne} alt="FNE Logo" className="relative z-10 w-full h-full object-contain rounded-full" />
           {/* Sparkle swipe */}
           <div

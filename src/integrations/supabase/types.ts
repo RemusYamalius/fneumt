@@ -923,6 +923,16 @@ export type Database = {
           read_ct: number
         }[]
       }
+      search_by_tracking: {
+        Args: { _tracking: string }
+        Returns: {
+          category: Database["public"]["Enums"]["request_category"]
+          created_at: string
+          resolution_level: string
+          status: Database["public"]["Enums"]["request_status"]
+          tracking_number: string
+        }[]
+      }
     }
     Enums: {
       app_role:

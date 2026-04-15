@@ -175,10 +175,10 @@ const SponsoredPostComposer = ({ onPostCreated }: { onPostCreated?: () => void }
     if (officeMemberIds) query = query.in('user_id', officeMemberIds);
     if (filters.academy) query = query.eq('academy', filters.academy);
     if (filters.directorate) query = query.eq('directorate', filters.directorate);
-    if (filters.institution) query = query.ilike('institution', `%${filters.institution}%`);
+    if (filters.institution) query = query.ilike('institution', `%${sanitizeSearchInput(filters.institution)}%`);
     if (filters.mission) query = query.eq('mission', filters.mission);
     if (filters.gender) query = query.eq('gender', filters.gender);
-    if (filters.name) query = query.ilike('full_name', `%${filters.name}%`);
+    if (filters.name) query = query.ilike('full_name', `%${sanitizeSearchInput(filters.name)}%`);
     if (filters.ppr) query = query.eq('employee_number', filters.ppr);
     if (filters.membership === 'member') {
       query = query.eq('is_member', true).eq('membership_verified', true);

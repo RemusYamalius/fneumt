@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
+import { sanitizeSearchInput } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Map, RotateCcw, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

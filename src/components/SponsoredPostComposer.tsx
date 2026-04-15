@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { sanitizeSearchInput } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Send, Loader2, Paperclip, X, Sparkles, Smile, Image, Video, FileText, Users, ChevronDown, ChevronUp, Filter, Link2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';

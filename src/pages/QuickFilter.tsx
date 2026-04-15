@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
+import { sanitizeSearchInput } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Map, RotateCcw, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -157,11 +158,11 @@ const QuickFilter = () => {
 
       if (filters.academy) query = query.eq('academy', filters.academy);
       if (filters.directorate) query = query.eq('directorate', filters.directorate);
-      if (filters.institution) query = query.ilike('institution', `%${filters.institution}%`);
+      if (filters.institution) query = query.ilike('institution', `%${sanitizeSearchInput(filters.institution)}%`);
       if (filters.gender !== 'all') query = query.eq('gender', filters.gender);
       if (filters.mission) query = query.eq('mission', filters.mission);
       if (filters.ppr) query = query.eq('employee_number', filters.ppr);
-      if (filters.phone) query = query.ilike('phone', `%${filters.phone}%`);
+      if (filters.phone) query = query.ilike('phone', `%${sanitizeSearchInput(filters.phone)}%`);
       if (filters.membership === 'member') query = query.eq('is_member', true);
       else if (filters.membership === 'non_member') query = query.eq('is_member', false);
       else if (filters.membership === 'pending') query = query.eq('membership_verified', false).eq('is_member', true);

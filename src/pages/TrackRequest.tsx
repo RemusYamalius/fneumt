@@ -14,7 +14,6 @@ type RequestStatus = 'submitted' | 'viewed' | 'in_progress' | 'accepted' | 'canc
 interface RequestResult {
   tracking_number: string;
   category: string;
-  subject: string;
   status: RequestStatus;
   created_at: string;
   resolution_level: string | null;
@@ -55,16 +54,15 @@ const TrackRequest = () => {
     setNotFound(false);
     setResult(null);
 
+    const sanitized = trackingNumber.trim().slice(0, 20);
     const { data, error } = await supabase
-      .from('requests')
-      .select('tracking_number, category, subject, status, created_at, resolution_level')
-      .eq('tracking_number', trackingNumber.trim())
-      .maybeSingle();
+      .rpc('search_by_tracking', { _tracking: sanitized });
 
-    if (error || !data) {
+    if (error || !data || (Array.isArray(data) && data.length === 0)) {
       setNotFound(true);
     } else {
-      setResult(data as RequestResult);
+      const row = Array.isArray(data) ? data[0] : data;
+      setResult(row as RequestResult);
     }
     setSearching(false);
   };

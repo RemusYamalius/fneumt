@@ -869,6 +869,10 @@ export type Database = {
         Args: { _file_path: string; _user_id: string }
         Returns: boolean
       }
+      can_access_post_attachment: {
+        Args: { _file_path: string; _user_id: string }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -921,6 +925,16 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      search_by_tracking: {
+        Args: { _tracking: string }
+        Returns: {
+          category: Database["public"]["Enums"]["request_category"]
+          created_at: string
+          resolution_level: string
+          status: Database["public"]["Enums"]["request_status"]
+          tracking_number: string
         }[]
       }
     }

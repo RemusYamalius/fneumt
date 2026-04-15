@@ -869,6 +869,10 @@ export type Database = {
         Args: { _file_path: string; _user_id: string }
         Returns: boolean
       }
+      can_access_post_attachment: {
+        Args: { _file_path: string; _user_id: string }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean

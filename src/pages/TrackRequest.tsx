@@ -55,11 +55,9 @@ const TrackRequest = () => {
     setNotFound(false);
     setResult(null);
 
+    const sanitized = trackingNumber.trim().slice(0, 20);
     const { data, error } = await supabase
-      .from('requests')
-      .select('tracking_number, category, subject, status, created_at, resolution_level')
-      .eq('tracking_number', trackingNumber.trim())
-      .maybeSingle();
+      .rpc('search_by_tracking', { _tracking: sanitized });
 
     if (error || !data) {
       setNotFound(true);

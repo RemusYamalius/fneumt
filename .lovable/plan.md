@@ -1,47 +1,78 @@
 
 
-# خطة: تحسين أداء التصفح وتقليل البطء
+# تحليل أمني شامل وخطة الإصلاح
 
-## المشاكل المحددة
+## التحليل الحالي
 
-### 1. `useAnimationFrame` يُعيد رسم React على كل إطار (~60 مرة/ثانية)
-في `OrbitalFilter.tsx`، كل `FilterRing` يستخدم `useAnimationFrame` مع `setCurrentRotation()` — أي **setState على كل إطار**. مع 5 حلقات (Gender, Membership, Academy, Directorate, Mission)، هذا يعني **~300 re-render في الثانية**. هذا هو السبب الرئيسي للبطء.
+### مشاكل حرجة (ERROR)
 
-نفس المشكلة في `NewRequest.tsx` مع `setRotation` على كل إطار.
+| # | المشكلة | الخطورة |
+|---|---------|---------|
+| 1 | **جدول `requests` مكشوف للعموم** — سياسة "Anyone can search by tracking number" تمنح دور `anon` قراءة جميع الطلبات بدون مصادقة | حرج |
+| 2 | **مرفقات المنشورات مكشوفة** — أي مستخدم مسجل يستطيع قراءة أي ملف في bucket `post-attachments` بدون التحقق من كونه مستلماً | حرج |
+| 3 | **قنوات Realtime بدون حماية** — أي مستخدم مسجل يستطيع الاشتراك في أي قناة وتلقي أحداث لا تخصه | حرج |
 
-### 2. `backdrop-blur` فوق محتوى متحرك
-عدة عناصر في QuickFilter و OrbitalFilter تستخدم `backdrop-blur-xl` فوق محتوى SVG متحرك، مما يُجبر المتصفح على إعادة حساب التمويه في كل إطار.
+### مشاكل متوسطة (WARN)
 
-### 3. `AnimatedLogo` يستخدم `backdrop-blur-sm`
-اللوغو المستخدم في كل صفحة (عبر AuthenticatedLayout) يحتوي على `backdrop-blur-sm`، مما يزيد تكلفة الرسم.
+| # | المشكلة |
+|---|---------|
+| 4 | 4 دوال بدون `search_path` محدد (read_email_batch, enqueue_email, move_to_dlq, delete_email) |
+| 5 | 3 buckets عامة تسمح بسرد الملفات (office-photos, publisher-avatars, sponsor-assets) |
+| 6 | حماية كلمات المرور المسربة (HIBP) معطلة |
+| 7 | منسقو المكاتب يستطيعون تعديل صور أي مكتب (office-photos) |
 
-## الحلول
+### نقاط ضعف في الكود
 
-### الملف 1: `src/components/OrbitalFilter.tsx`
-- **إزالة `setCurrentRotation` من `useAnimationFrame`**: بدلاً من setState، استخدام `ref` مباشرة لتحديث `transform` عبر DOM API (`groupRef.current.style.transform`). هذا يلغي إعادة رسم React تماماً أثناء الدوران.
-- **إزالة `backdrop-blur-sm`** من زر fullscreen (سطر 502).
+| # | المشكلة |
+|---|---------|
+| 8 | **لا يوجد تعقيم للمدخلات** — `.ilike()` يُستخدم مع مدخلات المستخدم مباشرة بدون تنظيف (QuickFilter, PostComposer, SponsoredPostComposer) |
+| 9 | **لا يوجد Rate Limiting** على Edge Functions (delete-account, fetch-link-preview) |
+| 10 | **لا يوجد تحقق من طول المدخلات** في نماذج البحث والتسجيل |
 
-### الملف 2: `src/pages/NewRequest.tsx`
-- نفس الإصلاح: تحويل `setRotation` إلى تحديث DOM مباشر عبر ref بدلاً من setState.
+### ما هو آمن حالياً ✓
+- مفاتيح API مخزنة في متغيرات بيئة (ليست مكتوبة في الكود)
+- لا يوجد SQL خام — كل الاستعلامات عبر Supabase SDK المعلمي
+- RLS مفعل على جميع الجداول
+- دوال SECURITY DEFINER تستخدم `search_path = public`
+- لا يوجد `dangerouslySetInnerHTML` مع مدخلات المستخدم
 
-### الملف 3: `src/pages/QuickFilter.tsx`
-- إزالة `backdrop-blur-xl` من overlay الـ fullscreen (سطر 220) واستبدالها بـ `bg-background`.
-- إزالة `backdrop-blur-xl` من قسم الفلتر (سطر 316) واستبدالها بـ `bg-card`.
-- إزالة `backdrop-blur-xl` من بطاقة "لا توجد نتائج" (سطر 349) واستبدالها بـ `bg-card/90` مع `text-shadow`.
+---
 
-### الملف 4: `src/components/AnimatedLogo.tsx`
-- إزالة `backdrop-blur-sm` من الطبقة الخلفية (سطر 20) واستبدالها بـ `bg-white/15` فقط.
+## خطة الإصلاح
 
-## النتيجة المتوقعة
-- تقليل re-renders من ~300/ثانية إلى ~0 أثناء الدوران التلقائي
-- إلغاء تكلفة `backdrop-blur` فوق المحتوى المتحرك
-- تحسن ملحوظ في سلاسة التصفح خاصة على الأجهزة المحمولة
+### 1) إصلاح سياسة `requests` للمجهولين (حرج)
+- **حذف** سياسة "Anyone can search by tracking number" 
+- **إنشاء دالة** `search_by_tracking(text)` من نوع `SECURITY DEFINER` تُرجع فقط: `tracking_number`, `status`, `created_at`, `category` (بدون `user_id`, `assigned_to`, `subject`, `description`)
+- **تحديث** `TrackRequest.tsx` لاستخدام `.rpc('search_by_tracking', { _tracking: query })`
+
+### 2) تأمين bucket `post-attachments` (حرج)
+- **تحديث** سياسة التخزين لتتحقق من أن المستخدم مستلم للمنشور المرتبط بالملف عبر ربط `file_path` بجدول `post_attachments` ثم `post_recipients`
+
+### 3) تفعيل حماية كلمات المرور المسربة
+- استخدام `configure_auth` لتفعيل `password_hibp_enabled: true`
+
+### 4) إضافة `search_path` للدوال الناقصة
+- Migration لتحديث 4 دوال: `read_email_batch`, `enqueue_email`, `move_to_dlq`, `delete_email` بإضافة `SET search_path TO 'public'`
+
+### 5) تعقيم مدخلات البحث (Frontend)
+- إنشاء دالة `sanitizeSearchInput(input)` في `src/lib/utils.ts` تزيل أحرف SQL الخاصة (`%`, `_`, `\`) وتحدد الطول الأقصى
+- تطبيقها على كل استخدامات `.ilike()` في: QuickFilter, PostComposer, SponsoredPostComposer
+
+### 6) Rate Limiting على Edge Functions
+- إضافة حماية rate limiting بسيطة في `delete-account` و `fetch-link-preview` عبر فحص عدد الطلبات من نفس المستخدم خلال فترة زمنية
+
+### 7) تأمين سياسات bucket `office-photos`
+- تحديث سياسات INSERT/UPDATE/DELETE للتحقق من أن المنسق يملك المكتب المرتبط بالمسار
 
 ## الملفات المتأثرة
 ```
-src/components/OrbitalFilter.tsx
-src/pages/NewRequest.tsx
+supabase/migrations/  — 4 migrations جديدة
+src/pages/TrackRequest.tsx
 src/pages/QuickFilter.tsx
-src/components/AnimatedLogo.tsx
+src/components/PostComposer.tsx
+src/components/SponsoredPostComposer.tsx
+src/lib/utils.ts
+supabase/functions/delete-account/index.ts
+supabase/functions/fetch-link-preview/index.ts
 ```
 

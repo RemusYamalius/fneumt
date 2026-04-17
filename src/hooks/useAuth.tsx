@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 import type { AppRole } from '@/lib/role-hierarchy';
+import { logSecurityEvent } from '@/lib/security-audit';
 
 interface Profile {
   id: string;
@@ -91,19 +92,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { error, data } = await supabase.auth.signUp({
       email, password,
       options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
     });
+    if (error) {
+      logSecurityEvent('signup_failed', 'warning', { email, reason: error.message });
+    } else {
+      logSecurityEvent('signup_success', 'info', { email }, data.user?.id ?? null);
+    }
     return { error };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      logSecurityEvent('login_failed', 'warning', { email, reason: error.message });
+    } else {
+      logSecurityEvent('login_success', 'info', { email }, data.user?.id ?? null);
+    }
     return { error };
   };
 
   const signOut = async () => {
+    const currentUserId = user?.id ?? null;
+    if (currentUserId) {
+      logSecurityEvent('logout', 'info', {}, currentUserId);
+    }
     await supabase.auth.signOut();
     setUser(null); setSession(null); setProfile(null); setRole(null);
   };
@@ -112,11 +127,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
+    if (!error) {
+      logSecurityEvent('password_reset_requested', 'info', { email });
+    }
     return { error };
   };
 
   const updatePasswordFn = async (password: string) => {
     const { error } = await supabase.auth.updateUser({ password });
+    if (!error) {
+      logSecurityEvent('password_changed', 'warning', {}, user?.id ?? null);
+    }
     return { error };
   };
 

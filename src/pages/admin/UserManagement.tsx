@@ -12,6 +12,7 @@ import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { getAllowedPromotions, getGeoConstraint } from '@/lib/role-hierarchy';
 import type { AppRole } from '@/lib/role-hierarchy';
 import { ACADEMIES } from '@/lib/academies-data';
+import { logSecurityEvent } from '@/lib/security-audit';
 
 interface UserWithRole {
   user_id: string;
@@ -151,6 +152,12 @@ const UserManagement = () => {
         if (isNationalRole(newRole)) next.add(newRole);
         return next;
       });
+      // Audit log: role change is a critical security event
+      logSecurityEvent('role_changed', 'critical', {
+        target_user_id: userId,
+        old_role: oldRole,
+        new_role: newRole,
+      }, user.id);
       toast({ title: t.roleUpdated });
       setUsers(prev => prev.map(u => u.user_id === userId ? { ...u, role: newRole, promoted_by: user.id } : u));
     }

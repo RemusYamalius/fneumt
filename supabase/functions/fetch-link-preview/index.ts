@@ -28,6 +28,26 @@ Deno.serve(async (req) => {
     // Rate limit by IP or auth header
     const clientId = req.headers.get('authorization')?.slice(-16) || req.headers.get('x-forwarded-for') || 'unknown';
     if (isRateLimited(clientId)) {
+      // Best-effort security log for rate limit violation
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+        if (supabaseUrl && anonKey) {
+          await fetch(`${supabaseUrl}/rest/v1/rpc/log_security_event`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': anonKey,
+              'Authorization': req.headers.get('authorization') || `Bearer ${anonKey}`,
+            },
+            body: JSON.stringify({
+              _event_type: 'rate_limit_exceeded',
+              _severity: 'warning',
+              _metadata: { endpoint: 'fetch-link-preview' },
+            }),
+          });
+        }
+      } catch { /* ignore */ }
       return new Response(JSON.stringify({ error: 'Too many requests' }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

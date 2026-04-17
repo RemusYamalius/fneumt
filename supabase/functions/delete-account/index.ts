@@ -49,11 +49,26 @@ Deno.serve(async (req) => {
 
     // Rate limit by user ID
     if (isRateLimited(userId)) {
+      // Log security event for rate limit violation
+      await supabaseUser.rpc('log_security_event', {
+        _event_type: 'rate_limit_exceeded',
+        _severity: 'warning',
+        _metadata: { endpoint: 'delete-account' },
+        _user_id: userId,
+      }).catch(() => {});
       return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+
+    // Log the deletion request before processing
+    await supabaseUser.rpc('log_security_event', {
+      _event_type: 'account_deletion_requested',
+      _severity: 'critical',
+      _metadata: { endpoint: 'delete-account' },
+      _user_id: userId,
+    }).catch(() => {});
 
     // Use service role to delete user
     const supabaseAdmin = createClient(

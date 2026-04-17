@@ -689,6 +689,39 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_log: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       sponsored_post_attachments: {
         Row: {
           created_at: string | null
@@ -909,6 +942,15 @@ export type Database = {
       is_same_area_deputy: {
         Args: { _target_user_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_security_event: {
+        Args: {
+          _event_type: string
+          _metadata?: Json
+          _severity?: string
+          _user_id?: string
+        }
+        Returns: string
       }
       move_to_dlq: {
         Args: {

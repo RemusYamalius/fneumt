@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, ShieldAlert, AlertTriangle, Info, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ShieldAlert, AlertTriangle, Info, AlertCircle, Volume2, VolumeX, BellRing } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import { toast } from 'sonner';
 
 type Severity = 'info' | 'warning' | 'critical';
 
@@ -34,20 +35,106 @@ const SecurityLog = () => {
   const [loading, setLoading] = useState(true);
   const [filterEvent, setFilterEvent] = useState<string>('all');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('security_sound_enabled') !== 'false';
+  });
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const isInitialLoadRef = useRef(true);
+
+  const playCriticalAlert = useCallback(() => {
+    if (!soundEnabled) return;
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      // Three urgent beeps descending — distinct from notification sound
+      [0, 0.18, 0.36].forEach((delay, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.value = 1200 - i * 200;
+        const start = ctx.currentTime + delay;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.35, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+        osc.start(start);
+        osc.stop(start + 0.16);
+      });
+      if (navigator.vibrate) navigator.vibrate([200, 80, 200, 80, 200]);
+    } catch {}
+  }, [soundEnabled]);
+
+  const toggleSound = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    localStorage.setItem('security_sound_enabled', String(next));
+    if (next) {
+      // Unlock audio context on user gesture
+      try {
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        audioCtxRef.current.resume();
+      } catch {}
+    }
+  };
+
+  const fetchLogs = useCallback(async () => {
+    const { data } = await supabase
+      .from('security_audit_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(500);
+    if (data) setLogs(data as AuditLog[]);
+  }, []);
 
   useEffect(() => {
-    const fetchLogs = async () => {
+    (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from('security_audit_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(500);
-      if (data) setLogs(data as AuditLog[]);
+      await fetchLogs();
       setLoading(false);
+      isInitialLoadRef.current = false;
+    })();
+
+    // Realtime subscription for new audit log entries
+    const channel = supabase
+      .channel('security-audit-log-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'security_audit_log' },
+        (payload) => {
+          const newLog = payload.new as AuditLog;
+          setLogs((prev) => [newLog, ...prev].slice(0, 500));
+          if (newLog.severity === 'critical') {
+            playCriticalAlert();
+            toast.error(
+              dir === 'rtl' ? '🚨 حدث أمني حرج' : '🚨 Évènement critique',
+              {
+                description: t[`event_${newLog.event_type}`] || newLog.event_type,
+                duration: 8000,
+              },
+            );
+          } else if (newLog.severity === 'warning') {
+            toast.warning(
+              dir === 'rtl' ? '⚠️ تحذير أمني' : '⚠️ Avertissement',
+              {
+                description: t[`event_${newLog.event_type}`] || newLog.event_type,
+                duration: 5000,
+              },
+            );
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-    fetchLogs();
-  }, []);
+  }, [fetchLogs, playCriticalAlert, dir, t]);
 
   const filteredLogs = useMemo(() => {
     return logs.filter(l => {
@@ -107,9 +194,25 @@ const SecurityLog = () => {
 
         <div className="flex items-center gap-3 mb-6 bg-gradient-to-br from-red-50 to-orange-50/40 p-5 rounded-2xl border border-red-100/40">
           <ShieldAlert className="w-8 h-8 text-red-600" />
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold">{t.securityLogTitle || 'سجل الأحداث الأمنية'}</h1>
             <p className="text-sm text-muted-foreground">{t.securityLogSubtitle || 'مراقبة الأحداث الأمنية الحساسة'}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              {dir === 'rtl' ? 'مباشر' : 'Live'}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleSound}
+              className="gap-2"
+              title={soundEnabled ? (dir === 'rtl' ? 'كتم الصوت' : 'Couper le son') : (dir === 'rtl' ? 'تفعيل الصوت' : 'Activer le son')}
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
+              <BellRing className="w-3.5 h-3.5" />
+            </Button>
           </div>
         </div>
 

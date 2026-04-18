@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, ShieldAlert, AlertTriangle, Info, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ShieldAlert, AlertTriangle, Info, AlertCircle, Volume2, VolumeX, BellRing } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import { toast } from 'sonner';
 
 type Severity = 'info' | 'warning' | 'critical';
 

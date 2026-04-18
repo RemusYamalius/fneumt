@@ -35,20 +35,106 @@ const SecurityLog = () => {
   const [loading, setLoading] = useState(true);
   const [filterEvent, setFilterEvent] = useState<string>('all');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('security_sound_enabled') !== 'false';
+  });
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const isInitialLoadRef = useRef(true);
+
+  const playCriticalAlert = useCallback(() => {
+    if (!soundEnabled) return;
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      // Three urgent beeps descending — distinct from notification sound
+      [0, 0.18, 0.36].forEach((delay, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.value = 1200 - i * 200;
+        const start = ctx.currentTime + delay;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.35, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+        osc.start(start);
+        osc.stop(start + 0.16);
+      });
+      if (navigator.vibrate) navigator.vibrate([200, 80, 200, 80, 200]);
+    } catch {}
+  }, [soundEnabled]);
+
+  const toggleSound = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    localStorage.setItem('security_sound_enabled', String(next));
+    if (next) {
+      // Unlock audio context on user gesture
+      try {
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        audioCtxRef.current.resume();
+      } catch {}
+    }
+  };
+
+  const fetchLogs = useCallback(async () => {
+    const { data } = await supabase
+      .from('security_audit_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(500);
+    if (data) setLogs(data as AuditLog[]);
+  }, []);
 
   useEffect(() => {
-    const fetchLogs = async () => {
+    (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from('security_audit_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(500);
-      if (data) setLogs(data as AuditLog[]);
+      await fetchLogs();
       setLoading(false);
+      isInitialLoadRef.current = false;
+    })();
+
+    // Realtime subscription for new audit log entries
+    const channel = supabase
+      .channel('security-audit-log-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'security_audit_log' },
+        (payload) => {
+          const newLog = payload.new as AuditLog;
+          setLogs((prev) => [newLog, ...prev].slice(0, 500));
+          if (newLog.severity === 'critical') {
+            playCriticalAlert();
+            toast.error(
+              dir === 'rtl' ? '🚨 حدث أمني حرج' : '🚨 Évènement critique',
+              {
+                description: t[`event_${newLog.event_type}`] || newLog.event_type,
+                duration: 8000,
+              },
+            );
+          } else if (newLog.severity === 'warning') {
+            toast.warning(
+              dir === 'rtl' ? '⚠️ تحذير أمني' : '⚠️ Avertissement',
+              {
+                description: t[`event_${newLog.event_type}`] || newLog.event_type,
+                duration: 5000,
+              },
+            );
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-    fetchLogs();
-  }, []);
+  }, [fetchLogs, playCriticalAlert, dir, t]);
 
   const filteredLogs = useMemo(() => {
     return logs.filter(l => {

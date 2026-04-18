@@ -194,9 +194,25 @@ const SecurityLog = () => {
 
         <div className="flex items-center gap-3 mb-6 bg-gradient-to-br from-red-50 to-orange-50/40 p-5 rounded-2xl border border-red-100/40">
           <ShieldAlert className="w-8 h-8 text-red-600" />
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold">{t.securityLogTitle || 'سجل الأحداث الأمنية'}</h1>
             <p className="text-sm text-muted-foreground">{t.securityLogSubtitle || 'مراقبة الأحداث الأمنية الحساسة'}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              {dir === 'rtl' ? 'مباشر' : 'Live'}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleSound}
+              className="gap-2"
+              title={soundEnabled ? (dir === 'rtl' ? 'كتم الصوت' : 'Couper le son') : (dir === 'rtl' ? 'تفعيل الصوت' : 'Activer le son')}
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
+              <BellRing className="w-3.5 h-3.5" />
+            </Button>
           </div>
         </div>
 

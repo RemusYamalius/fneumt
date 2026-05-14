@@ -237,13 +237,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
 
   const mapContent = (
     <div
-      className="morocco-map-container relative w-full h-full flex items-center justify-center"
-      style={{
-        isolation: 'isolate',
-        contain: 'strict',
-        overflow: 'hidden',
-        transform: 'translateZ(0)',
-      }}
+      className="relative w-full h-full flex items-center justify-center"
     >
       {/* Fullscreen toggle button — top-left to avoid overlapping back button */}
       <button

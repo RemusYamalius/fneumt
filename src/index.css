@@ -1434,3 +1434,64 @@
   transform: translateY(-1px);
 }
 
+/* ============================================================
+   GPU isolation utilities + mobile tearing safeguards
+   ============================================================ */
+@layer utilities {
+  .gpu-isolate {
+    isolation: isolate;
+    contain: layout paint;
+  }
+  .gpu-contain {
+    contain: layout paint;
+  }
+}
+
+@media (max-width: 768px) {
+  /* a) touch + horizontal overflow guard */
+  html, body {
+    touch-action: pan-y;
+    overflow-x: hidden;
+  }
+
+  /* b) Disable backdrop-filter on mobile (root cause of compositing tears) */
+  .glass,
+  .glass-dark,
+  .auth-frame,
+  .auth-top-link,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* c) Sticky header: solid background fallback */
+  header.gradient-primary,
+  header.gpu-isolate {
+    background: hsl(207 75% 17%) !important;
+  }
+
+  /* d) Defensive: clear stray will-change layers */
+  *, *::before, *::after {
+    will-change: auto !important;
+  }
+
+  /* e) Ensure all content stays visible after disabling entrance animations */
+  [data-framer-appear-id],
+  main section,
+  main article,
+  main [class*="card"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  /* f) Disable decorative entrance animations (keep hover/tap interactions) */
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-fade-in,
+    .animate-scale-in,
+    .animate-slide-in-right {
+      animation: none !important;
+    }
+  }
+}
+

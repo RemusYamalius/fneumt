@@ -1,81 +1,102 @@
 
+# إصلاح التمزق اللوني (Tearing) على الهاتف فقط
 
-# الخطوة التالية: Security Audit Log
+## ملخص التشخيص
+- **لا يوجد** في المشروع: `animate-float`, `whileInView`, `mask-image`, `will-change: transform` على containers، ولا `translate3d/translateZ` يدوية. الإصلاح إذن هو **حماية وقائية شاملة** عبر CSS عام + تعديلات نقطية على المكوّنات الأكثر خطورة.
+- **مصادر الخطر الفعلية الموجودة**:
+  - `backdrop-blur` كثيف في: header (`gradient-primary` + sticky)، `MoroccoMap` (طبقات tooltip و legend)، `OrbitalStats`، `SearchResultsTable`، `Dashboard`, `QuickFilter`, `PostStats`, `auth-frame`, `auth-top-link`، عشرات القواعد في `index.css` (أسطر 932–1428).
+  - `framer-motion` بـ `initial={{ opacity: 0, ... }}` في `MoroccoMap`, `OrbitalStats`, `OrbitalFilter`, `PostStats`, `Index.tsx` (بطاقات الأزرار).
+  - Sticky header مع gradient + shimmer beam + blur خلفه = compositing layer ضخم على الموبايل.
 
-سأقترح البدء بـ **Security Audit Log** لأنه:
-- الأساس لاكتشاف أي محاولة قرصنة (يجب أن يكون موجوداً قبل 2FA)
-- يعمل في الخلفية بدون تأثير على المستخدمين
-- يوفر سجلاً قانونياً للأحداث الحساسة
+## نطاق التغييرات
+**الملفات المعدّلة (3 فقط)**:
+- `src/index.css` — إضافة طبقة حماية موبايل + utility classes جديدة
+- `src/components/AuthenticatedLayout.tsx` — class `gpu-isolate` على `<header>`
+- `src/pages/Index.tsx` — class `gpu-isolate` على `<header>` و `<main>`
 
-## ما سيتم تسجيله
+**لا تغييرات** على Desktop، لا تغييرات في الـ layout، لا حذف أنيميشن خارج الموبايل.
 
-| الحدث | المصدر |
-|-------|--------|
-| محاولات تسجيل دخول فاشلة | useAuth (signIn) |
-| تسجيل دخول ناجح | useAuth (signIn) |
-| تسجيل خروج | useAuth (signOut) |
-| طلب حذف حساب | delete-account edge function |
-| تجاوز Rate Limit | delete-account, fetch-link-preview |
-| تغيير دور مستخدم | UserManagement |
-| الوصول المرفوض (RLS) | عبر متابعة الأخطاء في الواجهة |
-| تغيير كلمة المرور | ResetPassword |
+## التفاصيل التقنية
 
-## التصميم التقني
-
-### 1) جدول `security_audit_log`
-```text
-- id (uuid)
-- user_id (uuid, nullable) — قد يكون null للمحاولات الفاشلة
-- event_type (text) — 'login_failed', 'login_success', 'logout', 
-                     'account_deletion_requested', 'rate_limit_exceeded',
-                     'role_changed', 'password_changed'
-- severity (text) — 'info', 'warning', 'critical'
-- ip_address (text, nullable)
-- user_agent (text, nullable)
-- metadata (jsonb) — تفاصيل إضافية حسب نوع الحدث
-- created_at (timestamptz)
+### 1) Utilities جديدة في `src/index.css`
+```css
+@layer utilities {
+  .gpu-isolate {
+    isolation: isolate;
+    contain: layout paint;
+  }
+  .gpu-contain {
+    contain: layout paint;
+  }
+}
 ```
 
-### 2) سياسات RLS صارمة
-- **INSERT**: مسموح للجميع (authenticated + anon) لتسجيل المحاولات الفاشلة
-- **SELECT**: للأدمن فقط (`has_role(auth.uid(), 'admin')`)
-- **UPDATE/DELETE**: ممنوع تماماً (سجل غير قابل للتعديل)
+### 2) كتلة حماية موبايل شاملة (تُضاف في نهاية `src/index.css`)
+```css
+@media (max-width: 768px) {
+  /* a) منع scroll horizontal accidents وتحسين اللمس */
+  html, body {
+    touch-action: pan-y;
+    overflow-x: hidden;
+  }
 
-### 3) دالة RPC `log_security_event`
-```text
-log_security_event(
-  _event_type text,
-  _severity text,
-  _metadata jsonb
-) — SECURITY DEFINER, تستخرج user_id تلقائياً من auth.uid()
+  /* b) استبدال backdrop-blur بـ solid fallback (السبب الرئيسي للـ tearing) */
+  .glass,
+  .glass-dark,
+  .auth-frame,
+  .auth-top-link,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* c) Header sticky: خلفية صلبة بدل شفّافة */
+  header.gradient-primary,
+  header.gpu-isolate {
+    background: hsl(207 75% 17%) !important;
+  }
+
+  /* d) إلغاء will-change على أي parent (وقائي) */
+  *, *::before, *::after {
+    will-change: auto !important;
+  }
+
+  /* e) ضمان ظهور كل شيء بعد تعطيل أنيميشن الدخول */
+  [data-framer-appear-id],
+  .motion-safe-card,
+  main section,
+  main article,
+  main [class*="card"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  /* f) تعطيل أنيميشن الدخول الزخرفية، الإبقاء على الأنيميشن التفاعلية (hover/tap) */
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-fade-in,
+    .animate-scale-in,
+    .animate-slide-in-right {
+      animation: none !important;
+    }
+  }
+}
 ```
 
-### 4) واجهة عرض السجل (للأدمن فقط)
-- صفحة جديدة `/admin/security-log`
-- جدول مع فلاتر: نوع الحدث، الخطورة، التاريخ، المستخدم
-- تنبيه بصري للأحداث الحرجة (rate_limit_exceeded, login_failed > 5 مرات)
-- مدخل في القائمة الجانبية تحت "إدارة" (يظهر للأدمن فقط)
+### 3) `AuthenticatedLayout.tsx`
+- إضافة `gpu-isolate` إلى `<header className="gradient-primary text-white shadow-lg sticky top-0 z-50">`.
 
-### 5) نقاط التكامل
-- `src/hooks/useAuth.tsx` — تسجيل login_failed/success/logout
-- `supabase/functions/delete-account/index.ts` — تسجيل طلبات الحذف وتجاوز الحدود
-- `supabase/functions/fetch-link-preview/index.ts` — تسجيل تجاوز الحدود
-- `src/pages/admin/UserManagement.tsx` — تسجيل تغييرات الأدوار
-- `src/pages/ResetPassword.tsx` — تسجيل تغيير كلمة المرور
+### 4) `Index.tsx`
+- إضافة `gpu-isolate` إلى `<header className="gradient-hero relative overflow-hidden">` و إلى `<main>`.
+- إضافة `overflow-hidden` للـ wrapper الأم للبطاقات (موجود فعلياً).
 
-## الملفات المتأثرة
-```
-supabase/migrations/  — migration جديدة (جدول + RLS + دالة RPC)
-src/hooks/useAuth.tsx
-src/pages/admin/UserManagement.tsx
-src/pages/ResetPassword.tsx
-src/pages/admin/SecurityLog.tsx  — صفحة جديدة
-src/components/AuthenticatedLayout.tsx  — إضافة رابط في القائمة
-src/App.tsx  — إضافة المسار
-supabase/functions/delete-account/index.ts
-supabase/functions/fetch-link-preview/index.ts
-```
+## لماذا هذا النهج (وليس تعديل كل مكوّن)
+- **السبب الجذري** للتمزق على iOS/Android Chrome هو تكدّس layers من `backdrop-filter` فوق sticky gradient فوق framer-motion transforms. التعطيل المركزي عبر media query واحدة يحلّ المشكلة دون لمس منطق المكوّنات.
+- استخدام `[class*="backdrop-blur"]` يلتقط كل استخدامات Tailwind (`backdrop-blur-sm`, `-md`, `-xl`) دفعة واحدة.
+- `opacity: 1 !important` + `transform: none !important` يضمن أن أي عنصر framer-motion عالق على `initial={{ opacity: 0 }}` يبقى مرئياً (تأمين ضد فشل أي entrance animation).
 
-## السلوك للمستخدم النهائي
-✅ **شفاف تماماً** — التسجيل يحدث في الخلفية، لا توجد تغييرات في تجربة المستخدم العادي. فقط الأدمن يرى صفحة جديدة لمراجعة السجل.
+## التحقق بعد التطبيق
+- مراجعة Preview بعرض 375px و 390px (بأداة الموبايل فوق المعاينة).
+- التأكد من اختفاء الخطوط الملوّنة بين الـ sections.
+- التأكد من أن Desktop (≥769px) **بدون أي تغيير بصري**.
 

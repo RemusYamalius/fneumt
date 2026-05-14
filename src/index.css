@@ -1435,118 +1435,84 @@
 }
 
 /* ============================================================
-   GPU isolation utilities + mobile tearing safeguards
+   Single definitive mobile fix — GPU layer tearing on Android/iOS
+   caused by backdrop-filter stacked with sticky elements and
+   SVG/Canvas animations. Mobile-only; desktop untouched.
    ============================================================ */
-@layer utilities {
-  .gpu-isolate {
-    isolation: isolate;
-    contain: layout paint;
-  }
-  .gpu-contain {
-    contain: layout paint;
-  }
-}
-
 @media (max-width: 768px) {
-  /* a) touch + horizontal overflow guard */
+
+  /* Touch and scroll base */
   html, body {
     touch-action: pan-y;
     overflow-x: hidden;
   }
 
-  /* b) Disable backdrop-filter on mobile (root cause of compositing tears) */
+  /*
+    THE ROOT CAUSE:
+    backdrop-filter on mobile Android/iOS causes GPU
+    layer tearing when stacked with sticky elements
+    and SVG/Canvas animations.
+    This single rule fixes all instances at once.
+  */
+  * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /*
+    Compensate for removed blur on glass elements
+    by making them slightly more opaque
+  */
   .glass,
   .glass-dark,
-  .auth-frame,
-  .auth-top-link,
-  [class*="backdrop-blur"] {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+  [class*="backdrop-blur"],
+  [class*="glass"] {
+    background-color: rgba(15, 35, 60, 0.92) !important;
   }
 
-  /* c) Sticky header: solid background fallback */
-  header.gradient-primary,
-  header.gpu-isolate {
-    background: hsl(207 75% 17%) !important;
-  }
-
-  /* d) Defensive: clear stray will-change layers */
-  *, *::before, *::after {
-    will-change: auto !important;
-  }
-
-  /* e) Ensure all content stays visible after disabling entrance animations */
-  [data-framer-appear-id],
-  main section,
-  main article,
-  main [class*="card"] {
+  /*
+    Prevent framer-motion from leaving elements
+    invisible if animation doesn't complete
+  */
+  * {
     opacity: 1 !important;
     visibility: visible !important;
-    transform: none !important;
   }
 
-  /* f) Disable decorative entrance animations (keep hover/tap interactions) */
-  @media (prefers-reduced-motion: no-preference) {
-    .animate-fade-in,
-    .animate-scale-in,
-    .animate-slide-in-right {
-      animation: none !important;
-    }
-  }
-}
-
-/* ============================================================
-   Section separator — forces a clean compositor layer break
-   between adjacent GPU-isolated sections (e.g. map -> rings)
-   ============================================================ */
-.section-separator {
-  height: 1px;
-  width: 100%;
-  position: relative;
-  z-index: 1;
-  background: transparent;
-  contain: strict;
-  isolation: isolate;
-}
-
-/* ============================================================
-   Mobile-only hardening for Morocco map + Orbital filter
-   (root cause: GPU compositing between adjacent isolated
-    sections on mobile WebKit/Blink)
-   ============================================================ */
-@media (max-width: 768px) {
-  .morocco-map-container,
-  .orbital-filter-container,
-  [class*="orbital"],
-  [class*="OrbitalFilter"],
-  [class*="MoroccoMap"] {
-    isolation: isolate !important;
-    contain: layout paint !important;
-    overflow: hidden !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+  /*
+    EXCEPTION: restore intentional invisible elements
+    (dropdowns, modals, tooltips when closed)
+  */
+  [aria-hidden="true"],
+  [data-state="closed"],
+  [data-radix-popper-content-wrapper],
+  .sr-only {
+    opacity: 0 !important;
+    visibility: hidden !important;
   }
 
-  .morocco-map-container svg,
-  [class*="MoroccoMap"] svg {
-    width: 100% !important;
-    height: auto !important;
-    display: block !important;
+  /*
+    Isolate each major section to prevent
+    compositing bleed between sections
+  */
+  main > section,
+  main > div > section {
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  /*
+    Fix SVG/Canvas elements specifically
+  */
+  svg {
     transform: none !important;
     will-change: auto !important;
+    display: block;
   }
 
-  /* Force visibility of any framer-motion children inside these wrappers */
-  .morocco-map-container [style*="opacity"],
-  .orbital-filter-container [style*="opacity"] {
-    opacity: 1 !important;
-  }
-
-  /* Drop blur from internal map tooltips/legends/panels */
-  .morocco-map-container [class*="backdrop-blur"],
-  .orbital-filter-container [class*="backdrop-blur"] {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+  canvas {
+    transform: none !important;
+    will-change: auto !important;
   }
 }
 

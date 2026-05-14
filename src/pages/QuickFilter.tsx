@@ -312,9 +312,6 @@ const QuickFilter = () => {
             />
           </motion.div>
 
-          {/* Compositor layer break between map and orbital filter (mobile tearing fix) */}
-          <div className="section-separator lg:hidden" aria-hidden="true" />
-
           {/* Orbital Filter Section */}
           <motion.div
             className="rounded-3xl overflow-hidden border border-primary/10 bg-card shadow-2xl"

@@ -46,7 +46,7 @@ const Index = () => {
       </div>
 
       {/* Hero Section */}
-      <header className="gradient-hero relative overflow-hidden gpu-isolate">
+      <header className="gradient-hero relative overflow-hidden">
         {/* Decorative shapes */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
@@ -87,7 +87,7 @@ const Index = () => {
       </header>
 
       {/* Action Cards - Infographic Style */}
-      <main className="flex-1 -mt-4 relative z-10 gpu-isolate">
+      <main className="flex-1 -mt-4 relative z-10">
         <div className="max-w-4xl mx-auto px-6 pt-16 pb-16">
           <div className="relative flex flex-col md:flex-row items-center md:items-start justify-center gap-8 md:gap-0" style={{ direction: dir === 'rtl' ? 'rtl' : 'ltr' }}>
             

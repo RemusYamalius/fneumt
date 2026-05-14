@@ -76,7 +76,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
 
   return (
     <div className="min-h-screen bg-background" dir={dir}>
-      <header className="gradient-primary text-white shadow-lg sticky top-0 z-50">
+      <header className="gradient-primary text-white shadow-lg sticky top-0 z-50 gpu-isolate">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AnimatedLogo size="w-12 h-12 sm:w-16 sm:h-16" />

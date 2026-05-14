@@ -1495,3 +1495,58 @@
   }
 }
 
+/* ============================================================
+   Section separator — forces a clean compositor layer break
+   between adjacent GPU-isolated sections (e.g. map -> rings)
+   ============================================================ */
+.section-separator {
+  height: 1px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  contain: strict;
+  isolation: isolate;
+}
+
+/* ============================================================
+   Mobile-only hardening for Morocco map + Orbital filter
+   (root cause: GPU compositing between adjacent isolated
+    sections on mobile WebKit/Blink)
+   ============================================================ */
+@media (max-width: 768px) {
+  .morocco-map-container,
+  .orbital-filter-container,
+  [class*="orbital"],
+  [class*="OrbitalFilter"],
+  [class*="MoroccoMap"] {
+    isolation: isolate !important;
+    contain: layout paint !important;
+    overflow: hidden !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .morocco-map-container svg,
+  [class*="MoroccoMap"] svg {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+
+  /* Force visibility of any framer-motion children inside these wrappers */
+  .morocco-map-container [style*="opacity"],
+  .orbital-filter-container [style*="opacity"] {
+    opacity: 1 !important;
+  }
+
+  /* Drop blur from internal map tooltips/legends/panels */
+  .morocco-map-container [class*="backdrop-blur"],
+  .orbital-filter-container [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+

@@ -759,7 +759,21 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
     </div>
   );
 
-  return filterContent;
+  return (
+    <div
+      className="orbital-filter-container"
+      style={{
+        position: 'relative',
+        isolation: 'isolate',
+        contain: 'layout paint style',
+        overflow: 'hidden',
+        opacity: 1,
+        transform: 'none',
+      }}
+    >
+      {filterContent}
+    </div>
+  );
 };
 
 export default OrbitalFilter;

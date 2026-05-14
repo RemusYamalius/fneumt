@@ -285,7 +285,10 @@ const QuickFilter = () => {
         </motion.div>
 
         {/* Main Content - Split View */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          style={{ isolation: 'isolate', overflow: 'hidden', position: 'relative' }}
+        >
           {/* Map Section */}
           <motion.div
             className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl min-h-[500px]"

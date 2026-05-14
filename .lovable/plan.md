@@ -1,68 +1,45 @@
-## Plan: Clean reset + single definitive mobile fix
+## Plan: Full CSS revert + single targeted wrapper fix
 
-### Step 1 — Revert all previous mobile compositing fixes
-
-**`src/components/MoroccoMap.tsx`**
-- Remove the `.morocco-map-container` wrapper div added previously, including its inline `isolation`, `contain: strict`, `overflow: hidden`, and `transform: translateZ(0)` styles. Restore both the normal map output and fullscreen map output to their pre-fix structure.
-
-**`src/components/OrbitalFilter.tsx`**
-- Remove the `.orbital-filter-container` wrapper div with inline `isolation`, `contain: layout paint style`, `overflow: hidden`, `opacity: 1`, `transform: none`. Restore the original returned JSX.
-
-**`src/pages/QuickFilter.tsx`**
-- Remove the `<div className="section-separator lg:hidden" aria-hidden="true" />` inserted between the Morocco map and orbital filter sections.
-
-**`src/components/AuthenticatedLayout.tsx`**
-- Remove the `gpu-isolate` class added to the `<header>` element.
-
-**`src/pages/Index.tsx`**
-- Remove the `gpu-isolate` class added to both `<header>` and `<main>` elements.
-
-**`src/index.css`**
-- Remove all previously added mobile-fix CSS:
-  - `.gpu-isolate` and `.gpu-contain` utilities
-  - `.section-separator` rule
-  - Every `@media (max-width: 768px)` block added by previous fixes (touch-action overrides, backdrop-filter overrides, will-change resets, framer-motion opacity/transform `!important` overrides, sticky header solid-bg fallback, animation: none for fade/scale/slide-in, `.morocco-map-container` / `.orbital-filter-container` / `[class*="orbital"]` / `[class*="OrbitalFilter"]` / `[class*="MoroccoMap"]` / SVG mobile resets)
+### Step 1 — Full revert of `src/index.css`
+Remove every line added by previous mobile-fix prompts. Restore `src/index.css` to its pre-fix original state:
+- Delete the final `@media (max-width: 768px)` block (touch-action, universal `backdrop-filter: none !important`, `.glass`/`.glass-dark`/`[class*="backdrop-blur"]`/`[class*="glass"]` background overrides, universal `opacity: 1 !important; visibility: visible !important`, exception block for `[aria-hidden="true"]`/`[data-state="closed"]`/`[data-radix-popper-content-wrapper]`/`.sr-only`, `main > section` isolation, `svg`/`canvas` resets).
+- Delete any leftover `.gpu-isolate`, `.gpu-contain`, `.section-separator` utilities if still present.
 - Leave all original (pre-fix) CSS untouched.
 
-### Step 2 — Apply one definitive fix
+### Step 2 — Do NOT add any CSS
+No `@media` blocks. No new utility classes. No `contain`, `isolation`, `backdrop-filter`, `opacity`, or `will-change` overrides anywhere in `index.css`.
 
-Append exactly the user-provided CSS block to the very end of `src/index.css`:
+### Step 3 — One targeted inline-style fix in `src/pages/QuickFilter.tsx`
+The direct parent wrapping both `<MoroccoMap />` and `<OrbitalFilter />` is the grid container:
 
-- `html, body` get `touch-action: pan-y` and `overflow-x: hidden`
-- Universal `backdrop-filter: none !important` and `-webkit-backdrop-filter: none !important`
-- `.glass`, `.glass-dark`, `[class*="backdrop-blur"]`, `[class*="glass"]` get `background-color: rgba(15, 35, 60, 0.92) !important` to compensate for removed blur
-- Universal `opacity: 1 !important; visibility: visible !important`
-- Exception block re-hides `[aria-hidden="true"]`, `[data-state="closed"]`, `[data-radix-popper-content-wrapper]`, `.sr-only`
-- `main > section`, `main > div > section` get `isolation: isolate; overflow: hidden`
-- `svg` gets `transform: none !important; will-change: auto !important; display: block`
-- `canvas` gets `transform: none !important; will-change: auto !important`
+```tsx
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+```
 
-All scoped under one `@media (max-width: 768px)` block.
+Add only these inline styles to that single element:
 
-### Step 3 — Strictly out of scope
+```tsx
+<div
+  className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+  style={{ isolation: 'isolate', overflow: 'hidden', position: 'relative' }}
+>
+```
 
-- No edits to any component file beyond the reverts in Step 1
-- No edits to JSX, framer-motion props, or any desktop styles
-- No logic or functionality changes
-- No additions to `index.css` other than the single block in Step 2
+No other JSX, component, or style changes anywhere.
 
 ### Step 4 — Verify
+Walk through `/quick-filter`, `/dashboard`, `/`, and auth pages at 375px and desktop:
+- OrbitalFilter rings visible and colored
+- MoroccoMap visible and interactive
+- Header icons + colors intact
+- Dashboard card colors intact
+- Desktop unchanged
+- No tearing between map and rings
 
-At 375px and 390px viewports, walk through `/` (Index), `/dashboard`, `/quick-filter`, and the auth pages (`/login`, `/signup`):
-- Confirm no horizontal tearing between sections (especially Morocco map ↔ orbital filter)
-- Confirm map renders, rings render, all cards visible and positioned correctly
-- Confirm closed dropdowns/modals/tooltips remain hidden (exception block working)
-- Confirm desktop at 1280px+ visually unchanged
-
-If any specific element becomes wrongly hidden, add a single targeted exception for its exact class name only — do not modify the global rules.
+Fallback: if OrbitalFilter disappears (due to a child needing to overflow the wrapper), drop `overflow: 'hidden'` from the inline style and keep only `isolation: 'isolate'` and `position: 'relative'`.
 
 ### Files touched
-
 ```text
-src/index.css                          (revert prior mobile blocks + append the single new block)
-src/components/MoroccoMap.tsx          (revert wrapper)
-src/components/OrbitalFilter.tsx       (revert wrapper)
-src/pages/QuickFilter.tsx              (remove separator div)
-src/components/AuthenticatedLayout.tsx (remove gpu-isolate)
-src/pages/Index.tsx                    (remove gpu-isolate)
+src/index.css                 (revert only — no additions)
+src/pages/QuickFilter.tsx     (add inline style to the grid wrapper, nothing else)
 ```

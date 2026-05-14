@@ -1,45 +1,66 @@
-## Plan: Full CSS revert + single targeted wrapper fix
+## Plan: Isolate MoroccoMap into its own GPU compositing layer
 
-### Step 1 — Full revert of `src/index.css`
-Remove every line added by previous mobile-fix prompts. Restore `src/index.css` to its pre-fix original state:
-- Delete the final `@media (max-width: 768px)` block (touch-action, universal `backdrop-filter: none !important`, `.glass`/`.glass-dark`/`[class*="backdrop-blur"]`/`[class*="glass"]` background overrides, universal `opacity: 1 !important; visibility: visible !important`, exception block for `[aria-hidden="true"]`/`[data-state="closed"]`/`[data-radix-popper-content-wrapper]`/`.sr-only`, `main > section` isolation, `svg`/`canvas` resets).
-- Delete any leftover `.gpu-isolate`, `.gpu-contain`, `.section-separator` utilities if still present.
-- Leave all original (pre-fix) CSS untouched.
+### Goal
+Eliminate the mobile tearing artifact between the map and the orbital filter by promoting MoroccoMap to its own compositor layer, without touching any other file.
 
-### Step 2 — Do NOT add any CSS
-No `@media` blocks. No new utility classes. No `contain`, `isolation`, `backdrop-filter`, `opacity`, or `will-change` overrides anywhere in `index.css`.
+### Step 1 — Wrap `mapContent` root in MoroccoMap.tsx
+File: `src/components/MoroccoMap.tsx` (around line 238-241)
 
-### Step 3 — One targeted inline-style fix in `src/pages/QuickFilter.tsx`
-The direct parent wrapping both `<MoroccoMap />` and `<OrbitalFilter />` is the grid container:
+Change the outer wrapper of `mapContent` from:
 
 ```tsx
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+const mapContent = (
+  <div className="relative w-full h-full flex items-center justify-center">
 ```
 
-Add only these inline styles to that single element:
+to:
 
 ```tsx
-<div
-  className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-  style={{ isolation: 'isolate', overflow: 'hidden', position: 'relative' }}
->
+const mapContent = (
+  <div
+    className="relative w-full h-full flex items-center justify-center"
+    style={{
+      transform: 'translate3d(0, 0, 0)',
+      willChange: 'transform',
+      isolation: 'isolate',
+      position: 'relative',
+      zIndex: 0,
+      overflow: 'hidden',
+    }}
+  >
 ```
 
-No other JSX, component, or style changes anywhere.
+This single wrapper covers both the inline (non-fullscreen) and fullscreen render paths, since both render `mapContent`.
 
-### Step 4 — Verify
-Walk through `/quick-filter`, `/dashboard`, `/`, and auth pages at 375px and desktop:
-- OrbitalFilter rings visible and colored
-- MoroccoMap visible and interactive
+### Step 2 — Harden the two SVG elements
+Both `<svg>` blocks (country view ~line 261, region view ~line 380) currently have:
+
+```tsx
+style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
+```
+
+Update both to:
+
+```tsx
+style={{ display: 'block', overflow: 'hidden', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
+```
+
+The `drop-shadow` filter is a static CSS filter (not an animation/transform), so it stays — the user's instruction was to remove transform/animation on the SVG itself, of which there is none.
+
+### Step 3 — Do not touch
+- `src/index.css` — unchanged
+- `src/components/OrbitalFilter.tsx` — unchanged
+- `src/pages/QuickFilter.tsx` — leave the existing grid wrapper inline style as-is
+- Any other file
+
+### Step 4 — Verify at 375px mobile
+- No tearing/colored stripes between map and rings
+- Map renders fully and is interactive (region click → drill-down works)
+- OrbitalFilter rings still visible and colored
 - Header icons + colors intact
-- Dashboard card colors intact
 - Desktop unchanged
-- No tearing between map and rings
-
-Fallback: if OrbitalFilter disappears (due to a child needing to overflow the wrapper), drop `overflow: 'hidden'` from the inline style and keep only `isolation: 'isolate'` and `position: 'relative'`.
 
 ### Files touched
 ```text
-src/index.css                 (revert only — no additions)
-src/pages/QuickFilter.tsx     (add inline style to the grid wrapper, nothing else)
+src/components/MoroccoMap.tsx   (wrapper div + 2 svg style props)
 ```

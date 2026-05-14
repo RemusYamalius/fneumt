@@ -238,6 +238,14 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
   const mapContent = (
     <div
       className="relative w-full h-full flex items-center justify-center"
+      style={{
+        transform: 'translate3d(0, 0, 0)',
+        willChange: 'transform',
+        isolation: 'isolate',
+        position: 'relative',
+        zIndex: 0,
+        overflow: 'hidden',
+      }}
     >
       {/* Fullscreen toggle button — top-left to avoid overlapping back button */}
       <button
@@ -261,7 +269,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
             <svg
               viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
               className={`w-full h-full ${isFullscreen ? 'max-h-[90vh]' : 'max-h-[600px]'}`}
-              style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
+              style={{ display: 'block', overflow: 'hidden', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
             >
               <defs>
                 <filter id="glow">
@@ -380,7 +388,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                 <svg
                   viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
                   className={`w-full h-full ${isFullscreen ? 'max-h-[80vh]' : 'max-h-[540px]'}`}
-                  style={{ filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
+                  style={{ display: 'block', overflow: 'hidden', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
                   onMouseMove={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });

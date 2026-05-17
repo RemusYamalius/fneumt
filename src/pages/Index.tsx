@@ -186,7 +186,7 @@ const Index = () => {
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 text-xs text-white/60">
               <span className="flex items-center gap-1">
-                <Phone className="w-3 h-3" /> +212661178644
+                <Phone className="w-3 h-3" /> <bdi dir="ltr">+212661178644</bdi>
               </span>
               <span className="flex items-center gap-1">
                 <Mail className="w-3 h-3" /> contact@fneumt.com

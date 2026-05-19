@@ -737,6 +737,9 @@
 .subbar-shimmer-wrap {
   position: relative;
   overflow: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: paint;
 }
 
 .subbar-shimmer-beam {
@@ -755,6 +758,21 @@
   animation: subbar-shimmer 5s ease-in-out infinite;
   pointer-events: none;
   z-index: 1;
+  will-change: transform;
+}
+
+/* Disable shimmer beam on small screens — eliminates Android Chrome compositor tearing */
+@media (max-width: 640px) {
+  .subbar-shimmer-beam {
+    animation: none;
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .subbar-shimmer-beam {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 /* Login page styles */

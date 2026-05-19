@@ -63,7 +63,7 @@ const StatPanel = ({ title, items, position, large }: {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.85 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className={`absolute ${posMap[position]} z-10 ${large ? 'min-w-[170px] max-w-[220px]' : 'min-w-[130px] max-w-[160px]'}`}
+      className={`hidden md:block absolute ${posMap[position]} z-10 ${large ? 'min-w-[170px] max-w-[220px]' : 'min-w-[120px] max-w-[160px]'}`}
     >
       <div className={`rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] ${large ? 'p-4' : 'p-3'}`}>
         <h4 className={`${large ? 'text-xs' : 'text-[10px]'} font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5`}>
@@ -526,7 +526,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                       initial={{ opacity: 0, scale: 0.85 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.85 }}
-                      className={`absolute top-3 right-3 z-10 ${isLarge ? 'min-w-[170px] max-w-[220px]' : 'min-w-[130px] max-w-[160px]'}`}
+                      className={`hidden md:block absolute top-3 right-3 z-10 ${isLarge ? 'min-w-[170px] max-w-[220px]' : 'min-w-[120px] max-w-[160px]'}`}
                     >
                       <div className={`rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] ${isLarge ? 'p-4' : 'p-3'}`}>
                         <h4 className={`${isLarge ? 'text-xs' : 'text-[10px]'} font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5 flex items-center gap-1`}>
@@ -559,6 +559,31 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Mobile-only stats strip (cards stack below the map so nothing is clipped) */}
+            {currentStats && (
+              <div className="md:hidden mt-3 grid grid-cols-3 gap-2 px-1">
+                <div className="rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 p-2 text-center">
+                  <p className="text-[9px] text-[#6EA2B3] mb-1 truncate">{lang === 'ar' ? 'المسجلون' : 'Inscrits'}</p>
+                  <p className="text-sm font-bold text-[#7BBDE8] tabular-nums">{currentStats.total}</p>
+                  <p className="text-[9px] text-[#F39C12] mt-1 tabular-nums">{currentStats.requests} {lang === 'ar' ? 'طلب' : 'dem.'}</p>
+                </div>
+                <div className="rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 p-2 text-center">
+                  <p className="text-[9px] text-[#6EA2B3] mb-1 truncate">{lang === 'ar' ? 'منخرطون' : 'Membres'}</p>
+                  <p className="text-sm font-bold text-[#2ECC71] tabular-nums">{currentStats.members}</p>
+                  <p className="text-[9px] text-[#E74C3C] mt-1 tabular-nums">{currentStats.total - currentStats.members} {lang === 'ar' ? 'غير' : 'non'}</p>
+                </div>
+                <div className="rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 p-2 text-center">
+                  <p className="text-[9px] text-[#6EA2B3] mb-1 truncate">{lang === 'ar' ? 'نسبة الانخراط' : 'Taux adh.'}</p>
+                  <p className="text-sm font-bold text-[#2ECC71] tabular-nums">
+                    {currentStats.total > 0 ? Math.round((currentStats.members / currentStats.total) * 100) : 0}%
+                  </p>
+                  <p className="text-[9px] text-[#F39C12] mt-1 tabular-nums">
+                    {currentStats.total > 0 ? (currentStats.requests / currentStats.total).toFixed(1) : '0'} {lang === 'ar' ? 'ط/م' : 'd/i'}
+                  </p>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

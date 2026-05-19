@@ -526,7 +526,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                       initial={{ opacity: 0, scale: 0.85 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.85 }}
-                      className={`absolute top-3 right-3 z-10 ${isLarge ? 'min-w-[170px] max-w-[220px]' : 'min-w-[130px] max-w-[160px]'}`}
+                      className={`hidden md:block absolute top-3 right-3 z-10 ${isLarge ? 'min-w-[170px] max-w-[220px]' : 'min-w-[120px] max-w-[160px]'}`}
                     >
                       <div className={`rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] ${isLarge ? 'p-4' : 'p-3'}`}>
                         <h4 className={`${isLarge ? 'text-xs' : 'text-[10px]'} font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5 flex items-center gap-1`}>

@@ -63,7 +63,7 @@ const StatPanel = ({ title, items, position, large }: {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.85 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className={`absolute ${posMap[position]} z-10 ${large ? 'min-w-[170px] max-w-[220px]' : 'min-w-[130px] max-w-[160px]'}`}
+      className={`hidden md:block absolute ${posMap[position]} z-10 ${large ? 'min-w-[170px] max-w-[220px]' : 'min-w-[120px] max-w-[160px]'}`}
     >
       <div className={`rounded-xl bg-[#001D39]/90 backdrop-blur-md border border-[#49769F]/50 shadow-[0_4px_20px_rgba(0,29,57,0.4)] ${large ? 'p-4' : 'p-3'}`}>
         <h4 className={`${large ? 'text-xs' : 'text-[10px]'} font-bold text-[#7BBDE8] uppercase tracking-wider mb-2 border-b border-[#49769F]/30 pb-1.5`}>

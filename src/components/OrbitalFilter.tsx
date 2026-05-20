@@ -268,7 +268,7 @@ interface RingData {
   speed: number;
 }
 
-const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotationDir, speed, cx, cy }: RingData & { cx: number; cy: number }) => {
+const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotationDir, speed, cx, cy, pauseRotation }: RingData & { cx: number; cy: number; pauseRotation?: boolean }) => {
   const [ringHovered, setRingHovered] = useState(false);
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
   const anglePerItem = 360 / items.length;
@@ -282,7 +282,7 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
   const dragStartRotation = useRef(0);
 
   const shouldRotateRef = useRef(true);
-  shouldRotateRef.current = !ringHovered && selected === null && !isDragging.current;
+  shouldRotateRef.current = !ringHovered && selected === null && !isDragging.current && !pauseRotation;
 
   const applyRotation = useCallback(() => {
     if (groupRef.current) {

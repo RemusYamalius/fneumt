@@ -473,6 +473,7 @@ const MembershipVerification = () => {
                 <tbody className="divide-y divide-border/30">
                   {paginatedUsers.map((u, i) => {
                     const status = getMembershipStatus(u);
+                    const isSelf = u.user_id === user!.id;
                     return (
                       <tr key={u.user_id} className={`hover:bg-muted/30 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/20'}`}>
                         <td className="px-3 py-2.5 whitespace-nowrap">
@@ -490,6 +491,10 @@ const MembershipVerification = () => {
                         <td className="px-3 py-2.5 whitespace-nowrap">
                           {updatingId === u.user_id ? (
                             <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                          ) : isSelf ? (
+                            <span className="text-[11px] text-muted-foreground italic">
+                              {lang === 'ar' ? '— حسابك —' : '— vous —'}
+                            </span>
                           ) : (
                             <div className="flex items-center gap-3">
                               {([

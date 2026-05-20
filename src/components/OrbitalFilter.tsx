@@ -219,9 +219,9 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
               className="transition-all duration-200"
               style={{
                 filter: selected
-                  ? `brightness(1.2) drop-shadow(0 0 10px ${color}) drop-shadow(0 0 20px ${color}66)`
+                  ? `brightness(1.15) drop-shadow(0 0 6px ${color})`
                   : hovered
-                    ? `brightness(1.1) drop-shadow(0 0 4px ${color}66)`
+                    ? `brightness(1.08) drop-shadow(0 0 3px ${color}66)`
                     : 'none',
               }}
             />
@@ -268,7 +268,7 @@ interface RingData {
   speed: number;
 }
 
-const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotationDir, speed, cx, cy }: RingData & { cx: number; cy: number }) => {
+const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotationDir, speed, cx, cy, pauseRotation }: RingData & { cx: number; cy: number; pauseRotation?: boolean }) => {
   const [ringHovered, setRingHovered] = useState(false);
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null);
   const anglePerItem = 360 / items.length;
@@ -282,7 +282,7 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
   const dragStartRotation = useRef(0);
 
   const shouldRotateRef = useRef(true);
-  shouldRotateRef.current = !ringHovered && selected === null && !isDragging.current;
+  shouldRotateRef.current = !ringHovered && selected === null && !isDragging.current && !pauseRotation;
 
   const applyRotation = useCallback(() => {
     if (groupRef.current) {
@@ -388,6 +388,22 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
 const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFullscreen = false, onToggleFullscreen }: OrbitalFilterProps) => {
   const { lang } = useI18n();
   const playClick = useClickSound();
+
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setIsScrolling(true);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => setIsScrolling(false), 300);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    };
+  }, []);
 
   const [filters, setFilters] = useState<OrbitalFilterValues>({
     mode: 'users',
@@ -570,8 +586,8 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
           className={`w-full ${isFullscreen ? 'max-w-[85vh]' : 'max-w-[560px]'} aspect-square`}
         >
           <defs>
-            <filter id="ring-glow">
-              <feGaussianBlur stdDeviation="3" result="blur" />
+            <filter id="ring-glow" x="-5%" y="-5%" width="110%" height="110%">
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -591,6 +607,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             selected={filters.mission}
             onSelect={(val) => setFilters(prev => ({ ...prev, mission: val }))}
             rotationDir={-1} speed={60}
+            pauseRotation={isScrolling}
           />
 
           {/* Directorate ring (conditional) */}
@@ -602,6 +619,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
               selected={filters.directorate}
               onSelect={(val) => setFilters(prev => ({ ...prev, directorate: val }))}
               rotationDir={-1} speed={80}
+              pauseRotation={isScrolling}
             />
           )}
 
@@ -613,6 +631,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             selected={filters.academy}
             onSelect={(val) => setFilters(prev => ({ ...prev, academy: val, directorate: null }))}
             rotationDir={1} speed={90}
+            pauseRotation={isScrolling}
           />
 
           {/* Membership ring */}
@@ -623,6 +642,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             selected={filters.membership === 'all' ? null : filters.membership}
             onSelect={(val) => setFilters(prev => ({ ...prev, membership: (val || 'all') as OrbitalFilterValues['membership'] }))}
             rotationDir={1} speed={45}
+            pauseRotation={isScrolling}
           />
 
           {/* Gender ring (innermost) */}
@@ -633,6 +653,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             selected={filters.gender === 'all' ? null : filters.gender}
             onSelect={(val) => setFilters(prev => ({ ...prev, gender: (val || 'all') as OrbitalFilterValues['gender'] }))}
             rotationDir={-1} speed={35}
+            pauseRotation={isScrolling}
           />
 
           {/* Center hub — Logo */}

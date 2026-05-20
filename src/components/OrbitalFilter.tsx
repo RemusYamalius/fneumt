@@ -607,6 +607,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             selected={filters.mission}
             onSelect={(val) => setFilters(prev => ({ ...prev, mission: val }))}
             rotationDir={-1} speed={60}
+            pauseRotation={isScrolling}
           />
 
           {/* Directorate ring (conditional) */}
@@ -618,6 +619,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
               selected={filters.directorate}
               onSelect={(val) => setFilters(prev => ({ ...prev, directorate: val }))}
               rotationDir={-1} speed={80}
+              pauseRotation={isScrolling}
             />
           )}
 
@@ -629,6 +631,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             selected={filters.academy}
             onSelect={(val) => setFilters(prev => ({ ...prev, academy: val, directorate: null }))}
             rotationDir={1} speed={90}
+            pauseRotation={isScrolling}
           />
 
           {/* Membership ring */}
@@ -639,6 +642,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             selected={filters.membership === 'all' ? null : filters.membership}
             onSelect={(val) => setFilters(prev => ({ ...prev, membership: (val || 'all') as OrbitalFilterValues['membership'] }))}
             rotationDir={1} speed={45}
+            pauseRotation={isScrolling}
           />
 
           {/* Gender ring (innermost) */}
@@ -649,6 +653,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
             selected={filters.gender === 'all' ? null : filters.gender}
             onSelect={(val) => setFilters(prev => ({ ...prev, gender: (val || 'all') as OrbitalFilterValues['gender'] }))}
             rotationDir={-1} speed={35}
+            pauseRotation={isScrolling}
           />
 
           {/* Center hub — Logo */}

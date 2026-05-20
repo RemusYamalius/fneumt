@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ACADEMIES } from '@/lib/academies-data';
+import { MISSION_DB_VALUES, MISSION_VALUE_TO_KEY } from '@/lib/missions';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, Legend
@@ -26,55 +27,6 @@ const CHART_COLORS = [
   'hsl(45, 80%, 50%)', 'hsl(120, 50%, 40%)', 'hsl(0, 70%, 55%)',
   'hsl(280, 50%, 50%)', 'hsl(210, 70%, 35%)', 'hsl(170, 60%, 35%)',
 ];
-
-// Map DB mission values to i18n keys
-const MISSION_DB_VALUES = [
-  'teacher_primary', 'teacher_middle', 'teacher_high',
-  'specialist_educational', 'specialist_social', 'specialist_admin_econ',
-  'admin_director', 'admin_guard_ext', 'admin_guard_int',
-  'admin_nazir', 'admin_work_chief', 'admin_study_dir',
-  'admin_cross_sector', 'admin_ministry', 'supplier',
-  'editor', 'educational_assistant', 'technician',
-  'inspector_primary', 'inspector_middle', 'inspector_high',
-  'inspector_guidance', 'inspector_planning', 'inspector_finance',
-  'economy_admin', 'doctor',
-];
-
-const MISSION_VALUE_TO_KEY: Record<string, string> = {
-  teacher_primary: 'missionTeacherPrimary',
-  teacher_middle: 'missionTeacherMiddle',
-  teacher_high: 'missionTeacherHigh',
-  specialist_educational: 'missionSpecialistEducational',
-  specialist_social: 'missionSpecialistSocial',
-  specialist_admin_econ: 'missionSpecialistAdminEcon',
-  admin_director: 'missionAdminDirector',
-  admin_guard_ext: 'missionAdminGuardExt',
-  admin_guard_int: 'missionAdminGuardInt',
-  admin_nazir: 'missionAdminNazir',
-  admin_work_chief: 'missionAdminWorkChief',
-  admin_study_dir: 'missionAdminStudyDir',
-  admin_cross_sector: 'missionAdminCrossSector',
-  admin_ministry: 'missionAdminMinistry',
-  supplier: 'missionSupplier',
-  editor: 'missionEditor',
-  educational_assistant: 'missionEducationalAssistant',
-  technician: 'missionTechnician',
-  inspector_primary: 'missionInspectorPrimary',
-  inspector_middle: 'missionInspectorMiddle',
-  inspector_high: 'missionInspectorHigh',
-  inspector_guidance: 'missionInspectorGuidance',
-  inspector_planning: 'missionInspectorPlanning',
-  inspector_finance: 'missionInspectorFinance',
-  economy_admin: 'missionEconomyAdmin',
-  doctor: 'missionDoctor',
-  // Legacy/fallback values that may exist in DB
-  teaching: 'missionTeacherPrimary',
-  teacher: 'missionTeacherPrimary',
-  teacher_middle_school: 'missionTeacherMiddle',
-  teacher_high_school: 'missionTeacherHigh',
-  administrative: 'missionAdminDirector',
-  inspector: 'missionInspectorPrimary',
-};
 
 const PAGE_SIZE = 15;
 

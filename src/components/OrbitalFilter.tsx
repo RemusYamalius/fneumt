@@ -371,8 +371,11 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
 
   const genderItems = GENDER_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
   const membershipItems = MEMBERSHIP_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
-  const labelMap = lang === 'ar' ? MISSION_LABEL_MAP_AR : MISSION_LABEL_MAP_FR;
-  const missionItems = MISSION_KEYS.map(k => ({ label: labelMap[k] || k, value: k }));
+  const getMissionLabel = (val: string) => {
+    const key = MISSION_VALUE_TO_KEY[val];
+    return key ? ((t as any)[key] || val) : val;
+  };
+  const missionItems = MISSION_DB_VALUES.map(k => ({ label: getMissionLabel(k), value: k }));
   const academyItems = ACADEMIES.map(a => ({
     label: a.label.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', ''),
     value: a.label,
@@ -420,7 +423,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
       });
     }
     if (filters.mission) {
-      const mLabel = (lang === 'ar' ? MISSION_LABEL_MAP_AR : MISSION_LABEL_MAP_FR)[filters.mission] || filters.mission;
+      const mLabel = getMissionLabel(filters.mission);
       items.push({
         key: 'mission',
         label: `${lang === 'ar' ? 'المهمة' : 'Mission'}: ${mLabel}`,

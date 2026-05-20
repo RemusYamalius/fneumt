@@ -13,32 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ACADEMIES } from '@/lib/academies-data';
+import { MISSION_DB_VALUES, MISSION_VALUE_TO_KEY } from '@/lib/missions';
 
 const EMOJI_LIST = ['😀','😊','👍','❤️','🎉','🙏','💪','✅','⚠️','📢','📌','🔔','📋','🏫','📚','✍️','🤝','👏','💡','🌟','🔥','💯','📝','📎','🗓️','⏰','🎯','🏆','💼','📊'];
-
-const MISSION_DB_VALUES = [
-  'teacher_primary', 'teacher_middle', 'teacher_high',
-  'specialist_educational', 'specialist_social', 'specialist_admin_econ',
-  'admin_director', 'admin_guard_ext', 'admin_guard_int',
-  'admin_nazir', 'admin_work_chief', 'admin_study_dir',
-  'admin_cross_sector', 'admin_ministry', 'supplier',
-  'editor', 'educational_assistant', 'technician',
-  'inspector_primary', 'inspector_middle', 'inspector_high',
-  'inspector_guidance', 'inspector_planning', 'inspector_finance',
-  'economy_admin', 'doctor',
-];
-
-const MISSION_VALUE_TO_KEY: Record<string, string> = {
-  teacher_primary: 'missionTeacherPrimary', teacher_middle: 'missionTeacherMiddle', teacher_high: 'missionTeacherHigh',
-  specialist_educational: 'missionSpecialistEducational', specialist_social: 'missionSpecialistSocial', specialist_admin_econ: 'missionSpecialistAdminEcon',
-  admin_director: 'missionAdminDirector', admin_guard_ext: 'missionAdminGuardExt', admin_guard_int: 'missionAdminGuardInt',
-  admin_nazir: 'missionAdminNazir', admin_work_chief: 'missionAdminWorkChief', admin_study_dir: 'missionAdminStudyDir',
-  admin_cross_sector: 'missionAdminCrossSector', admin_ministry: 'missionAdminMinistry', supplier: 'missionSupplier',
-  editor: 'missionEditor', educational_assistant: 'missionEducationalAssistant', technician: 'missionTechnician',
-  inspector_primary: 'missionInspectorPrimary', inspector_middle: 'missionInspectorMiddle', inspector_high: 'missionInspectorHigh',
-  inspector_guidance: 'missionInspectorGuidance', inspector_planning: 'missionInspectorPlanning', inspector_finance: 'missionInspectorFinance',
-  economy_admin: 'missionEconomyAdmin', doctor: 'missionDoctor',
-};
 
 interface AttachmentPreview {
   file: File;

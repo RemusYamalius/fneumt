@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { ACADEMIES } from '@/lib/academies-data';
+import { MISSION_DB_VALUES, MISSION_VALUE_TO_KEY } from '@/lib/missions';
 
 /* ── Floating Particles ── */
 const FloatingParticles = () => {
@@ -138,34 +139,10 @@ const Profile = () => {
     { value: 'high_school', label: t.corpsHigh },
   ];
 
-  const missionOptions = [
-    { value: 'teacher_primary', label: t.missionTeacherPrimary },
-    { value: 'teacher_middle', label: t.missionTeacherMiddle },
-    { value: 'teacher_high', label: t.missionTeacherHigh },
-    { value: 'specialist_educational', label: t.missionSpecialistEducational },
-    { value: 'specialist_social', label: t.missionSpecialistSocial },
-    { value: 'specialist_admin_econ', label: t.missionSpecialistAdminEcon },
-    { value: 'admin_director', label: t.missionAdminDirector },
-    { value: 'admin_guard_ext', label: t.missionAdminGuardExt },
-    { value: 'admin_guard_int', label: t.missionAdminGuardInt },
-    { value: 'admin_nazir', label: t.missionAdminNazir },
-    { value: 'admin_work_chief', label: t.missionAdminWorkChief },
-    { value: 'admin_study_dir', label: t.missionAdminStudyDir },
-    { value: 'admin_cross_sector', label: t.missionAdminCrossSector },
-    { value: 'admin_ministry', label: t.missionAdminMinistry },
-    { value: 'supplier', label: t.missionSupplier },
-    { value: 'editor', label: t.missionEditor },
-    { value: 'educational_assistant', label: t.missionEducationalAssistant },
-    { value: 'technician', label: t.missionTechnician },
-    { value: 'inspector_primary', label: t.missionInspectorPrimary },
-    { value: 'inspector_middle', label: t.missionInspectorMiddle },
-    { value: 'inspector_high', label: t.missionInspectorHigh },
-    { value: 'inspector_guidance', label: t.missionInspectorGuidance },
-    { value: 'inspector_planning', label: t.missionInspectorPlanning },
-    { value: 'inspector_finance', label: t.missionInspectorFinance },
-    { value: 'economy_admin', label: t.missionEconomyAdmin },
-    { value: 'doctor', label: t.missionDoctor },
-  ];
+  const missionOptions = MISSION_DB_VALUES.map(value => ({
+    value,
+    label: (t as any)[MISSION_VALUE_TO_KEY[value]] || value,
+  }));
 
   const genderOptions = [
     { value: 'male', label: t.genderMale },

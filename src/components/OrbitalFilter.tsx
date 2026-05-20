@@ -9,6 +9,7 @@ import { Search, RotateCcw, Users, Building2, X, School, Phone, Hash, Calendar, 
 import { ACADEMIES } from '@/lib/academies-data';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import AnimatedLogo from '@/components/AnimatedLogo';
+import { MISSION_DB_VALUES, MISSION_VALUE_TO_KEY } from '@/lib/missions';
 
 // ─── Types ──────────────────────────────────────────────
 export interface OrbitalFilterValues {
@@ -34,75 +35,7 @@ interface OrbitalFilterProps {
 }
 
 // ─── Constants ──────────────────────────────────────────
-const MISSION_KEYS = [
-  'teacher_primary', 'teacher_middle', 'teacher_high',
-  'specialist_educational', 'specialist_social', 'specialist_admin_econ',
-  'admin_director', 'admin_guard_ext', 'admin_guard_int',
-  'admin_nazir', 'admin_work_chief', 'admin_study_dir',
-  'admin_cross_sector', 'admin_ministry',
-  'supplier', 'editor', 'educational_assistant', 'technician',
-  'inspector_primary', 'inspector_middle', 'inspector_high',
-  'inspector_guidance', 'inspector_planning', 'inspector_finance',
-  'economy_admin', 'doctor',
-];
-
-const MISSION_LABEL_MAP_AR: Record<string, string> = {
-  teacher_primary: 'أستاذ(ة) إبتدائي',
-  teacher_middle: 'أستاذ(ة) إعدادي',
-  teacher_high: 'أستاذ(ة) تأهيلي',
-  specialist_educational: 'مختص(ة) تربوي',
-  specialist_social: 'مختص(ة) إجتماعي',
-  specialist_admin_econ: 'مختص إدارة واقتصاد',
-  admin_director: 'مدير(ة)',
-  admin_guard_ext: 'حارس(ة) خارجية',
-  admin_guard_int: 'حارس(ة) داخلية',
-  admin_nazir: 'ناظر(ة)',
-  admin_work_chief: 'رئيس أشغال',
-  admin_study_dir: 'مدير دراسات',
-  admin_cross_sector: 'متصرف ق.مشتركة',
-  admin_ministry: 'متصرف وزارة',
-  supplier: 'ممون(ة)',
-  editor: 'محرر(ة)',
-  educational_assistant: 'مساعد(ة) تربوي',
-  technician: 'تقني(ة)',
-  inspector_primary: 'مفتش إبتدائي',
-  inspector_middle: 'مفتش إعدادي',
-  inspector_high: 'مفتش تأهيلي',
-  inspector_guidance: 'مفتش توجيه',
-  inspector_planning: 'مفتش تخطيط',
-  inspector_finance: 'مفتش مالية',
-  economy_admin: 'ملحق اقتصاد',
-  doctor: 'طبيب(ة)',
-};
-
-const MISSION_LABEL_MAP_FR: Record<string, string> = {
-  teacher_primary: 'Ens. primaire',
-  teacher_middle: 'Ens. collégial',
-  teacher_high: 'Ens. qualifiant',
-  specialist_educational: 'Spéc. pédagogique',
-  specialist_social: 'Spéc. social',
-  specialist_admin_econ: 'Spéc. admin/éco',
-  admin_director: 'Directeur',
-  admin_guard_ext: 'Surveillant ext.',
-  admin_guard_int: 'Surveillant int.',
-  admin_nazir: 'Nazir',
-  admin_work_chief: 'Chef travaux',
-  admin_study_dir: 'Dir. études',
-  admin_cross_sector: 'Admin inter-sect.',
-  admin_ministry: 'Admin ministère',
-  supplier: 'Intendant',
-  editor: 'Rédacteur',
-  educational_assistant: 'Assist. pédag.',
-  technician: 'Technicien',
-  inspector_primary: 'Insp. primaire',
-  inspector_middle: 'Insp. collégial',
-  inspector_high: 'Insp. qualifiant',
-  inspector_guidance: 'Insp. orientation',
-  inspector_planning: 'Insp. planification',
-  inspector_finance: 'Insp. finances',
-  economy_admin: 'Attaché éco/admin',
-  doctor: 'Médecin',
-};
+// Mission list is sourced from the single source of truth in @/lib/missions.
 
 const GENDER_OPTIONS = [
   { val: 'all' as const, ar: 'الكل', fr: 'Tous' },
@@ -386,7 +319,7 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
 
 // ─── Main Component ─────────────────────────────────────
 const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFullscreen = false, onToggleFullscreen }: OrbitalFilterProps) => {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const playClick = useClickSound();
 
   const [isScrolling, setIsScrolling] = useState(false);
@@ -438,8 +371,11 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
 
   const genderItems = GENDER_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
   const membershipItems = MEMBERSHIP_OPTIONS.map(o => ({ label: lang === 'ar' ? o.ar : o.fr, value: o.val }));
-  const labelMap = lang === 'ar' ? MISSION_LABEL_MAP_AR : MISSION_LABEL_MAP_FR;
-  const missionItems = MISSION_KEYS.map(k => ({ label: labelMap[k] || k, value: k }));
+  const getMissionLabel = (val: string) => {
+    const key = MISSION_VALUE_TO_KEY[val];
+    return key ? ((t as any)[key] || val) : val;
+  };
+  const missionItems = MISSION_DB_VALUES.map(k => ({ label: getMissionLabel(k), value: k }));
   const academyItems = ACADEMIES.map(a => ({
     label: a.label.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', ''),
     value: a.label,
@@ -487,7 +423,7 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
       });
     }
     if (filters.mission) {
-      const mLabel = (lang === 'ar' ? MISSION_LABEL_MAP_AR : MISSION_LABEL_MAP_FR)[filters.mission] || filters.mission;
+      const mLabel = getMissionLabel(filters.mission);
       items.push({
         key: 'mission',
         label: `${lang === 'ar' ? 'المهمة' : 'Mission'}: ${mLabel}`,

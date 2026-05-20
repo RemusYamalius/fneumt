@@ -389,6 +389,22 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
   const { lang } = useI18n();
   const playClick = useClickSound();
 
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setIsScrolling(true);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => setIsScrolling(false), 300);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    };
+  }, []);
+
   const [filters, setFilters] = useState<OrbitalFilterValues>({
     mode: 'users',
     academy: null,

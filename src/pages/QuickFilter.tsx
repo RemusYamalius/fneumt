@@ -286,12 +286,12 @@ const QuickFilter = () => {
 
         {/* Main Content - Split View */}
         <div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          style={{ isolation: 'isolate', overflow: 'hidden', position: 'relative' }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6 contain-layout"
+          style={{ isolation: 'isolate', position: 'relative', contain: 'layout' }}
         >
           {/* Map Section */}
           <motion.div
-            className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl min-h-[500px]"
+            className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl min-h-[320px] md:min-h-[500px]"
             initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}

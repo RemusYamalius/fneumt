@@ -450,6 +450,12 @@ const MembershipVerification = () => {
         {/* Table */}
         {loadingData ? (
           <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+        ) : isSupreme && (!hierarchy.selectedAcademy || !hierarchy.selectedDirectorate) ? (
+          <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 py-16 text-center text-sm text-muted-foreground">
+            {lang === 'ar'
+              ? 'اختر الأكاديمية ثم المديرية لعرض المنخرطين والتحقق من حالتهم.'
+              : 'Sélectionnez une académie puis une direction pour afficher les adhérents.'}
+          </div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-2xl border border-border/50 shadow-sm overflow-hidden">
             <div className="px-4 py-3 flex items-center justify-between border-b border-border/50 bg-muted/30">

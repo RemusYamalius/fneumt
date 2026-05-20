@@ -81,18 +81,12 @@ const MembershipVerification = () => {
 
   useEffect(() => {
     if (!user) return;
-    // Supreme accounts: wait until they pick an academy + directorate via the hierarchy filter
-    if (isSupreme && (!hierarchy.selectedAcademy || !hierarchy.selectedDirectorate)) {
-      setUsers([]);
-      setLoadingData(false);
-      return;
-    }
-    if (!effectiveAcademy || !effectiveDirectorate) return;
+    // Supreme accounts can browse all data (no academy/directorate required)
+    if (!isSupreme && (!effectiveAcademy || !effectiveDirectorate)) return;
     fetchUsers();
   }, [user, effectiveAcademy, effectiveDirectorate, isSupreme, hierarchy.selectedAcademy, hierarchy.selectedDirectorate]);
 
   const fetchUsers = async () => {
-    if (!effectiveAcademy || !effectiveDirectorate) return;
     setLoadingData(true);
 
     let query = supabase
@@ -100,15 +94,17 @@ const MembershipVerification = () => {
       .select('id, user_id, full_name, employee_number, institution, membership_card_number, is_member, membership_verified, email, academy, directorate')
       .order('full_name', { ascending: true });
 
-    // Apply scope
-    if (hierarchy.canSeeHierarchy && !hierarchy.selectedDirectorate && !hierarchy.isDeputy) {
-      // Broader scope - filter by academy only if selected
-      if (hierarchy.selectedAcademy) {
-        query = query.eq('academy', hierarchy.selectedAcademy);
-      }
-    } else {
+    // Apply scope: narrowest available filter wins
+    if (hierarchy.selectedDirectorate) {
+      if (hierarchy.selectedAcademy) query = query.eq('academy', hierarchy.selectedAcademy);
+      query = query.eq('directorate', hierarchy.selectedDirectorate);
+    } else if (hierarchy.selectedAcademy) {
+      query = query.eq('academy', hierarchy.selectedAcademy);
+    } else if (!isSupreme && effectiveAcademy && effectiveDirectorate) {
+      // Non-supreme users without explicit hierarchy selection fall back to own scope
       query = query.eq('academy', effectiveAcademy).eq('directorate', effectiveDirectorate);
     }
+    // Supreme with no selection => no scope filter (national view)
 
     const { data, error } = await query;
     if (error) console.error(error);

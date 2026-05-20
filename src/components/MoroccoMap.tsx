@@ -239,8 +239,6 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     <div
       className="relative w-full h-full flex items-center justify-center"
       style={{
-        transform: 'translate3d(0, 0, 0)',
-        willChange: 'transform',
         isolation: 'isolate',
         position: 'relative',
         zIndex: 0,

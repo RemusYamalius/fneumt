@@ -42,18 +42,6 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
 
   const badgeStatus = getBadgeStatus(role, profile?.is_member ?? false, profile?.membership_verified ?? false);
 
-  const MISSION_VALUE_TO_KEY: Record<string, string> = {
-    teacher_primary: 'missionTeacherPrimary', teacher_middle: 'missionTeacherMiddle', teacher_high: 'missionTeacherHigh',
-    specialist_educational: 'missionSpecialistEducational', specialist_social: 'missionSpecialistSocial', specialist_admin_econ: 'missionSpecialistAdminEcon',
-    admin_director: 'missionAdminDirector', admin_guard_ext: 'missionAdminGuardExt', admin_guard_int: 'missionAdminGuardInt',
-    admin_nazir: 'missionAdminNazir', admin_work_chief: 'missionAdminWorkChief', admin_study_dir: 'missionAdminStudyDir',
-    admin_cross_sector: 'missionAdminCrossSector', admin_ministry: 'missionAdminMinistry', supplier: 'missionSupplier',
-    editor: 'missionEditor', educational_assistant: 'missionEducationalAssistant', technician: 'missionTechnician',
-    inspector_primary: 'missionInspectorPrimary', inspector_middle: 'missionInspectorMiddle', inspector_high: 'missionInspectorHigh',
-    inspector_guidance: 'missionInspectorGuidance', inspector_planning: 'missionInspectorPlanning', inspector_finance: 'missionInspectorFinance',
-    economy_admin: 'missionEconomyAdmin', doctor: 'missionDoctor',
-  };
-
   const getMissionLabel = (missionValue: string | null | undefined): string => {
     if (!missionValue) return t.roleTeacher;
     const key = MISSION_VALUE_TO_KEY[missionValue];

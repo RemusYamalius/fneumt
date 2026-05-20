@@ -219,9 +219,9 @@ const ArcSegment = ({ cx, cy, innerR, outerR, startAngle, endAngle, color, selec
               className="transition-all duration-200"
               style={{
                 filter: selected
-                  ? `brightness(1.2) drop-shadow(0 0 10px ${color}) drop-shadow(0 0 20px ${color}66)`
+                  ? `brightness(1.15) drop-shadow(0 0 6px ${color})`
                   : hovered
-                    ? `brightness(1.1) drop-shadow(0 0 4px ${color}66)`
+                    ? `brightness(1.08) drop-shadow(0 0 3px ${color}66)`
                     : 'none',
               }}
             />
@@ -570,8 +570,8 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
           className={`w-full ${isFullscreen ? 'max-w-[85vh]' : 'max-w-[560px]'} aspect-square`}
         >
           <defs>
-            <filter id="ring-glow">
-              <feGaussianBlur stdDeviation="3" result="blur" />
+            <filter id="ring-glow" x="-5%" y="-5%" width="110%" height="110%">
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />

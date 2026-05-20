@@ -54,6 +54,8 @@ const MembershipVerification = () => {
 
   const hierarchy = useHierarchicalFilter();
 
+  const isSupreme = role === 'admin' || role === 'national_secretary' || role === 'deputy_national_secretary';
+
   // Filters
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filterName, setFilterName] = useState('');
@@ -78,9 +80,16 @@ const MembershipVerification = () => {
   const effectiveDirectorate = hierarchy.selectedDirectorate || profile?.directorate;
 
   useEffect(() => {
-    if (!user || !effectiveAcademy || !effectiveDirectorate) return;
+    if (!user) return;
+    // Supreme accounts: wait until they pick an academy + directorate via the hierarchy filter
+    if (isSupreme && (!hierarchy.selectedAcademy || !hierarchy.selectedDirectorate)) {
+      setUsers([]);
+      setLoadingData(false);
+      return;
+    }
+    if (!effectiveAcademy || !effectiveDirectorate) return;
     fetchUsers();
-  }, [user, effectiveAcademy, effectiveDirectorate]);
+  }, [user, effectiveAcademy, effectiveDirectorate, isSupreme, hierarchy.selectedAcademy, hierarchy.selectedDirectorate]);
 
   const fetchUsers = async () => {
     if (!effectiveAcademy || !effectiveDirectorate) return;
@@ -89,7 +98,6 @@ const MembershipVerification = () => {
     let query = supabase
       .from('profiles')
       .select('id, user_id, full_name, employee_number, institution, membership_card_number, is_member, membership_verified, email, academy, directorate')
-      .neq('user_id', user!.id)
       .order('full_name', { ascending: true });
 
     // Apply scope
@@ -102,16 +110,9 @@ const MembershipVerification = () => {
       query = query.eq('academy', effectiveAcademy).eq('directorate', effectiveDirectorate);
     }
 
-    const [{ data, error }, { data: promotedRoles }] = await Promise.all([
-      query,
-      supabase.from('user_roles').select('user_id').neq('role', 'teacher'),
-    ]);
-
+    const { data, error } = await query;
     if (error) console.error(error);
-    else {
-      const promotedUserIds = new Set((promotedRoles || []).map(r => r.user_id));
-      setUsers((data || []).filter(u => !promotedUserIds.has(u.user_id)));
-    }
+    else setUsers((data || []) as UserProfile[]);
     setLoadingData(false);
   };
 
@@ -449,6 +450,12 @@ const MembershipVerification = () => {
         {/* Table */}
         {loadingData ? (
           <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+        ) : isSupreme && (!hierarchy.selectedAcademy || !hierarchy.selectedDirectorate) ? (
+          <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 py-16 text-center text-sm text-muted-foreground">
+            {lang === 'ar'
+              ? 'اختر الأكاديمية ثم المديرية لعرض المنخرطين والتحقق من حالتهم.'
+              : 'Sélectionnez une académie puis une direction pour afficher les adhérents.'}
+          </div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="rounded-2xl border border-border/50 shadow-sm overflow-hidden">
             <div className="px-4 py-3 flex items-center justify-between border-b border-border/50 bg-muted/30">
@@ -472,6 +479,7 @@ const MembershipVerification = () => {
                 <tbody className="divide-y divide-border/30">
                   {paginatedUsers.map((u, i) => {
                     const status = getMembershipStatus(u);
+                    const isSelf = u.user_id === user!.id;
                     return (
                       <tr key={u.user_id} className={`hover:bg-muted/30 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/20'}`}>
                         <td className="px-3 py-2.5 whitespace-nowrap">
@@ -489,6 +497,10 @@ const MembershipVerification = () => {
                         <td className="px-3 py-2.5 whitespace-nowrap">
                           {updatingId === u.user_id ? (
                             <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                          ) : isSelf ? (
+                            <span className="text-[11px] text-muted-foreground italic">
+                              {lang === 'ar' ? '— حسابك —' : '— vous —'}
+                            </span>
                           ) : (
                             <div className="flex items-center gap-3">
                               {([

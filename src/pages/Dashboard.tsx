@@ -291,8 +291,8 @@ const Dashboard = () => {
             {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
             <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/4" />
-            <div className="absolute top-4 left-8 w-2 h-2 rounded-full bg-white/30 animate-pulse" />
-            <div className="absolute bottom-6 right-12 w-3 h-3 rounded-full bg-white/20 animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute top-4 left-8 w-2 h-2 rounded-full bg-white/30" />
+            <div className="absolute bottom-6 right-12 w-3 h-3 rounded-full bg-white/20" />
 
             <div className="relative z-10 text-center max-w-lg mx-auto">
               <motion.div

@@ -319,7 +319,7 @@ const FilterRing = ({ items, colors, innerR, outerR, selected, onSelect, rotatio
 
 // ─── Main Component ─────────────────────────────────────
 const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFullscreen = false, onToggleFullscreen }: OrbitalFilterProps) => {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const playClick = useClickSound();
 
   const [isScrolling, setIsScrolling] = useState(false);

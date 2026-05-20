@@ -292,6 +292,7 @@ const QuickFilter = () => {
           {/* Map Section */}
           <motion.div
             className="relative rounded-3xl overflow-hidden border border-[#49769F]/30 bg-[#BDD8E9] p-4 shadow-2xl min-h-[320px] md:min-h-[500px]"
+            style={{ contain: 'paint', isolation: 'isolate' }}
             initial={{ opacity: 0, x: dir === 'rtl' ? 30 : -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
@@ -318,6 +319,7 @@ const QuickFilter = () => {
           {/* Orbital Filter Section */}
           <motion.div
             className="rounded-3xl overflow-hidden border border-primary/10 bg-card shadow-2xl"
+            style={{ contain: 'paint', isolation: 'isolate' }}
             initial={{ opacity: 0, x: dir === 'rtl' ? -30 : 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}

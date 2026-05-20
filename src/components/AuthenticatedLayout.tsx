@@ -9,6 +9,7 @@ import AnimatedLogo from '@/components/AnimatedLogo';
 import VerifiedBadge, { getBadgeStatus } from '@/components/VerifiedBadge';
 import NotificationPanel from '@/components/NotificationPanel';
 import { toast } from '@/hooks/use-toast';
+import { MISSION_VALUE_TO_KEY } from '@/lib/missions';
 
 /* ─── Sub-bar with shimmer ─── */
 const SubBarShimmer = ({ roleLabel, dir }: { roleLabel: string; dir: 'rtl' | 'ltr' }) => (

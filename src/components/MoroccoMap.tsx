@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { geoMercator, geoPath, geoCentroid } from 'd3-geo';
 import { REGION_COLORS, getRegionMapping, type RegionMapping } from '@/lib/morocco-regions';
@@ -604,7 +605,7 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
 
   // Fullscreen mode — render BEFORE returning plain mapContent
   if (isFullscreen) {
-    return (
+    return createPortal(
       <AnimatePresence>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -617,7 +618,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
             {mapContent}
           </div>
         </motion.div>
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
     );
   }
 

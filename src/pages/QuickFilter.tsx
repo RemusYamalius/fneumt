@@ -197,7 +197,7 @@ const QuickFilter = () => {
     } finally {
       setIsSearching(false);
     }
-  }, [lang]);
+  }, [lang, selectedDirectorate, selectedRegion]);
 
   const handleMessage = useCallback((selectedUserIds: string[]) => {
     setMessageRecipients(selectedUserIds);
@@ -232,7 +232,14 @@ const QuickFilter = () => {
                 <OrbitalFilter
                   selectedAcademy={selectedRegion?.academyLabel || null}
                   selectedDirectorate={selectedDirectorate}
-                  onSearch={(f) => { setIsOrbitalFullscreen(false); handleSearch(f); }}
+                  onSearch={(f) => {
+                    setIsOrbitalFullscreen(false);
+                    handleSearch({
+                      ...f,
+                      academy: f.academy || selectedRegion?.academyLabel || null,
+                      directorate: f.directorate || selectedDirectorate,
+                    });
+                  }}
                   isFullscreen={true}
                   onToggleFullscreen={() => setIsOrbitalFullscreen(false)}
                 />
@@ -349,7 +356,11 @@ const QuickFilter = () => {
             <OrbitalFilter
               selectedAcademy={selectedRegion?.academyLabel || null}
               selectedDirectorate={selectedDirectorate}
-              onSearch={handleSearch}
+              onSearch={(f) => handleSearch({
+                ...f,
+                academy: f.academy || selectedRegion?.academyLabel || null,
+                directorate: f.directorate || selectedDirectorate,
+              })}
               isFullscreen={false}
               onToggleFullscreen={() => setIsOrbitalFullscreen(true)}
             />

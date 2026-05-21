@@ -157,7 +157,10 @@ const QuickFilter = () => {
       }
 
       if (filters.academy) query = query.eq('academy', filters.academy);
-      if (filters.directorate) query = query.eq('directorate', filters.directorate);
+      if (filters.directorate) {
+        const cleanDir = filters.directorate.trim();
+        query = query.or(`directorate.eq.${cleanDir},directorate.ilike.%${cleanDir}%`);
+      }
       if (filters.institution) query = query.ilike('institution', `%${sanitizeSearchInput(filters.institution)}%`);
       if (filters.gender !== 'all') query = query.eq('gender', filters.gender);
       if (filters.mission) query = query.eq('mission', filters.mission);
@@ -306,8 +309,20 @@ const QuickFilter = () => {
               regionStats={regionStats}
               onProvinceSelect={(prov) => {
                 if (prov) {
-                  const match = directorates.find(d => prov.includes(d) || d.includes(prov));
-                  setSelectedDirectorate(match || prov);
+                  const exactMatch = directorates.find(d =>
+                    d.trim().toLowerCase() === prov.trim().toLowerCase()
+                  );
+                  const partialMatch = directorates.find(d =>
+                    prov.toLowerCase().includes(d.toLowerCase()) ||
+                    d.toLowerCase().includes(prov.toLowerCase())
+                  );
+                  const normalize = (s: string) => s.toLowerCase().replace(/[\s\-–—]/g, '');
+                  const normalizedMatch = directorates.find(d =>
+                    normalize(d) === normalize(prov) ||
+                    normalize(prov).includes(normalize(d)) ||
+                    normalize(d).includes(normalize(prov))
+                  );
+                  setSelectedDirectorate(exactMatch || partialMatch || normalizedMatch || prov);
                 } else {
                   setSelectedDirectorate(null);
                 }

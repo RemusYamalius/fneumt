@@ -217,8 +217,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
     const parsed = parseProvinceName(rawName);
     const displayName = lang === 'ar' ? parsed.ar : parsed.fr;
     setSelectedProvince(displayName);
-    // Always pass FR name for data matching, but display name for UI
-    onProvinceSelect?.(parsed.fr);
+    // Pass the raw bilingual GeoJSON name so the page can map it to the stored Arabic directorate name
+    onProvinceSelect?.(rawName);
     onProvinceNameChange?.(displayName);
   }, [onProvinceSelect, onProvinceNameChange, parseProvinceName, lang]);
 

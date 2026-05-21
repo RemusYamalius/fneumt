@@ -157,10 +157,7 @@ const QuickFilter = () => {
       }
 
       if (filters.academy) query = query.eq('academy', filters.academy);
-      if (filters.directorate) {
-        const cleanDir = filters.directorate.trim();
-        query = query.or(`directorate.eq.${cleanDir},directorate.ilike.%${cleanDir}%`);
-      }
+      if (filters.directorate) query = query.eq('directorate', filters.directorate.trim());
       if (filters.institution) query = query.ilike('institution', `%${sanitizeSearchInput(filters.institution)}%`);
       if (filters.gender !== 'all') query = query.eq('gender', filters.gender);
       if (filters.mission) query = query.eq('mission', filters.mission);
@@ -308,24 +305,34 @@ const QuickFilter = () => {
               selectedRegion={selectedRegion}
               regionStats={regionStats}
               onProvinceSelect={(prov) => {
-                if (prov) {
-                  const exactMatch = directorates.find(d =>
-                    d.trim().toLowerCase() === prov.trim().toLowerCase()
-                  );
-                  const partialMatch = directorates.find(d =>
-                    prov.toLowerCase().includes(d.toLowerCase()) ||
-                    d.toLowerCase().includes(prov.toLowerCase())
-                  );
-                  const normalize = (s: string) => s.toLowerCase().replace(/[\s\-–—]/g, '');
-                  const normalizedMatch = directorates.find(d =>
-                    normalize(d) === normalize(prov) ||
-                    normalize(prov).includes(normalize(d)) ||
-                    normalize(d).includes(normalize(prov))
-                  );
-                  setSelectedDirectorate(exactMatch || partialMatch || normalizedMatch || prov);
-                } else {
-                  setSelectedDirectorate(null);
-                }
+                if (!prov) { setSelectedDirectorate(null); return; }
+
+                // Step 1: Extract Arabic part from bilingual name
+                const arabicPart = prov.match(/[\u0600-\u06FF][\u0600-\u06FF\s\-–]+/)?.[0]?.trim() || prov;
+
+                // Step 2: Strip Arabic prefix إقليم / عمالة
+                const stripArabicPrefix = (s: string) =>
+                  s.replace(/^(إقليم|عمالة)\s+/, '').trim();
+
+                const cleanedAr = stripArabicPrefix(arabicPart);
+
+                // Step 3: Normalize for fuzzy matching
+                const normalize = (s: string) =>
+                  s.trim()
+                   .replace(/[\s\-–—]/g, '')
+                   .replace(/ة$/, 'ه');
+
+                const allDirectorates = directorates.length > 0
+                  ? directorates
+                  : ACADEMIES.flatMap(a => a.directorates);
+
+                const match =
+                  allDirectorates.find(d => d === cleanedAr) ||
+                  allDirectorates.find(d => normalize(d) === normalize(cleanedAr)) ||
+                  allDirectorates.find(d => normalize(cleanedAr).includes(normalize(d))) ||
+                  allDirectorates.find(d => normalize(d).includes(normalize(cleanedAr)));
+
+                setSelectedDirectorate(match ?? cleanedAr);
               }}
               onProvinceNameChange={setSelectedProvinceName}
             />

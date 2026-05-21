@@ -353,15 +353,11 @@ const OrbitalFilter = ({ selectedAcademy, selectedDirectorate, onSearch, isFulls
   });
 
   useEffect(() => {
-    if (selectedAcademy !== filters.academy) {
-      setFilters(prev => ({ ...prev, academy: selectedAcademy, directorate: selectedDirectorate }));
-    }
-  }, [selectedAcademy]);
+    setFilters(prev => ({ ...prev, academy: selectedAcademy, directorate: selectedDirectorate }));
+  }, [selectedAcademy, selectedDirectorate]);
 
   useEffect(() => {
-    if (selectedDirectorate !== filters.directorate) {
-      setFilters(prev => ({ ...prev, directorate: selectedDirectorate }));
-    }
+    setFilters(prev => ({ ...prev, directorate: selectedDirectorate }));
   }, [selectedDirectorate]);
 
   const directorates = useMemo(() => {

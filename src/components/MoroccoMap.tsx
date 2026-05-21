@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { geoMercator, geoPath, geoCentroid } from 'd3-geo';
@@ -117,6 +117,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
   const [view, setView] = useState<'country' | 'region'>('country');
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [regionTooltipPos, setRegionTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     fetch('/geo/regions.geojson').then(r => r.json()).then(setGeoData).catch(console.error);
@@ -259,7 +261,8 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
         {view === 'country' ? (
           <motion.div
             key="country"
-            className="w-full h-full flex items-center justify-center"
+            className="w-full h-full flex items-center justify-center relative"
+            ref={mapContainerRef}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
@@ -269,6 +272,14 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
               viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
               className={`w-full h-full ${isFullscreen ? 'max-h-[90vh]' : 'max-h-[600px]'}`}
               style={{ display: 'block', overflow: 'hidden', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.15))' }}
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                setRegionTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+              }}
+              onMouseLeave={() => {
+                setHoveredRegion(null);
+                setRegionTooltipPos(null);
+              }}
             >
               <defs>
                 <filter id="glow">
@@ -303,6 +314,18 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                       onMouseEnter={() => setHoveredRegion(geoId)}
                       onMouseLeave={() => setHoveredRegion(null)}
                       onClick={() => handleRegionClick(mapping)}
+                      onTouchStart={(e) => {
+                        const touch = e.touches[0];
+                        const svg = e.currentTarget.closest('svg');
+                        if (!svg) return;
+                        const rect = svg.getBoundingClientRect();
+                        setHoveredRegion(geoId);
+                        setRegionTooltipPos({ x: touch.clientX - rect.left, y: touch.clientY - rect.top });
+                        setTimeout(() => {
+                          setHoveredRegion(null);
+                          setRegionTooltipPos(null);
+                        }, 2500);
+                      }}
                     />
                     {mapping && center && (
                       <text
@@ -322,22 +345,57 @@ const MoroccoMap = ({ onRegionSelect, selectedRegion, regionStats, onProvinceSel
                         {lang === 'ar' ? mapping.nameAr.split(' – ')[0] : mapping.nameFr.split('-')[0]}
                       </text>
                     )}
-                    {isHovered && stats && !isSelected && center && (
-                      <g>
-                        <rect x={center[0] - 50} y={center[1] + 14} width={100} height={36} rx={8}
-                          fill="#001D39" fillOpacity={0.92} stroke="#49769F" strokeWidth={0.5} />
-                        <text x={center[0]} y={center[1] + 28} textAnchor="middle" fill="#7BBDE8" fontSize={8}>
-                          {lang === 'ar' ? `${stats.total} مسجل` : `${stats.total} inscrits`}
-                        </text>
-                        <text x={center[0]} y={center[1] + 42} textAnchor="middle" fill="#6EA2B3" fontSize={7.5}>
-                          {lang === 'ar' ? `${stats.members} منخرط` : `${stats.members} adhérents`}
-                        </text>
-                      </g>
-                    )}
                   </g>
                 );
               })}
             </svg>
+            <AnimatePresence>
+              {hoveredRegion && regionTooltipPos && (() => {
+                const hoveredMapping = regionFeatures.find(r => r.feature.properties?.id === hoveredRegion)?.mapping;
+                const stats = hoveredMapping ? regionStats?.[hoveredMapping.academyLabel] : undefined;
+                if (!stats || !hoveredMapping) return null;
+
+                const containerW = mapContainerRef.current?.clientWidth ?? 400;
+                const containerH = mapContainerRef.current?.clientHeight ?? 400;
+                const tooltipW = 140;
+                const tooltipH = 70;
+
+                const x = regionTooltipPos.x + 12 + tooltipW > containerW
+                  ? regionTooltipPos.x - tooltipW - 8
+                  : regionTooltipPos.x + 12;
+                const y = regionTooltipPos.y + tooltipH > containerH
+                  ? regionTooltipPos.y - tooltipH - 8
+                  : regionTooltipPos.y - 20;
+
+                return (
+                  <motion.div
+                    key="region-tooltip"
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.92 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute pointer-events-none z-30 px-3 py-2 rounded-xl border border-[#49769F]/60 shadow-2xl"
+                    style={{
+                      left: Math.max(4, Math.min(x, containerW - tooltipW - 4)),
+                      top: Math.max(4, y),
+                      width: tooltipW,
+                      background: 'rgba(0, 29, 57, 0.95)',
+                      backdropFilter: 'blur(8px)',
+                    }}
+                  >
+                    <p className="text-[11px] font-bold text-[#7BBDE8]">
+                      {lang === 'ar' ? hoveredMapping.nameAr?.split(' – ')[0] : hoveredMapping.nameFr?.split('-')[0]}
+                    </p>
+                    <p className="text-[11px] text-white font-semibold mt-0.5">
+                      {stats.total} {lang === 'ar' ? 'مسجل' : 'inscrits'}
+                    </p>
+                    <p className="text-[10px] text-[#6EA2B3]">
+                      {stats.members} {lang === 'ar' ? 'منخرط' : 'adhérents'}
+                    </p>
+                  </motion.div>
+                );
+              })()}
+            </AnimatePresence>
           </motion.div>
         ) : (
           <motion.div

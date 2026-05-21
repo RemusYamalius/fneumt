@@ -1,32 +1,17 @@
-## إصلاح بطاقة إحصائيات الجهة في الخارطة التفاعلية
+## Fix province/directorate search bug
 
-البطاقة حالياً مرسومة داخل `<svg>` بإحداثيات ثابتة (`center[0] - 50`, `center[1] + 14`)، فتُقتطع عند الجهات الواقعة على حواف الخارطة (شمال، شرق، غرب).
+Apply the 4 surgical edits exactly as specified by the user.
 
-### الحل
-استبدال البطاقة المرسومة داخل SVG ببطاقة HTML overlay فوق الخارطة، مع تموضع ذكي يحترم حدود الحاوية، ودعم اللمس على الموبايل.
+### File 1: `src/pages/QuickFilter.tsx`
+- **Edit A** — Replace the `onProvinceSelect` handler with the 3-tier matching logic (exact → partial → normalized) so map province clicks map reliably to the academy's directorate list.
+- **Edit B** — In `handleSearch`, replace the `filters.directorate` exact `eq` with an `or(directorate.eq.<val>,directorate.ilike.%<val>%)` to tolerate minor stored-value differences.
 
-### التعديلات على `src/components/MoroccoMap.tsx`
+### File 2: `src/components/OrbitalFilter.tsx`
+- **Edit C** — Remove the `selectedDirectorate !== filters.directorate` guard from the `selectedDirectorate` sync effect so it always propagates.
+- **Edit D** — Remove the `selectedAcademy !== filters.academy` guard from the academy sync effect and add `selectedDirectorate` to its dependency array.
 
-1. **حالة جديدة + ref للحاوية:**
-   - `mapContainerRef` (HTMLDivElement) لقياس أبعاد الحاوية.
-   - `regionTooltipPos: { x, y } | null` لتتبع موقع المؤشر/اللمس.
+### Scope
+No other UI, logic, styles, or files are touched. No DB or RLS changes.
 
-2. **حذف بطاقة SVG القديمة** (`<g>` التي تحتوي على `<rect>` و `<text>` تستخدم `center[0] - 50`).
-
-3. **تحديث `onMouseMove`/`onMouseLeave` على الـ `<svg>`** لتحديث `regionTooltipPos` وتصفيره عند الخروج.
-
-4. **إضافة `onTouchStart` على كل `<path>` للجهة** لدعم الموبايل: يضبط `hoveredRegion` و`regionTooltipPos`، ثم يصفّرهما بعد 2.5 ثانية.
-
-5. **إضافة `ref={mapContainerRef}` و `relative`** على الـ `motion.div` الخاص بعرض الدولة.
-
-6. **إضافة overlay HTML بعد `</svg>`** يعرض البطاقة:
-   - عرض ~140px وارتفاع ~60px.
-   - تموضع ذكي: ينقلب يساراً إذا اقترب من الحافة اليمنى، وأعلى إذا اقترب من السفلى.
-   - `clamp` نهائي عبر `Math.max/Math.min` لضمان البقاء داخل الحاوية.
-   - محتوى البطاقة: اسم الجهة (مختصر)، عدد المسجلين، عدد المنخرطين، بالعربية/الفرنسية.
-   - رسوم متحركة عبر `AnimatePresence` + `motion.div`.
-
-### ملاحظات
-- لا تغيير على المنطق الوظيفي (الاختيار، التنقّل بين العرض الوطني/الجهوي، الإحصائيات).
-- البطاقة الجديدة `pointer-events-none` حتى لا تعطّل النقر على الجهات.
-- نفس البطاقة تعمل على hover (سطح المكتب) و touch (الموبايل).
+### Verification
+After applying, click a province on the Morocco map → confirm the directorate chip updates and Search returns the expected profiles (no false "لا توجد نتائج مطابقة").

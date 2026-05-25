@@ -100,40 +100,9 @@ const SecurityLog = () => {
       isInitialLoadRef.current = false;
     })();
 
-    // Realtime subscription for new audit log entries
-    const channel = supabase
-      .channel('security-audit-log-realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'security_audit_log' },
-        (payload) => {
-          const newLog = payload.new as AuditLog;
-          setLogs((prev) => [newLog, ...prev].slice(0, 500));
-          if (newLog.severity === 'critical') {
-            playCriticalAlert();
-            toast.error(
-              dir === 'rtl' ? '🚨 حدث أمني حرج' : '🚨 Évènement critique',
-              {
-                description: t[`event_${newLog.event_type}`] || newLog.event_type,
-                duration: 8000,
-              },
-            );
-          } else if (newLog.severity === 'warning') {
-            toast.warning(
-              dir === 'rtl' ? '⚠️ تحذير أمني' : '⚠️ Avertissement',
-              {
-                description: t[`event_${newLog.event_type}`] || newLog.event_type,
-                duration: 5000,
-              },
-            );
-          }
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Poll for new entries (realtime broadcast disabled for the sensitive audit log)
+    const interval = setInterval(() => { fetchLogs(); }, 15000);
+    return () => { clearInterval(interval); };
   }, [fetchLogs, playCriticalAlert, dir, t]);
 
   const filteredLogs = useMemo(() => {

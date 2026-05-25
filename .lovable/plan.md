@@ -1,32 +1,24 @@
-## Fix: pass selectedDirectorate/selectedRegion as fallbacks to handleSearch
+## Fix RTL table column alignment
 
-Three surgical edits in `src/pages/QuickFilter.tsx`. No other files.
+Add `text-right` to all `TableHead` and `TableCell` elements so headers align above their data columns in RTL context. Checkbox column gets `text-center`.
 
-### Edit 1 — Inline OrbitalFilter `onSearch`
-Wrap `handleSearch` to merge map selections as fallbacks:
-```tsx
-onSearch={(f) => handleSearch({
-  ...f,
-  academy: f.academy || selectedRegion?.academyLabel || null,
-  directorate: f.directorate || selectedDirectorate,
-})}
-```
+### Files
 
-### Edit 2 — Fullscreen OrbitalFilter `onSearch`
-Same fallback merge after closing fullscreen:
-```tsx
-onSearch={(f) => {
-  setIsOrbitalFullscreen(false);
-  handleSearch({
-    ...f,
-    academy: f.academy || selectedRegion?.academyLabel || null,
-    directorate: f.directorate || selectedDirectorate,
-  });
-}}
-```
+**1. `src/components/SearchResultsTable.tsx`**
+- Checkbox `TableHead`: add `text-center`
+- 7 data `TableHead`s (Name, Academy, Directorate, Mission, Membership, Phone, PPR): add `text-right`
+- Body `TableCell`s for full_name, academy, directorate, mission, phone, employee_number: add `text-right`
+- (Membership badge cell + checkbox cell left as-is since they're centered/start visuals)
 
-### Edit 3 — `handleSearch` deps
-Change `}, [lang]);` → `}, [lang, selectedDirectorate, selectedRegion]);`
+**2. `src/pages/admin/SecurityLog.tsx`**
+- Read file, then add `text-right` to all `TableHead` and `TableCell` elements (Date, Event Type, Severity, User, Details columns).
 
-### Scope
-Only the three blocks above. No UI, DB, or logic changes elsewhere.
+**3. `src/pages/admin/UserManagement.tsx`**
+- Read file, then add `text-right` to all `TableHead` and `TableCell` elements.
+
+**4. `src/pages/JoinRequests.tsx`**
+- Read file, then add `text-right` to all `TableHead` and `TableCell` elements.
+
+### Out of scope
+- No functionality, data, or logic changes.
+- No changes to `src/components/ui/table.tsx` defaults.

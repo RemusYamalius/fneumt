@@ -92,7 +92,7 @@ const SearchResultsTable = ({ results, onMessage, lang }: SearchResultsTableProp
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead className="w-12">
+              <TableHead className="w-12 text-center">
                 <Checkbox
                   checked={allSelected}
                   // @ts-ignore
@@ -100,13 +100,13 @@ const SearchResultsTable = ({ results, onMessage, lang }: SearchResultsTableProp
                   onCheckedChange={toggleAll}
                 />
               </TableHead>
-              <TableHead className="text-xs font-bold">{lang === 'ar' ? 'الاسم الكامل' : 'Nom complet'}</TableHead>
-              <TableHead className="text-xs font-bold">{lang === 'ar' ? 'الأكاديمية' : 'Académie'}</TableHead>
-              <TableHead className="text-xs font-bold">{lang === 'ar' ? 'المديرية' : 'Direction'}</TableHead>
-              <TableHead className="text-xs font-bold">{lang === 'ar' ? 'المهمة' : 'Mission'}</TableHead>
-              <TableHead className="text-xs font-bold">{lang === 'ar' ? 'الانخراط' : 'Adhésion'}</TableHead>
-              <TableHead className="text-xs font-bold">{lang === 'ar' ? 'الهاتف' : 'Téléphone'}</TableHead>
-              <TableHead className="text-xs font-bold">PPR</TableHead>
+              <TableHead className="text-xs font-bold text-right">{lang === 'ar' ? 'الاسم الكامل' : 'Nom complet'}</TableHead>
+              <TableHead className="text-xs font-bold text-right">{lang === 'ar' ? 'الأكاديمية' : 'Académie'}</TableHead>
+              <TableHead className="text-xs font-bold text-right">{lang === 'ar' ? 'المديرية' : 'Direction'}</TableHead>
+              <TableHead className="text-xs font-bold text-right">{lang === 'ar' ? 'المهمة' : 'Mission'}</TableHead>
+              <TableHead className="text-xs font-bold text-right">{lang === 'ar' ? 'الانخراط' : 'Adhésion'}</TableHead>
+              <TableHead className="text-xs font-bold text-right">{lang === 'ar' ? 'الهاتف' : 'Téléphone'}</TableHead>
+              <TableHead className="text-xs font-bold text-right">PPR</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -128,12 +128,12 @@ const SearchResultsTable = ({ results, onMessage, lang }: SearchResultsTableProp
                     onClick={(e) => e.stopPropagation()}
                   />
                 </TableCell>
-                <TableCell className="text-xs font-medium">{r.full_name || '—'}</TableCell>
-                <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">
+                <TableCell className="text-xs font-medium text-right">{r.full_name || '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate text-right">
                   {r.academy?.replace('الأكاديمية الجهوية للتربية والتكوين لجهة ', '') || '—'}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate">{r.directorate || '—'}</TableCell>
-                <TableCell className="text-xs text-muted-foreground max-w-[100px] truncate">{r.mission || '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground max-w-[120px] truncate text-right">{r.directorate || '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground max-w-[100px] truncate text-right">{r.mission || '—'}</TableCell>
                 <TableCell>
                   {r.is_member ? (
                     <Badge className="bg-[#2ECC71]/15 text-[#2ECC71] border-[#2ECC71]/30 text-[10px]">
@@ -145,8 +145,8 @@ const SearchResultsTable = ({ results, onMessage, lang }: SearchResultsTableProp
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{r.phone || '—'}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{r.employee_number || '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground text-right">{r.phone || '—'}</TableCell>
+                <TableCell className="text-xs text-muted-foreground text-right">{r.employee_number || '—'}</TableCell>
               </motion.tr>
             ))}
           </TableBody>

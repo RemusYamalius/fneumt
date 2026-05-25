@@ -263,11 +263,11 @@ const SecurityLog = () => {
           <Table dir={dir}>
             <TableHeader>
               <TableRow>
-                <TableHead>{t.eventDate || 'التاريخ'}</TableHead>
-                <TableHead>{t.eventType || 'نوع الحدث'}</TableHead>
-                <TableHead>{t.eventSeverity || 'الخطورة'}</TableHead>
-                <TableHead>{t.eventUser || 'المستخدم'}</TableHead>
-                <TableHead>{t.eventDetails || 'التفاصيل'}</TableHead>
+                <TableHead className="text-right">{t.eventDate || 'التاريخ'}</TableHead>
+                <TableHead className="text-right">{t.eventType || 'نوع الحدث'}</TableHead>
+                <TableHead className="text-right">{t.eventSeverity || 'الخطورة'}</TableHead>
+                <TableHead className="text-right">{t.eventUser || 'المستخدم'}</TableHead>
+                <TableHead className="text-right">{t.eventDetails || 'التفاصيل'}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -277,13 +277,13 @@ const SecurityLog = () => {
                 <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">{t.noLogs || 'لا توجد سجلات'}</TableCell></TableRow>
               ) : filteredLogs.map(log => (
                 <TableRow key={log.id}>
-                  <TableCell className="text-xs whitespace-nowrap">{formatDate(log.created_at)}</TableCell>
-                  <TableCell className="font-medium text-sm">{t[`event_${log.event_type}`] || log.event_type}</TableCell>
-                  <TableCell>{getSeverityBadge(log.severity)}</TableCell>
-                  <TableCell className="text-xs font-mono text-muted-foreground">
+                  <TableCell className="text-xs whitespace-nowrap text-right">{formatDate(log.created_at)}</TableCell>
+                  <TableCell className="font-medium text-sm text-right">{t[`event_${log.event_type}`] || log.event_type}</TableCell>
+                  <TableCell className="text-right">{getSeverityBadge(log.severity)}</TableCell>
+                  <TableCell className="text-xs font-mono text-muted-foreground text-right">
                     {log.user_id ? log.user_id.slice(0, 8) : (log.metadata?.email || '—')}
                   </TableCell>
-                  <TableCell className="text-xs max-w-md">
+                  <TableCell className="text-xs max-w-md text-right">
                     <code className="text-xs bg-muted px-2 py-1 rounded block overflow-hidden text-ellipsis whitespace-nowrap">
                       {JSON.stringify(log.metadata || {})}
                     </code>

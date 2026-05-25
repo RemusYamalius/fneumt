@@ -235,21 +235,21 @@ const UserManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-[hsl(207,78%,28%)] to-[hsl(207,78%,38%)]">
-                  <TableHead className="text-white font-bold">{t.fullNameLabel}</TableHead>
-                  <TableHead className="text-white font-bold">{t.emailLabel}</TableHead>
-                  <TableHead className="text-white font-bold">{t.academyLabel}</TableHead>
-                  <TableHead className="text-white font-bold">{t.directorateLabel}</TableHead>
-                  <TableHead className="text-white font-bold">{t.roleLabel || 'الدور'}</TableHead>
+                  <TableHead className="text-white font-bold text-right">{t.fullNameLabel}</TableHead>
+                  <TableHead className="text-white font-bold text-right">{t.emailLabel}</TableHead>
+                  <TableHead className="text-white font-bold text-right">{t.academyLabel}</TableHead>
+                  <TableHead className="text-white font-bold text-right">{t.directorateLabel}</TableHead>
+                  <TableHead className="text-white font-bold text-right">{t.roleLabel || 'الدور'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((u) => (
                   <TableRow key={u.user_id}>
-                    <TableCell className="font-medium">{u.full_name || '—'}</TableCell>
-                    <TableCell>{u.email || '—'}</TableCell>
-                    <TableCell className="text-xs">{u.academy || '—'}</TableCell>
-                    <TableCell className="text-xs">{u.directorate || '—'}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium text-right">{u.full_name || '—'}</TableCell>
+                    <TableCell className="text-right">{u.email || '—'}</TableCell>
+                    <TableCell className="text-xs text-right">{u.academy || '—'}</TableCell>
+                    <TableCell className="text-xs text-right">{u.directorate || '—'}</TableCell>
+                    <TableCell className="text-right">
                       <Select
                         value={u.role}
                         onValueChange={(val) => handleRoleChange(u.user_id, val as AppRole)}

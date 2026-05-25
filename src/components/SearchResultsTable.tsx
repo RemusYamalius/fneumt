@@ -121,7 +121,7 @@ const SearchResultsTable = ({ results, onMessage, lang }: SearchResultsTableProp
                 }`}
                 onClick={() => toggleOne(r.user_id)}
               >
-                <TableCell>
+                <TableCell className="text-center">
                   <Checkbox
                     checked={selectedIds.has(r.user_id)}
                     onCheckedChange={() => toggleOne(r.user_id)}

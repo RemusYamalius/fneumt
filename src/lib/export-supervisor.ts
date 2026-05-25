@@ -6,6 +6,14 @@ import logoFne from '@/assets/logo-fne.png';
 
 type ExportLang = 'ar' | 'fr';
 
+const esc = (s: unknown): string =>
+  String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 const labels: Record<ExportLang, Record<string, string>> = {
   ar: {
     title: 'تقرير لوحة الإشراف',
@@ -137,9 +145,9 @@ export async function exportToPDF(data: ExportData, lang: ExportLang) {
         const stats = data.getDeputyStats(dep.user_id);
         const bg = i % 2 === 0 ? '#fff' : '#f8f9fa';
         return `<tr style="background:${bg};">
-          <td style="padding:6px; border:1px solid #ddd;">${dep.full_name || '—'}</td>
-          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${data.getRoleLabel(dep.role)}</td>
-          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${dep.directorate || '—'}</td>
+          <td style="padding:6px; border:1px solid #ddd;">${esc(dep.full_name || '—')}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${esc(data.getRoleLabel(dep.role))}</td>
+          <td style="padding:6px; border:1px solid #ddd; text-align:center;">${esc(dep.directorate || '—')}</td>
           <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.byStatus.submitted || 0}</td>
           <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.byStatus.viewed || 0}</td>
           <td style="padding:6px; border:1px solid #ddd; text-align:center;">${stats.byStatus.in_progress || 0}</td>

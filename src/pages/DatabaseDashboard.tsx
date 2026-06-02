@@ -75,13 +75,26 @@ const DatabaseDashboard = () => {
   useEffect(() => {
     if (!user) return;
     setLoadingData(true);
+    const fetchAll = async (table: any) => {
+      const pageSize = 1000;
+      let from = 0;
+      let all: any[] = [];
+      while (true) {
+        const { data, error } = await supabase.from(table).select('*').range(from, from + pageSize - 1);
+        if (error || !data) break;
+        all = all.concat(data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+      return all;
+    };
     Promise.all([
-      supabase.from('profiles').select('*').then(r => r.data || []),
-      supabase.from('local_offices').select('*').then(r => r.data || []),
-      supabase.from('local_office_members').select('*').then(r => r.data || []),
-      supabase.from('membership_cards').select('*').then(r => r.data || []),
-      supabase.from('office_finances').select('*').then(r => r.data || []),
-      supabase.from('user_roles').select('*').then(r => r.data || []),
+      fetchAll('profiles'),
+      fetchAll('local_offices'),
+      fetchAll('local_office_members'),
+      fetchAll('membership_cards'),
+      fetchAll('office_finances'),
+      fetchAll('user_roles'),
     ]).then(([p, o, om, mc, of2, ur]) => {
       setProfiles(p);
       setOffices(o);

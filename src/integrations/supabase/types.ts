@@ -918,6 +918,7 @@ export type Database = {
         Returns: boolean
       }
       derive_corps_from_mission: { Args: { _mission: string }; Returns: string }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
